@@ -1,0 +1,310 @@
+{
+  "words": [
+    {
+      "id": "w001",
+      "word": "burglary",
+      "type": ["noun"],
+      "definition": "The crime of illegally entering a building, especially at night, with the intent to commit theft or another offence.",
+      "usage": [
+        "He was sentenced to five years in prison for burglary.",
+        "The burglary occurred while the family was on vacation."
+      ],
+      "opposites": [],
+      "tenses": { "singular": "burglary", "plural": "burglaries" },
+      "related": ["burglar (noun – person)", "burglarize (verb)", "burgle (verb)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w002",
+      "word": "multitude",
+      "type": ["noun"],
+      "definition": "A large number of people or things; a crowd or mass.",
+      "usage": [
+        "A multitude of fans gathered outside the stadium.",
+        "She faced a multitude of challenges in her new role."
+      ],
+      "opposites": ["few", "handful", "minority"],
+      "tenses": { "singular": "multitude", "plural": "multitudes" },
+      "related": ["multitudinous (adjective – very numerous)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 2
+    },
+    {
+      "id": "w003",
+      "word": "braids",
+      "type": ["noun", "verb"],
+      "definition": "Noun: lengths of hair woven together in a pattern. Verb: to weave or intertwine strands of hair, thread, or other material.",
+      "usage": [
+        "She wore her hair in long braids down her back.",
+        "She braids her daughter's hair every morning."
+      ],
+      "opposites": ["unravel", "undo", "loosen"],
+      "tenses": {
+        "present": "braid / braids",
+        "pastSimple": "braided",
+        "pastParticiple": "braided",
+        "presentParticiple": "braiding"
+      },
+      "related": ["braid (base form)", "braided (adjective)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w004",
+      "word": "indignantly",
+      "type": ["adverb"],
+      "definition": "In a manner showing anger or annoyance at something considered unfair or wrong.",
+      "usage": [
+        "She indignantly denied the false accusations.",
+        "He stood up indignantly and left the room."
+      ],
+      "opposites": ["calmly", "contentedly", "cheerfully"],
+      "tenses": {},
+      "related": ["indignant (adjective)", "indignation (noun)", "indignance (noun)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 2
+    },
+    {
+      "id": "w005",
+      "word": "insanity",
+      "type": ["noun"],
+      "definition": "The state of being seriously mentally ill; extreme foolishness or irrationality.",
+      "usage": [
+        "The lawyer pleaded insanity on behalf of her client.",
+        "It would be sheer insanity to drive in that storm."
+      ],
+      "opposites": ["sanity", "rationality", "reason", "lucidity"],
+      "tenses": { "singular": "insanity", "plural": "insanities" },
+      "related": ["insane (adjective)", "insanely (adverb)", "sane (antonym adjective)"],
+      "note": "Note: 'unsanity' is not a standard English word — likely intended as 'insanity'.",
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w006",
+      "word": "throbbed",
+      "type": ["verb"],
+      "definition": "Beat or pulsated with a strong, regular rhythm, often referring to pain, sound, or a heartbeat.",
+      "usage": [
+        "His head throbbed with a terrible migraine.",
+        "The music throbbed through the walls of the club."
+      ],
+      "opposites": ["stilled", "quieted", "calmed"],
+      "tenses": {
+        "present": "throb / throbs",
+        "pastSimple": "throbbed",
+        "pastParticiple": "throbbed",
+        "presentParticiple": "throbbing"
+      },
+      "related": ["throb (noun/verb base)", "throbbing (adjective/participle)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w007",
+      "word": "eerie",
+      "type": ["adjective"],
+      "definition": "Strange and frightening; unsettlingly mysterious or uncanny.",
+      "usage": [
+        "An eerie silence fell over the abandoned building.",
+        "The fog gave the forest an eerie appearance."
+      ],
+      "opposites": ["familiar", "comforting", "ordinary", "pleasant"],
+      "tenses": { "comparative": "eerier", "superlative": "eeriest" },
+      "related": ["eerily (adverb)", "eeriness (noun)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w008",
+      "word": "peered",
+      "type": ["verb"],
+      "definition": "Looked with difficulty or concentration, often through a small opening or at something hard to see.",
+      "usage": [
+        "She peered through the keyhole to see who was inside.",
+        "He peered into the darkness, trying to make out shapes."
+      ],
+      "opposites": ["glanced", "ignored", "overlooked"],
+      "tenses": {
+        "present": "peer / peers",
+        "pastSimple": "peered",
+        "pastParticiple": "peered",
+        "presentParticiple": "peering"
+      },
+      "related": ["peer (noun – equal/contemporary)", "peering (adjective/participle)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w009",
+      "word": "canopied",
+      "type": ["adjective", "verb"],
+      "definition": "Adjective: covered or sheltered by a canopy (an overhanging covering). Verb (past tense of canopy): to cover with or as if with a canopy.",
+      "usage": [
+        "They dined at a canopied outdoor terrace.",
+        "Tall trees canopied the narrow forest path."
+      ],
+      "opposites": ["exposed", "uncovered", "open"],
+      "tenses": {
+        "present": "canopy / canopies",
+        "pastSimple": "canopied",
+        "pastParticiple": "canopied",
+        "presentParticiple": "canopying"
+      },
+      "related": ["canopy (noun)", "canopy bed (compound noun)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 2
+    },
+    {
+      "id": "w010",
+      "word": "commode",
+      "type": ["noun"],
+      "definition": "A piece of furniture, typically a chest of drawers or a bedside cabinet. Also refers to a chair or box enclosing a chamber pot, used as a toilet.",
+      "usage": [
+        "She placed her books on top of the old wooden commode.",
+        "The antique commode was a beautiful piece of 18th-century furniture."
+      ],
+      "opposites": [],
+      "tenses": { "singular": "commode", "plural": "commodes" },
+      "related": ["commodious (adjective – spacious)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 2
+    },
+    {
+      "id": "w011",
+      "word": "philosophical",
+      "type": ["adjective"],
+      "definition": "Relating to philosophy; or having a calm, rational attitude toward life's difficulties.",
+      "usage": [
+        "He took a philosophical approach to his illness.",
+        "They had a long, philosophical debate about the nature of consciousness."
+      ],
+      "opposites": ["pragmatic", "emotional", "irrational", "impulsive"],
+      "tenses": { "comparative": "more philosophical", "superlative": "most philosophical" },
+      "related": ["philosophy (noun)", "philosopher (noun)", "philosophically (adverb)", "philosophize (verb)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 2
+    },
+    {
+      "id": "w012",
+      "word": "swung",
+      "type": ["verb"],
+      "definition": "Past tense of 'swing' — moved back and forth or in a curve; changed direction sharply.",
+      "usage": [
+        "The door swung open with a loud creak.",
+        "She swung around to face her accuser."
+      ],
+      "opposites": ["stilled", "held steady", "froze"],
+      "tenses": {
+        "present": "swing / swings",
+        "pastSimple": "swung",
+        "pastParticiple": "swung",
+        "presentParticiple": "swinging"
+      },
+      "related": ["swing (noun/verb)", "swinging (adjective/participle)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w013",
+      "word": "reverberate",
+      "type": ["verb"],
+      "definition": "To be repeated as an echo; to have a continuing, widespread effect.",
+      "usage": [
+        "The sound of thunder reverberated through the valley.",
+        "The news of his resignation reverberated across the industry."
+      ],
+      "opposites": ["silence", "muffle", "absorb", "dampen"],
+      "tenses": {
+        "present": "reverberate / reverberates",
+        "pastSimple": "reverberated",
+        "pastParticiple": "reverberated",
+        "presentParticiple": "reverberating"
+      },
+      "related": ["reverberation (noun)", "reverberant (adjective)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 3
+    },
+    {
+      "id": "w014",
+      "word": "conceal",
+      "type": ["verb"],
+      "definition": "To keep something hidden or secret; to prevent from being seen or known.",
+      "usage": [
+        "She tried to conceal her disappointment with a smile.",
+        "He concealed the documents under the floorboard."
+      ],
+      "opposites": ["reveal", "expose", "disclose", "uncover", "show"],
+      "tenses": {
+        "present": "conceal / conceals",
+        "pastSimple": "concealed",
+        "pastParticiple": "concealed",
+        "presentParticiple": "concealing"
+      },
+      "related": ["concealment (noun)", "concealed (adjective)", "concealer (noun)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 1
+    },
+    {
+      "id": "w015",
+      "word": "curler cap",
+      "type": ["noun"],
+      "definition": "A cap or covering worn over hair curlers (rollers) to protect them while sleeping or during activities.",
+      "usage": [
+        "She wore a curler cap to bed to protect her freshly set hair.",
+        "The old photograph showed her grandmother in a curler cap and robe."
+      ],
+      "opposites": [],
+      "tenses": { "singular": "curler cap", "plural": "curler caps" },
+      "related": ["curler (noun)", "hair roller (synonym)", "hair net (related)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 2
+    },
+    {
+      "id": "w016",
+      "word": "audacity",
+      "type": ["noun"],
+      "definition": "Bold or daring confidence, often to the point of being shocking or rude; shameless boldness.",
+      "usage": [
+        "She had the audacity to ask for a raise after arriving late every day.",
+        "It took great audacity to challenge the king's authority."
+      ],
+      "opposites": ["timidity", "cowardice", "meekness", "shyness", "humility"],
+      "tenses": { "singular": "audacity", "plural": "audacities" },
+      "related": ["audacious (adjective)", "audaciously (adverb)"],
+      "addedOn": "2025-01-01",
+      "difficulty": 2
+    },
+    {
+      "id": "w017",
+      "word": "benediction",
+      "type": ["noun"],
+      "definition": "A short blessing said at the end of a religious service; more broadly, the act of speaking a blessing or expressing good wishes.",
+      "usage": [
+        "The priest gave the benediction before the congregation left the church.",
+        "The elder's benediction at the ceremony moved everyone to tears."
+      ],
+      "opposites": ["malediction", "curse", "condemnation"],
+      "tenses": { "singular": "benediction", "plural": "benedictions" },
+      "related": ["benedictory (adjective)", "benedict (noun)", "benedicite"],
+      "addedOn": "2026-03-14",
+      "difficulty": 3
+    },
+    {
+      "id": "w018",
+      "word": "pragmatic",
+      "type": ["adjective"],
+      "definition": "Dealing with things in a sensible, practical way based on actual conditions rather than fixed ideas or theories.",
+      "usage": [
+        "She took a pragmatic approach to solving the budget problem.",
+        "He was too pragmatic to believe in quick fixes."
+      ],
+      "opposites": ["idealistic", "impractical", "unrealistic", "theoretical", "philosophical"],
+      "tenses": { "comparative": "more pragmatic", "superlative": "most pragmatic" },
+      "related": ["pragmatism (noun)", "pragmatist (noun)", "pragmatically (adverb)"],
+      "addedOn": "2026-03-14",
+      "difficulty": 2
+    }
+  ]
+}

@@ -1,0 +1,2969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexicon — Vocabulary Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  // ── FIREBASE CONFIG ── 
+  // IMPORTANT: Replace these values with your own Firebase project configuration.
+  // Get them from: https://console.firebase.google.com → Your Project → Project Settings → Web App
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MSG_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Expose to global scope for use in inline scripts
+  window._fbAuth = auth;
+  window._fbDb = db;
+  window._fbSignInWithPopup = signInWithPopup;
+  window._fbGoogleProvider = new GoogleAuthProvider();
+  window._fbSignInEmail = signInWithEmailAndPassword;
+  window._fbCreateEmail = createUserWithEmailAndPassword;
+  window._fbSignOut = signOut;
+  window._fbSendPasswordReset = sendPasswordResetEmail;
+  window._fbDoc = doc;
+  window._fbGetDoc = getDoc;
+  window._fbSetDoc = setDoc;
+  window._fbUpdateDoc = updateDoc;
+  window._fbOnAuthStateChanged = onAuthStateChanged;
+
+  // Auth state listener — called as soon as Firebase SDK is ready
+  onAuthStateChanged(auth, (user) => {
+    if (window.handleAuthState) window.handleAuthState(user);
+    else window._pendingAuthUser = user; // store until app is ready
+  });
+</script>
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --gold: #c9a84c;
+    --gold-light: #e8d49a;
+    --rust: #c0512f;
+    --sage: #5a7a5e;
+    --muted: #8a7f72;
+    --card-bg: #faf7f2;
+    --border: #d4c9b8;
+    --sidebar-bg: #1e1e1e; /* ChatGPT-like dark sidebar */
+    --sidebar-text: #ececf1;
+    --sidebar-hover: #2a2b32;
+    --accent: #10a37f; /* OpenAI Green */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(180,165,140,0.15) 27px, rgba(180,165,140,0.15) 28px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app { 
+    display: flex; 
+    width: 100%;
+    height: 100vh;
+    z-index: 1; 
+  }
+
+  /* ── SIDEBAR ── */
+  aside {
+    width: 260px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    flex-shrink: 0;
+    z-index: 101;
+  }
+
+  .new-project-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    background: transparent;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.2s;
+  }
+  .new-project-btn:hover { background: var(--sidebar-hover); }
+
+  .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .project-item-sidebar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+    color: var(--sidebar-text);
+    position: relative;
+  }
+  .project-item-sidebar:hover { background: var(--sidebar-hover); }
+  .project-item-sidebar.active { background: var(--sidebar-hover); font-weight: 500; }
+  .project-item-sidebar i { font-size: 1rem; color: #8e8ea0; }
+
+  .project-actions {
+    position: absolute;
+    right: 8px;
+    display: none;
+    gap: 8px;
+  }
+  .project-item-sidebar:hover .project-actions { display: flex; }
+  .project-action-btn { background: none; border: none; color: #8e8ea0; cursor: pointer; font-size: 0.8rem; }
+  .project-action-btn:hover { color: white; }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* ── HEADER (Inside Main) ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 36px;
+    border-bottom: 1.5px solid var(--border);
+    background: rgba(245,240,232,0.92);
+    backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .logo span { color: var(--gold); }
+
+  .word-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  nav {
+    display: flex;
+    gap: 6px;
+  }
+
+  nav button {
+    padding: 7px 16px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  nav button:hover { border-color: var(--gold); color: var(--ink); }
+  nav button.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* ── VIEWS ── */
+  .view { display: none; padding: 40px 36px; max-width: 900px; margin: 0 auto; }
+  .view.active { display: block; }
+
+  /* ── DICTIONARY VIEW ── */
+  .dict-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .dict-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+  }
+  .dict-header p { color: var(--muted); font-size: 0.85rem; }
+
+  .dict-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 640px) { .dict-grid { grid-template-columns: 1fr; } }
+
+  .dict-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .dict-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  .dict-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .dict-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .dict-def {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .dict-score {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* ── WORD MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,20,16,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 36px;
+    max-width: 620px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none; border: none;
+    font-size: 1.4rem;
+    cursor: pointer; color: var(--muted);
+    line-height: 1;
+  }
+
+  .modal-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .modal-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .modal-section { margin-bottom: 18px; }
+  .modal-section h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+  }
+
+  .modal-def { font-size: 0.95rem; line-height: 1.65; }
+
+  .usage-item {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-style: italic;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--border);
+    line-height: 1.5;
+  }
+  .usage-item:last-child { border-bottom: none; }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+  }
+
+  /* ── AI MODAL ── */
+  .ai-upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 30px;
+    text-align: center;
+    margin: 20px 0;
+    cursor: pointer;
+    background: var(--bg);
+    transition: background 0.2s;
+  }
+  .ai-upload-area:hover { background: #fdfaf6; }
+  .ai-upload-area input[type="file"] { display: none; }
+  
+  .ai-api-key-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    background: var(--bg);
+  }
+
+  /* ── PROJECT SYSTEM ── */
+  .project-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: auto;
+  }
+  .project-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card-bg);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .manage-projects-btn {
+    padding: 8px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .project-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .project-item:last-child { border-bottom: none; }
+  .delete-project-btn {
+    color: var(--rust);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-decoration: underline;
+  }
+
+  /* ── CUSTOM CARD MODAL ── */
+  .custom-card-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .custom-card-form label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .custom-card-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    background: var(--bg);
+    resize: vertical;
+    min-height: 80px;
+  }
+  .custom-card-btn {
+    padding: 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 10px;
+  }
+  .tag {
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink);
+  }
+  .tag.opposite { border-color: var(--rust); color: var(--rust); }
+  .tag.related { border-color: var(--sage); color: var(--sage); }
+  .tag.tense { border-color: var(--gold); color: #8a6a20; }
+
+  .modal-note {
+    background: rgba(201,168,76,0.1);
+    border-left: 3px solid var(--gold);
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* ── FLASHCARD VIEW ── */
+  .flash-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .mode-btn {
+    padding: 8px 18px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 2px;
+    color: var(--muted);
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .mode-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .mode-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .flash-progress {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width 0.4s ease;
+    border-radius: 2px;
+  }
+
+  /* Flip card */
+  .flip-scene {
+    perspective: 1000px;
+    margin-bottom: 24px;
+  }
+
+  .flip-card {
+    width: 100%;
+    min-height: 300px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer;
+  }
+  .flip-card.flipped { transform: rotateY(180deg); }
+
+  .flip-front, .flip-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .flip-back { transform: rotateY(180deg); }
+
+  .flip-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .flip-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .flip-type-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .flip-hint {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 20px;
+  }
+
+  .flip-def {
+    font-size: 1rem;
+    line-height: 1.65;
+    max-width: 500px;
+    margin-bottom: 16px;
+  }
+
+  .flip-usage {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.55;
+    padding: 12px 16px;
+    background: rgba(212,201,184,0.25);
+    border-radius: 3px;
+    border-left: 3px solid var(--gold);
+    text-align: left;
+    width: 100%;
+  }
+
+  .flip-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .action-btn {
+    padding: 10px 28px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    color: var(--ink);
+  }
+
+  .action-btn.correct { border-color: var(--sage); color: var(--sage); }
+  .action-btn.wrong { border-color: var(--rust); color: var(--rust); }
+  .action-btn.correct:hover { background: var(--sage); color: white; }
+  .action-btn.wrong:hover { background: var(--rust); color: white; }
+  .action-btn.next { border-color: var(--ink); }
+  .action-btn.next:hover { background: var(--ink); color: var(--paper); }
+
+  /* ── QUIZ VIEW ── */
+  .quiz-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 40px;
+    margin-bottom: 20px;
+  }
+
+  .quiz-instruction {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .quiz-question {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  .quiz-blank {
+    display: inline-block;
+    border-bottom: 2px solid var(--ink);
+    min-width: 120px;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .quiz-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 500px) { .quiz-options { grid-template-columns: 1fr; } }
+
+  .quiz-option {
+    padding: 14px 18px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 3px;
+    text-align: left;
+    transition: all 0.2s;
+    color: var(--ink);
+  }
+  .quiz-option:hover { border-color: var(--gold); }
+  .quiz-option.selected-correct { background: rgba(90,122,94,0.1); border-color: var(--sage); color: var(--sage); }
+  .quiz-option.selected-wrong { background: rgba(192,81,47,0.1); border-color: var(--rust); color: var(--rust); }
+  .quiz-option.reveal-correct { background: rgba(90,122,94,0.1); border-color: var(--sage); color: var(--sage); }
+  .quiz-option:disabled { cursor: default; }
+
+  .quiz-feedback {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    display: none;
+    line-height: 1.55;
+  }
+  .quiz-feedback.correct { background: rgba(90,122,94,0.12); border-left: 3px solid var(--sage); color: #3a5a3e; display: block; }
+  .quiz-feedback.wrong { background: rgba(192,81,47,0.1); border-left: 3px solid var(--rust); color: var(--rust); display: block; }
+
+  .quiz-next {
+    width: 100%;
+    padding: 14px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+    text-transform: uppercase;
+  }
+  .quiz-next:hover { opacity: 0.85; }
+
+  /* Fill blank */
+  .blank-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    background: var(--paper);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    border-radius: 3px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 14px;
+  }
+  .blank-input:focus { border-color: var(--gold); }
+  .blank-input.correct { border-color: var(--sage); background: rgba(90,122,94,0.06); }
+  .blank-input.wrong { border-color: var(--rust); background: rgba(192,81,47,0.05); }
+
+  .submit-btn {
+    padding: 10px 28px;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: opacity 0.2s;
+  }
+  .submit-btn:hover { opacity: 0.85; }
+
+  /* ── STATS VIEW ── */
+  .stats-header {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-bottom: 28px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 500px) { .stats-grid { grid-template-columns: 1fr; } }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .quiz-nav-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .nav-arrow {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .nav-arrow:hover:not(:disabled) { 
+    color: var(--ink); 
+    border-color: var(--gold);
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .nav-arrow:disabled { 
+    opacity: 0.3; 
+    cursor: default; 
+    box-shadow: none;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .word-stats-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .word-stat-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+  }
+
+  .ws-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    min-width: 140px;
+  }
+
+  .ws-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .ws-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  .ws-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    min-width: 70px;
+    text-align: right;
+    color: var(--muted);
+  }
+
+  .session-done {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .session-done h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+
+  .session-done p {
+    color: var(--muted);
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+  }
+
+  .restart-btn {
+    padding: 12px 36px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: opacity 0.2s;
+  }
+  .restart-btn:hover { opacity: 0.8; }
+
+  .score-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: var(--gold);
+    margin: 16px 0;
+  }
+
+  /* Level Selection */
+  .level-select {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 40px 0;
+  }
+  .level-btn {
+    width: 100%;
+    max-width: 300px;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .level-btn:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .level-btn h3 { font-family: 'Playfair Display', serif; margin-bottom: 4px; }
+  .level-btn p { font-size: 0.8rem; color: var(--muted); }
+  .level-btn.easy h3 { color: var(--sage); }
+  .level-btn.medium h3 { color: var(--gold); }
+  .level-btn.hard h3 { color: var(--rust); }
+
+  /* Project Selector */
+  .project-selector-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 16px;
+  }
+  .project-select {
+    padding: 6px 12px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--ink);
+    cursor: pointer;
+    outline: none;
+  }
+  .project-select:focus { border-color: var(--gold); }
+  .add-project-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: opacity 0.2s;
+  }
+  .add-project-btn:hover { opacity: 0.8; }
+
+  /* ── AUTH STYLES ── */
+  #loginScreen {
+    position: fixed; inset: 0;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    font-family: 'DM Sans', sans-serif;
+  }
+  body::before { z-index: 0; }
+  #loginScreen::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(180,165,140,0.15) 27px, rgba(180,165,140,0.15) 28px);
+    pointer-events: none;
+  }
+  .login-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 48px 40px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.08);
+    position: relative;
+    z-index: 1;
+  }
+  .login-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .login-logo span { color: var(--gold); }
+  .login-subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 32px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+  }
+  .login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+  }
+  .login-divider::before, .login-divider::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--border);
+  }
+  .login-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: var(--paper);
+    color: var(--ink);
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .login-input:focus { border-color: var(--gold); }
+  .login-btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .login-btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    margin-bottom: 10px;
+  }
+  .login-btn-primary:hover { opacity: 0.85; }
+  .login-btn-google {
+    background: white;
+    color: #3c4043;
+    border: 1.5px solid var(--border) !important;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.88rem;
+    margin-bottom: 10px;
+    transition: box-shadow 0.2s, background 0.2s;
+  }
+  .login-btn-google:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); background: #f8f8f8; }
+  .login-toggle {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .login-toggle a {
+    color: var(--gold);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .login-error {
+    background: rgba(192,81,47,0.1);
+    border-left: 3px solid var(--rust);
+    color: var(--rust);
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    border-radius: 2px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .login-forgot {
+    text-align: right;
+    margin-top: -4px;
+    margin-bottom: 12px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .login-forgot a { color: var(--gold); cursor: pointer; text-decoration: underline; }
+  .login-notice {
+    background: rgba(201,168,76,0.12);
+    border-left: 3px solid var(--gold);
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-radius: 2px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .login-notice strong { color: var(--ink); }
+  .skip-login-btn {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .skip-login-btn:hover { color: var(--ink); }
+
+  /* ── SIDEBAR PROFILE ── */
+  .sidebar-profile {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .profile-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-info {
+    flex: 1;
+    overflow: hidden;
+  }
+  .profile-name {
+    font-size: 0.82rem;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--sidebar-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+  .profile-status {
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    color: #8e8ea0;
+    letter-spacing: 0.04em;
+  }
+  .profile-status.synced { color: #10a37f; }
+  .profile-signout-btn {
+    background: none;
+    border: none;
+    color: #8e8ea0;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.04em;
+    text-align: left;
+    padding: 4px 0;
+    transition: color 0.2s;
+  }
+  .profile-signout-btn:hover { color: var(--rust); }
+  .profile-signin-btn {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 5px;
+    color: var(--sidebar-text);
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .profile-signin-btn:hover { background: rgba(255,255,255,0.12); }
+  .version-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: #8e8ea0;
+    margin-top: 2px;
+  }
+  /* Cloud sync badge */
+  .cloud-badge {
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(16,163,127,0.15);
+    color: #10a37f;
+    letter-spacing: 0.04em;
+  }
+  /* Sync indicator animation */
+  @keyframes syncPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .syncing { animation: syncPulse 1.2s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">Lexi<span>con</span></div>
+    <div class="login-subtitle">Your personal vocabulary library</div>
+    <div class="login-notice">
+      <strong>Note:</strong> To enable cloud sync across devices, you need a Firebase project. You can use the app locally without signing in.
+    </div>
+    <div class="login-error" id="loginError"></div>
+
+    <!-- Google -->
+    <button class="login-btn login-btn-google" onclick="signInGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 30 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-21 0-1.3-.2-2.7-.5-5z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 46c5.9 0 10.9-2 14.5-5.4l-6.7-5.5C29.8 36.7 27.1 37.5 24 37.5c-5.9 0-10.9-3.9-12.8-9.3l-7 5.4C7.7 41.2 15.4 46 24 46z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.8 3-3.1 5.5-6.1 7.1l6.7 5.5C40.8 37.4 45 31.6 45 24c0-1.4-.2-2.7-.5-4z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="login-divider">or</div>
+
+    <!-- Email form -->
+    <div id="loginEmailForm">
+      <input class="login-input" type="email" id="loginEmail" placeholder="Email address" autocomplete="email"/>
+      <input class="login-input" type="password" id="loginPassword" placeholder="Password" autocomplete="current-password"/>
+      <div class="login-forgot"><a onclick="handleForgotPassword()">Forgot password?</a></div>
+      <button class="login-btn login-btn-primary" onclick="signInEmail()">Sign In</button>
+      <div class="login-toggle">Don't have an account? <a onclick="toggleSignUpMode()">Create one</a></div>
+    </div>
+
+    <div id="loginSignUpForm" style="display:none;">
+      <input class="login-input" type="email" id="signupEmail" placeholder="Email address" autocomplete="email"/>
+      <input class="login-input" type="password" id="signupPassword" placeholder="Password (min 6 chars)" autocomplete="new-password"/>
+      <button class="login-btn login-btn-primary" onclick="signUpEmail()">Create Account</button>
+      <div class="login-toggle">Already have an account? <a onclick="toggleSignUpMode()">Sign in</a></div>
+    </div>
+
+    <button class="skip-login-btn" onclick="skipLogin()">Continue without signing in (local only)</button>
+  </div>
+</div>
+
+<div id="loadingScreen" style="display:none;align-items:center;justify-content:center;min-height:100vh;font-family:'Playfair Display',serif;font-size:1.2rem;color:#8a7f72;letter-spacing:0.05em;">Loading vocabulary...</div>
+<div id="app" style="display:none;">
+  <aside>
+    <button class="new-project-btn" onclick="openProjectModal()">
+      <span>+</span> New Project
+    </button>
+    <div class="sidebar-nav" id="sidebarProjectList">
+      <!-- Projects will be rendered here -->
+    </div>
+    <div class="sidebar-profile" id="sidebarProfile">
+      <!-- Filled by JS based on auth state -->
+      <button class="profile-signin-btn" onclick="openLoginScreen()" id="sidebarSigninBtn">
+        <span>👤</span> Sign In / Create Account
+      </button>
+      <div class="version-label">Lexicon v2.0</div>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <h2 id="currentProjectTitle" style="font-family: 'Playfair Display', serif; font-size: 1.4rem;">All Words</h2>
+        <div class="word-count" id="wordCount">... words</div>
+      </div>
+      <nav>
+        <button class="active" onclick="showView('dictionary', this)">Dictionary</button>
+        <button onclick="showView('flashcards', this)">Flashcards</button>
+        <button onclick="showView('quiz', this)">Quiz</button>
+        <button onclick="showView('fill', this)">Fill Blanks</button>
+        <button onclick="showView('stats', this)">Stats</button>
+      </nav>
+    </header>
+
+    <!-- DICTIONARY -->
+    <div class="view active" id="view-dictionary">
+      <div class="dict-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <p style="margin:0; color: var(--muted); font-size: 0.85rem;">Click any word for full details</p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button onclick="openAiModal()" style="padding:10px 14px; background:var(--card-bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.9rem; display:flex; align-items:center; gap:6px;" title="Scan a book page to extract words">📷 Add Photo</button>
+          <input type="text" id="addWordInput" placeholder="Add words (comma separated)..." style="padding:10px 14px; border:1px solid var(--border); border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.9rem; width:220px; background:var(--card-bg); color:var(--ink);">
+          <button id="addWordBtn" onclick="addWords()" style="padding:10px 16px; background:var(--ink); color:var(--paper); border:none; border-radius:4px; cursor:pointer; font-family:'DM Mono',monospace; font-size:0.8rem; letter-spacing:0.05em; text-transform:uppercase; transition:opacity 0.2s;">Add</button>
+        </div>
+      </div>
+    <div class="dict-grid" id="dictGrid"></div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div class="view" id="view-flashcards">
+    <div class="flash-controls" style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+      <div style="display:flex; gap:8px;">
+        <button class="mode-btn active" onclick="setFlashMode('word', this)">Word → Meaning</button>
+        <button class="mode-btn" onclick="setFlashMode('def', this)">Meaning → Word</button>
+        <button class="mode-btn" onclick="setFlashMode('usage', this)">Usage → Word</button>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--muted); font-family:'DM Mono',monospace;">
+          <input type="checkbox" id="includeCustomToggle" onchange="initFlash()" checked style="cursor:pointer;">
+          <label for="includeCustomToggle" style="cursor:pointer;">Include Custom Cards</label>
+        </div>
+        <button onclick="openCustomCardModal()" style="padding:6px 12px; background:var(--card-bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.8rem; display:flex; align-items:center; gap:6px;">+ Create Custom Card</button>
+      </div>
+    </div>
+    <div class="flash-progress">
+      <span id="flashCounter">1 / 16</span>
+      <div class="progress-bar"><div class="progress-fill" id="flashProgress" style="width:6%"></div></div>
+      <span id="flashScore">✓ 0 &nbsp; ✗ 0</span>
+    </div>
+    <div class="flip-scene">
+      <div class="flip-card" id="flipCard" onclick="flipCard()">
+        <div class="flip-front">
+          <div class="flip-label">Tap to reveal</div>
+          <div class="flip-word" id="flashFront">—</div>
+          <div class="flip-type-badge" id="flashType">noun</div>
+          <div class="flip-hint">Click the card to see the definition</div>
+        </div>
+        <div class="flip-back">
+          <div class="flip-label">Definition</div>
+          <div class="flip-def" id="flashDef">—</div>
+          <div class="flip-usage" id="flashUsage">—</div>
+          <button id="flashDeleteBtn" style="display:none; margin-top:10px; background:none; border:none; color:var(--rust); cursor:pointer; font-family:'DM Mono',monospace; font-size:0.7rem; text-decoration:underline; text-transform:uppercase;">Delete Card</button>
+        </div>
+      </div>
+    </div>
+    <div class="flip-actions" id="flipActions" style="display:none;">
+      <button class="action-btn wrong" onclick="rateCard(false)">✗ Need Practice</button>
+      <button class="action-btn correct" onclick="rateCard(true)">✓ Got It</button>
+    </div>
+    <div class="flip-actions" id="flipNext" style="display:none;">
+      <button class="action-btn next" onclick="nextFlashCard()">Next Word →</button>
+    </div>
+    <div id="flashDone" style="display:none;" class="session-done">
+      <h2>Session Complete</h2>
+      <div class="score-display" id="flashFinalScore">—</div>
+      <p>Keep practicing the ones you missed!</p>
+      <button class="restart-btn" onclick="restartFlash()">Start Again</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="view" id="view-quiz">
+    <div id="quizLevelSelect" class="level-select">
+      <div class="dict-header" style="text-align:center; display: flex; flex-direction:column; align-items:center;">
+        <h2 style="margin-bottom:10px;">Select Difficulty</h2>
+        <p>Choose a level to start your quiz session</p>
+      </div>
+      <button class="level-btn easy" onclick="startQuiz(1)">
+        <h3>Easy</h3>
+        <p>Random distractors. Good for quick recall.</p>
+      </button>
+      <button class="level-btn medium" onclick="startQuiz(2)">
+        <h3>Medium</h3>
+        <p>Distractors match the word's Part of Speech.</p>
+      </button>
+      <button class="level-btn hard" onclick="startQuiz(3)">
+        <h3>Hard</h3>
+        <p>Distractors match Part of Speech & Difficulty.</p>
+      </button>
+    </div>
+
+    <div id="quizArea" style="display:none;">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+        <button onclick="changeLevelQuiz()" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;text-decoration:underline;">↩ Change Level</button>
+      </div>
+      <div class="quiz-nav-container">
+        <button class="nav-arrow" id="quizPrevArrow" onclick="prevQuiz()">‹</button>
+        <div class="quiz-card" id="quizCard" style="flex: 1; margin-bottom:0;">
+          <div class="quiz-instruction" id="quizInstruction">Choose the correct definition</div>
+          <div class="flash-progress">
+            <span id="quizCounter">1 / 16</span>
+            <div class="progress-bar"><div class="progress-fill" id="quizProgress" style="width:6%"></div></div>
+            <span id="quizScore">✓ 0 &nbsp; ✗ 0</span>
+          </div>
+          <div class="quiz-question" id="quizQuestion">—</div>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+        </div>
+        <button class="nav-arrow" id="quizNextArrow" onclick="nextQuiz()">›</button>
+      </div>
+      <button class="quiz-next" id="quizNextBtn" onclick="nextQuiz()" style="display:none;">Next →</button>
+    </div>
+    <div id="quizDone" style="display:none;" class="session-done">
+      <h2>Quiz Complete!</h2>
+      <div class="score-display" id="quizFinalScore">—</div>
+      <p id="quizFinalMsg">—</p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+        <button class="restart-btn" style="background:var(--paper);color:var(--ink);border:1.5px solid var(--border);" onclick="changeLevelQuiz()">Change Level</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILL BLANKS -->
+  <div class="view" id="view-fill">
+    <div id="fillArea">
+      <div class="quiz-card" id="fillCard">
+        <div class="quiz-instruction">Type the missing word</div>
+        <div class="flash-progress">
+          <span id="fillCounter">1 / 16</span>
+          <div class="progress-bar"><div class="progress-fill" id="fillProgress" style="width:6%"></div></div>
+          <span id="fillScore">✓ 0 &nbsp; ✗ 0</span>
+        </div>
+        <div class="quiz-question" id="fillQuestion">—</div>
+        <input class="blank-input" id="fillInput" placeholder="Type your answer here…" onkeydown="if(event.key==='Enter') checkFill()">
+        <button class="submit-btn" onclick="checkFill()">Check Answer</button>
+        <div class="quiz-feedback" id="fillFeedback"></div>
+      </div>
+      <button class="quiz-next" id="fillNextBtn" onclick="nextFill()" style="display:none;">Next →</button>
+    </div>
+    <div id="fillDone" style="display:none;" class="session-done">
+      <h2>Fill Blanks Done!</h2>
+      <div class="score-display" id="fillFinalScore">—</div>
+      <p>Well done! Check your stats to see progress.</p>
+      <button class="restart-btn" onclick="restartFill()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="view" id="view-stats">
+    <div class="stats-header">Your Progress</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="statTotal">—</div>
+        <div class="stat-label">Total Words</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statCorrect">—</div>
+        <div class="stat-label">Correct Answers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statAccuracy">—</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+    </div>
+    <div class="word-stats-list" id="wordStatsList"></div>
+  </div>
+</div>
+
+<!-- WORD MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="wordModal">
+    <button class="modal-close" onclick="closeModalBtn()">×</button>
+    <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:4px;">
+      <div class="modal-word" id="mWord" style="margin-bottom:0;">—</div>
+      <div id="mPhonetic" style="font-family:'DM Mono',monospace; font-size:0.9rem; color:var(--gold);"></div>
+      <button id="mAudioBtn" onclick="playModalAudio()" style="background:none; border:none; cursor:pointer; font-size:1.2rem; display:none;">🔊</button>
+    </div>
+    <div class="modal-type" id="mType">—</div>
+    <div class="modal-section">
+      <h4>Definition</h4>
+      <div class="modal-def" id="mDef">—</div>
+    </div>
+    <div class="modal-section">
+      <h4>Usage Examples</h4>
+      <div id="mUsage"></div>
+    </div>
+    <div class="modal-section" id="mOppSec">
+      <h4>Opposites</h4>
+      <div class="tag-list" id="mOpp"></div>
+    </div>
+    <div class="modal-section" id="mTenseSec">
+      <h4>Tenses / Forms</h4>
+      <div class="tag-list" id="mTenses"></div>
+    </div>
+    <div class="modal-section" id="mRelSec">
+      <h4>Related Words</h4>
+      <div class="tag-list" id="mRel"></div>
+    </div>
+    <div id="mSourceSec" style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border); font-size:0.75rem;">
+       <a id="mSourceLink" href="#" target="_blank" style="color:var(--muted); text-decoration:underline;">View on Wiktionary ↗</a>
+    </div>
+    <div id="mNote"></div>
+    
+    <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
+      <button id="mDeleteBtn" style="background:none; border:none; color:var(--rust); cursor:pointer; font-family:'DM Mono',monospace; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; text-decoration:underline;">Delete Word</button>
+    </div>
+
+    <div style="margin-top: 16px; padding: 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: space-between;">
+      <label style="font-family:'DM Mono',monospace; font-size:0.75rem; color:var(--muted); text-transform:uppercase;">Project</label>
+      <select id="modalProjectSelect" class="project-select" onchange="moveWordToProject(this.value)" style="border:none; background:none; font-weight:bold;"></select>
+    </div>
+  </div>
+</div>
+
+<!-- AI MODAL -->
+<div class="modal-overlay" id="aiModalOverlay" onclick="closeAiModal(event)">
+  <div class="modal" id="aiModal" style="max-width: 500px; text-align: left;">
+    <button class="modal-close" onclick="closeAiModalBtn()">✕</button>
+    <div class="modal-word" style="font-size:2rem; margin-bottom:10px;">Scan Page</div>
+    <p style="color:var(--muted); font-size:0.9rem; line-height:1.4;">Take a photo of a book page. The AI will automatically extract any underlined words and add them to your Lexicon.</p>
+    
+    <div style="margin-top: 24px;">
+      <label style="font-family:'DM Mono',monospace; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);">Gemini API Key</label>
+      <input type="password" id="geminiApiKey" class="ai-api-key-input" placeholder="AIzaSy...">
+      <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">Keys are stored locally and never sent to our servers.</div>
+    </div>
+
+    <label class="ai-upload-area">
+      <input type="file" id="aiImageInput" accept="image/*" capture="environment" onchange="processImage(this)">
+      <div style="font-size: 2rem; margin-bottom: 10px;">📸</div>
+      <div id="aiUploadPlaceholder" style="font-family:'DM Sans',sans-serif; color:var(--ink);">Click to take photo or upload</div>
+    </label>
+
+    <div id="aiLoadingIndicator" style="display:none; text-align:center; padding: 20px 0;">
+      <div style="font-family:'DM Mono',monospace; color:var(--gold); font-size:0.9rem; animation: pulse 1.5s infinite;">Processing image...</div>
+    </div>
+  </div>
+</div>
+<style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
+
+<!-- NEW PROJECT MODAL -->
+<div class="modal-overlay" id="newProjectModalOverlay" onclick="closeNewProjectModal(event)">
+  <div class="modal" id="newProjectModal" style="max-width: 400px; text-align: left;">
+    <button class="modal-close" onclick="closeNewProjectModalBtn()">✕</button>
+    <div class="modal-word" style="font-size:1.8rem; margin-bottom:5px;">New Project</div>
+    <p style="color:var(--muted); font-size:0.9rem; line-height:1.4; margin-bottom: 20px;">Create a new collection for a specific book or topic.</p>
+    
+    <div class="custom-card-form">
+      <div>
+        <label>Project Name</label>
+        <input type="text" id="projectNameInput" class="ai-api-key-input" style="margin-top: 5px; margin-bottom: 20px;" placeholder="e.g., Harry Potter, Business English...">
+      </div>
+      <button class="restart-btn" style="width: 100%;" onclick="createNewProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM CARD MODAL -->
+<div class="modal-overlay" id="customCardModalOverlay" onclick="closeCustomCardModal(event)">
+  <div class="modal" id="customCardModal" style="max-width: 500px; text-align: left;">
+    <button class="modal-close" onclick="closeCustomCardModalBtn()">✕</button>
+    <div class="modal-word" style="font-size:1.8rem; margin-bottom:5px;">New Custom Card</div>
+    <p style="color:var(--muted); font-size:0.9rem; line-height:1.4;">Create a simple front/back memory card for things that aren't vocabulary words.</p>
+    
+    <div class="custom-card-form">
+      <div id="customCardProjectSelectContainer" style="margin-bottom:8px;">
+        <label>Project</label>
+        <select id="customCardProjectSelect" class="project-select" style="width:100%; margin-top:8px;">
+          <option value="general">General</option>
+        </select>
+      </div>
+      <div>
+        <label>Front (Question / Prompt)</label>
+        <textarea id="customFrontInput" class="custom-card-input" placeholder="e.g., What is the capital of France?"></textarea>
+      </div>
+      <div>
+        <label>Back (Answer / Details)</label>
+        <textarea id="customBackInput" class="custom-card-input" placeholder="e.g., Paris"></textarea>
+      </div>
+      <button class="custom-card-btn" onclick="saveCustomCard()">Save Card</button>
+    </div>
+  </div>
+  </main>
+</div>
+
+<!-- PROJECT MANAGEMENT MODAL -->
+<div class="modal-overlay" id="projectModalOverlay" onclick="closeProjectModal(event)">
+  <div class="modal" id="projectModal" style="max-width: 450px; text-align: left;">
+    <button class="modal-close" onclick="closeProjectModalBtn()">✕</button>
+    <div class="modal-word" style="font-size:1.5rem; margin-bottom:10px;">Manage Projects</div>
+    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:20px;">Organize your words and cards into theme-based folders.</p>
+    
+    <div style="margin-bottom:24px;">
+      <label style="font-family:'DM Mono',monospace; font-size:0.75rem; text-transform:uppercase; color:var(--muted);">New Project Name</label>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <input type="text" id="newProjectInput" class="project-select" style="flex:1;" placeholder="e.g., Biology Test">
+        <button class="custom-card-btn" style="margin:0; padding:8px 16px;" onclick="createProject()">Create</button>
+      </div>
+    </div>
+    
+    <div id="projectListContainer" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px;">
+       <!-- Projects will be listed here -->
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let VOCAB = [];
+let QUIZ_VOCAB = [];
+let ALL_CORE_VOCAB = []; 
+let ALL_CORE_QUIZ = [];
+
+let projects = JSON.parse(localStorage.getItem('lexicon_projects') || '[{"id":"general", "name":"General"}]');
+let currentProjectId = localStorage.getItem('lexicon_current_project') || 'all';
+
+let perf = {};
+let currentUser = null; // Firebase user object, null = guest
+let _firestoreUnsubscribe = null;
+
+// ── AUTH HELPERS ──
+
+function getPerfKey() { return `lexicon_perf_${currentProjectId}`; }
+function loadPerf() { 
+  perf = lsGet(getPerfKey(), {}); 
+}
+function savePerf() {
+  lsSet(getPerfKey(), perf);
+  syncPerfToCloud();
+}
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+// ── STORAGE LAYER (localStorage + optional Firestore) ──
+
+function getUserDataKey(key) {
+  // Namespaces localStorage by user ID for multi-user safety
+  if (currentUser) return `${key}_${currentUser.uid}`;
+  return key;
+}
+
+function lsGet(key, fallback) {
+  const val = localStorage.getItem(getUserDataKey(key));
+  return val ? JSON.parse(val) : fallback;
+}
+
+function lsSet(key, value) {
+  localStorage.setItem(getUserDataKey(key), JSON.stringify(value));
+}
+
+// Push all mutable user data to Firestore (single merged doc approach)
+async function syncToCloud(partial = {}) {
+  if (!currentUser || !window._fbDb) return;
+  try {
+    const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
+    const payload = Object.assign({
+      email: currentUser.email,
+      displayName: currentUser.displayName || '',
+      projects: projects,
+      currentProjectId: currentProjectId,
+      deleted_vocab: lsGet('deleted_vocab', []),
+      custom_vocab: lsGet('custom_vocab', []),
+      lexicon_custom_cards: lsGet('lexicon_custom_cards', []),
+      updatedAt: Date.now()
+    }, partial);
+    await window._fbSetDoc(ref, payload, { merge: true });
+    updateSyncBadge('synced');
+  } catch(e) {
+    console.warn('Cloud sync error:', e.message);
+  }
+}
+
+async function syncPerfToCloud() {
+  if (!currentUser || !window._fbDb) return;
+  try {
+    const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
+    const key = getPerfKey();
+    await window._fbUpdateDoc(ref, { [key]: perf, updatedAt: Date.now() });
+    updateSyncBadge('synced');
+  } catch(e) {}
+}
+
+// Pull data from Firestore and populate localStorage namespace
+async function pullFromCloud() {
+  if (!currentUser || !window._fbDb) return;
+  try {
+    updateSyncBadge('syncing');
+    const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
+    const snap = await window._fbGetDoc(ref);
+    if (snap.exists()) {
+      const d = snap.data();
+      if (d.projects) { projects = d.projects; lsSet('lexicon_projects', projects); }
+      if (d.currentProjectId) { currentProjectId = d.currentProjectId; lsSet('lexicon_current_project', currentProjectId); }
+      if (d.deleted_vocab) lsSet('deleted_vocab', d.deleted_vocab);
+      if (d.custom_vocab) lsSet('custom_vocab', d.custom_vocab);
+      if (d.lexicon_custom_cards) lsSet('lexicon_custom_cards', d.lexicon_custom_cards);
+      // Restore perf keys
+      Object.keys(d).forEach(k => {
+        if (k.startsWith('lexicon_perf_')) lsSet(k, d[k]);
+      });
+    }
+    updateSyncBadge('synced');
+  } catch(e) {
+    console.warn('Cloud pull error:', e.message);
+    updateSyncBadge('offline');
+  }
+}
+
+function updateSyncBadge(state) {
+  const el = document.getElementById('sidebarSyncBadge');
+  if (!el) return;
+  if (state === 'syncing') { el.textContent = '⟳ syncing'; el.classList.add('syncing'); }
+  else if (state === 'synced') { el.textContent = '☁ synced'; el.classList.remove('syncing'); el.style.color = '#10a37f'; }
+  else { el.textContent = '⚠ offline'; el.classList.remove('syncing'); el.style.color = '#c9a84c'; }
+}
+
+// ── AUTH STATE HANDLER ──
+
+window.handleAuthState = async function(user) {
+  currentUser = user;
+  if (user) {
+    // User is signed in — hide login screen, show loading, pull cloud data
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('loadingScreen').style.display = 'flex';
+    
+    // Re-init projects from cloud-namespaced localStorage (or cloud)
+    await pullFromCloud();
+    projects = lsGet('lexicon_projects', [{"id":"general", "name":"General"}]);
+    currentProjectId = lsGet('lexicon_current_project', 'all');
+    
+    await loadVocab();
+    renderSidebarProfile(user);
+  } else {
+    // Not signed in — update profile area if app is already visible
+    renderSidebarProfile(null);
+  }
+};
+
+// On first load, check if pending auth result arrived before this script ran
+if (window._pendingAuthUser !== undefined) {
+  window.handleAuthState(window._pendingAuthUser);
+  delete window._pendingAuthUser;
+}
+
+// ── SIDEBAR PROFILE RENDER ──
+
+function renderSidebarProfile(user) {
+  const profile = document.getElementById('sidebarProfile');
+  if (!profile) return;
+  if (user) {
+    const initials = (user.displayName || user.email || 'U').slice(0, 2).toUpperCase();
+    const avatarHtml = user.photoURL
+      ? `<div class="profile-avatar"><img src="${user.photoURL}" alt="avatar"/></div>`
+      : `<div class="profile-avatar">${initials}</div>`;
+    profile.innerHTML = `
+      <div class="profile-user">
+        ${avatarHtml}
+        <div class="profile-info">
+          <div class="profile-name">${user.displayName || user.email}</div>
+          <div class="profile-status synced" id="sidebarSyncStatus">
+            <span class="cloud-badge" id="sidebarSyncBadge">☁ synced</span>
+          </div>
+        </div>
+      </div>
+      <button class="profile-signout-btn" onclick="handleSignOut()">Sign out</button>
+      <div class="version-label">Lexicon v2.0</div>
+    `;
+  } else {
+    profile.innerHTML = `
+      <button class="profile-signin-btn" onclick="openLoginScreen()">
+        <span>👤</span> Sign In / Create Account
+      </button>
+      <div class="version-label">Lexicon v2.0 · local mode</div>
+    `;
+  }
+}
+
+// ── LOGIN SCREEN FUNCTIONS ──
+
+function openLoginScreen() {
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function skipLogin() {
+  document.getElementById('loginScreen').style.display = 'none';
+  if (!document.getElementById('app') || document.getElementById('app').style.display === 'none') {
+    // App not loaded yet, load it in guest mode
+    document.getElementById('loadingScreen').style.display = 'flex';
+    loadVocab();
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideLoginError() {
+  const el = document.getElementById('loginError');
+  if (el) el.style.display = 'none';
+}
+
+function toggleSignUpMode() {
+  hideLoginError();
+  const signInForm = document.getElementById('loginEmailForm');
+  const signUpForm = document.getElementById('loginSignUpForm');
+  const isShowingSignIn = signInForm.style.display !== 'none';
+  signInForm.style.display = isShowingSignIn ? 'none' : 'block';
+  signUpForm.style.display = isShowingSignIn ? 'block' : 'none';
+}
+
+async function signInGoogle() {
+  if (!window._fbAuth) {
+    showLoginError('Firebase is not configured yet. Please set up your Firebase project keys first, or continue without signing in.');
+    return;
+  }
+  hideLoginError();
+  try {
+    await window._fbSignInWithPopup(window._fbAuth, window._fbGoogleProvider);
+    // onAuthStateChanged will fire and call handleAuthState
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') {
+      showLoginError(friendlyAuthError(e.code));
+    }
+  }
+}
+
+async function signInEmail() {
+  if (!window._fbAuth) {
+    showLoginError('Firebase is not configured yet. Please continue without signing in or set up Firebase first.');
+    return;
+  }
+  hideLoginError();
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  if (!email || !pass) { showLoginError('Please enter your email and password.'); return; }
+  try {
+    await window._fbSignInEmail(window._fbAuth, email, pass);
+  } catch(e) {
+    showLoginError(friendlyAuthError(e.code));
+  }
+}
+
+async function signUpEmail() {
+  if (!window._fbAuth) {
+    showLoginError('Firebase is not configured yet. Please continue without signing in.');
+    return;
+  }
+  hideLoginError();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPassword').value;
+  if (!email || !pass) { showLoginError('Please fill in all fields.'); return; }
+  if (pass.length < 6) { showLoginError('Password must be at least 6 characters.'); return; }
+  try {
+    await window._fbCreateEmail(window._fbAuth, email, pass);
+  } catch(e) {
+    showLoginError(friendlyAuthError(e.code));
+  }
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email) { showLoginError('Enter your email address above first.'); return; }
+  if (!window._fbAuth) { showLoginError('Firebase not configured.'); return; }
+  try {
+    await window._fbSendPasswordReset(window._fbAuth, email);
+    showLoginError('✓ Password reset email sent. Check your inbox.');
+    document.getElementById('loginError').style.background = 'rgba(90,122,94,0.1)';
+    document.getElementById('loginError').style.borderColor = '#5a7a5e';
+    document.getElementById('loginError').style.color = '#3a5a3e';
+  } catch(e) {
+    showLoginError(friendlyAuthError(e.code));
+  }
+}
+
+async function handleSignOut() {
+  if (window._fbAuth && currentUser) {
+    await window._fbSignOut(window._fbAuth);
+  }
+  currentUser = null;
+  renderSidebarProfile(null);
+  // Reset to guest localStorage
+  projects = JSON.parse(localStorage.getItem('lexicon_projects') || '[{"id":"general", "name":"General"}]');
+  currentProjectId = localStorage.getItem('lexicon_current_project') || 'all';
+  // Reload the app for the now-guest user
+  document.getElementById('loadingScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  loadVocab();
+}
+
+function friendlyAuthError(code) {
+  const map = {
+    'auth/user-not-found': 'No account found with that email.',
+    'auth/wrong-password': 'Incorrect password. Try again.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/email-already-in-use': 'An account with this email already exists. Sign in instead.',
+    'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
+    'auth/too-many-requests': 'Too many failed attempts. Please wait and try again.',
+    'auth/network-request-failed': 'Network error. Check your connection.',
+    'auth/invalid-credential': 'Incorrect email or password.'
+  };
+  return map[code] || `Sign-in error: ${code}`;
+}
+
+// ── LOAD FROM JSON ──
+async function loadVocab() {
+  const loading = document.getElementById('loadingScreen');
+  const appEl = document.getElementById('app');
+  try {
+    // Render Project Selectors
+    updateProjectUI();
+
+    // 1. Fetch Core Vocab
+    const res = await fetch('vocabulary.json');
+    if (!res.ok) throw new Error('vocabulary.json not found');
+    const data = await res.json();
+    let coreVocab = data.words || [];
+    
+    let coreQuiz = [];
+    try {
+      const quizRes = await fetch('quiz_words.json');
+      if (quizRes.ok) {
+        const quizData = await quizRes.json();
+        coreQuiz = quizData.words || [];
+      }
+    } catch(e) {}
+    
+    // 2. Load Custom Entries (from user-namespaced localStorage)
+    const customVocab = lsGet('custom_vocab', []);
+    ALL_CUSTOM_CARDS = lsGet('lexicon_custom_cards', []);
+    const deletedIDs = lsGet('deleted_vocab', []);
+    const filterDeleted = (list) => list.filter(w => !deletedIDs.includes(w.id));
+
+    // 3. Assemble All Data
+    ALL_VOCAB = filterDeleted(customVocab.concat(coreVocab));
+    ALL_QUIZ_VOCAB = filterDeleted(customVocab.concat(coreVocab).concat(coreQuiz));
+
+    // Migration: Ensure everything has a projectId
+    [ALL_VOCAB, ALL_QUIZ_VOCAB, ALL_CUSTOM_CARDS].forEach(list => {
+      list.forEach(item => { if (!item.projectId) item.projectId = 'general'; });
+    });
+
+    // 4. Initialize Perf for any new words
+    perf = lsGet(getPerfKey(), {});
+    ALL_QUIZ_VOCAB.forEach(w => { 
+      if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0}, fill: {c:0, w:0} };
+    });
+    savePerf();
+
+    // 5. Setup UI
+    updateProjectUI();
+    applyProjectFilter();
+    
+    loading.style.display = 'none';
+    appEl.style.display = '';
+  } catch(err) {
+    loading.innerHTML = `<div style="text-align:center;padding:80px 20px;">
+      <h3>Error Loading App</h3>
+      <p>${err.message}</p>
+    </div>`;
+  }
+}
+
+function switchProject(id) {
+  currentProjectId = id;
+  lsSet('lexicon_current_project', id);
+  syncToCloud({ currentProjectId: id });
+  updateProjectUI();
+  applyProjectFilter();
+}
+
+function applyProjectFilter() {
+  if (currentProjectId === 'all') {
+    VOCAB = [...ALL_VOCAB];
+    QUIZ_VOCAB = [...ALL_QUIZ_VOCAB];
+  } else {
+    VOCAB = ALL_VOCAB.filter(w => w.projectId === currentProjectId);
+    QUIZ_VOCAB = ALL_QUIZ_VOCAB.filter(w => w.projectId === currentProjectId);
+  }
+  
+  document.getElementById('wordCount').textContent = VOCAB.length + ' words';
+  
+  // Re-render all views to show filtered data
+  renderDict();
+  if (document.getElementById('view-stats').classList.contains('active')) renderStats();
+  
+  // Reset study sessions to use the new filter
+  initFlash();
+  initQuiz();
+  initFill();
+}
+
+function updateProjectUI() {
+  const sidebarList = document.getElementById('sidebarProjectList');
+  const customPSelect = document.getElementById('customCardProjectSelect');
+  if (!sidebarList) return;
+  
+  // Render Sidebar
+  const allActive = currentProjectId === 'all';
+  sidebarList.innerHTML = `
+    <div class="project-item-sidebar ${allActive ? 'active' : ''}" onclick="switchProject('all')">
+      <i>📚</i> <span>All Words</span>
+    </div>
+    ${projects.map(p => `
+      <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
+        <i>📁</i> <span>${p.name}</span>
+        <div class="project-actions">
+           ${p.id !== 'general' ? `<button class="project-action-btn" onclick="event.stopPropagation(); deleteProject('${p.id}')">🗑️</button>` : ''}
+        </div>
+      </div>
+    `).join('')}
+  `;
+
+  // Update Title
+  const activeProject = projects.find(p => p.id === currentProjectId);
+  document.getElementById('currentProjectTitle').textContent = activeProject ? activeProject.name : 'All Words';
+  
+  // Update Custom Card Project Select
+  if (customPSelect) {
+    customPSelect.innerHTML = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  }
+}
+
+function openProjectModal() {
+  updateProjectUI();
+  document.getElementById('projectModalOverlay').classList.add('open');
+  document.getElementById('newProjectInput').value = '';
+}
+
+function closeProjectModal(e) { if (e.target === document.getElementById('projectModalOverlay')) closeProjectModalBtn(); }
+function closeProjectModalBtn() { document.getElementById('projectModalOverlay').classList.remove('open'); }
+
+function createProject() {
+  const name = document.getElementById('newProjectInput').value.trim();
+  if (!name) return;
+  const id = 'p_' + Date.now();
+  projects.push({ id, name });
+  lsSet('lexicon_projects', projects);
+  syncToCloud({ projects });
+  updateProjectUI();
+  document.getElementById('newProjectInput').value = '';
+}
+
+function deleteProject(id) {
+  if (id === 'general') return;
+  if (!confirm("Are you sure? All words in this project will be moved back to 'General'.")) return;
+  
+  projects = projects.filter(p => p.id !== id);
+  lsSet('lexicon_projects', projects);
+  
+  // Migrate items
+  [ALL_VOCAB, ALL_QUIZ_VOCAB, ALL_CUSTOM_CARDS].forEach(list => {
+    list.forEach(item => { if (item.projectId === id) item.projectId = 'general'; });
+  });
+  
+  // Save custom lists
+  const customVocab = ALL_VOCAB.filter(w => w.id.startsWith('c_'));
+  lsSet('custom_vocab', customVocab);
+  lsSet('lexicon_custom_cards', ALL_CUSTOM_CARDS);
+  syncToCloud({ projects, custom_vocab: customVocab, lexicon_custom_cards: ALL_CUSTOM_CARDS });
+
+  if (currentProjectId === id) currentProjectId = 'all';
+  updateProjectUI();
+  applyProjectFilter();
+}
+
+async function addWords() {
+  const input = document.getElementById('addWordInput');
+  const btn = document.getElementById('addWordBtn');
+  const raw = input.value;
+  if (!raw.trim()) return;
+
+  const words = raw.split(',').map(w => w.trim()).filter(Boolean);
+  input.disabled = true;
+  btn.textContent = 'Adding...';
+  btn.style.opacity = '0.7';
+
+  let added = 0;
+  let customVocab = lsGet('custom_vocab', []);
+
+  for (const wordStr of words) {
+    if (VOCAB.some(v => v.word.toLowerCase() === wordStr.toLowerCase())) continue;
+    
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${wordStr}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const entry = data[0];
+      
+      const meanings = entry.meanings || [];
+      const types = [...new Set(meanings.map(m => m.partOfSpeech))];
+      
+      let def = '';
+      let usage = [];
+      let synonyms = [];
+      let antonyms = [];
+
+      meanings.forEach(m => {
+        if (m.synonyms) synonyms.push(...m.synonyms);
+        if (m.antonyms) antonyms.push(...m.antonyms);
+        m.definitions.forEach(d => {
+          if (!def) def = d.definition;
+          if (d.example) usage.push(d.example);
+          if (d.synonyms) synonyms.push(...d.synonyms);
+          if (d.antonyms) antonyms.push(...d.antonyms);
+        });
+      });
+
+      if (!usage.length) usage.push(`They used the word ${wordStr} in a sentence.`);
+
+      const phonetic = entry.phonetic || (entry.phonetics && entry.phonetics.find(p => p.text)?.text) || '';
+      const audio = (entry.phonetics && entry.phonetics.find(p => p.audio)?.audio) || '';
+      const source = entry.sourceUrls?.[0] || '';
+
+      const newWordObj = {
+        id: `c_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
+        word: entry.word,
+        type: types.length ? types : ['noun'],
+        definition: def || 'Definition not found.',
+        usage: [...new Set(usage)].slice(0, 2),
+        opposites: [...new Set(antonyms)].slice(0, 5),
+        tenses: {},
+        related: [...new Set(synonyms)].slice(0, 5),
+        phonetic: phonetic,
+        audio: audio,
+        source: source,
+        addedOn: new Date().toISOString().split('T')[0],
+        difficulty: 1,
+        projectId: (currentProjectId === 'all' ? 'general' : currentProjectId)
+      };
+
+      customVocab.push(newWordObj);
+      ALL_VOCAB.unshift(newWordObj);
+      ALL_QUIZ_VOCAB.unshift(newWordObj);
+      perf[newWordObj.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0}, fill: {c:0, w:0} };
+      added++;
+    } catch(e) {
+      console.warn('Failed to fetch', wordStr, e);
+    }
+  }
+
+  if (added > 0) {
+    lsSet('custom_vocab', customVocab);
+    savePerf();
+    syncToCloud({ custom_vocab: customVocab });
+    applyProjectFilter();
+  }
+  
+  input.value = '';
+  input.disabled = false;
+  btn.textContent = 'Add';
+  btn.style.opacity = '1';
+  if (added > 0) alert(`Successfully added ${added} new word(s)!`);
+  else alert('No valid new words were found or added. They might already exist or are not in the dictionary API.');
+}
+
+// ── NAV ──
+function showView(id, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'stats') renderStats();
+  if (id === 'flashcards') initFlash();
+  // Only reset quiz if no session is currently active
+  if (id === 'quiz' && !quizInProgress) initQuiz();
+  if (id === 'fill') initFill();
+}
+
+// ── DICTIONARY ──
+function renderDict() {
+  const grid = document.getElementById('dictGrid');
+  grid.innerHTML = VOCAB.map(w => {
+    const p = perf[w.id];
+    const totalC = p.quiz.c + p.flash.c + p.fill.c;
+    const totalW = p.quiz.w + p.flash.w + p.fill.w;
+    const total = totalC + totalW;
+    const pct = total ? Math.round((totalC / total) * 100) : null;
+    const scoreHtml = pct !== null
+      ? `<div class="dict-score" style="border-color:${pct >= 70 ? '#5a7a5e' : pct >= 40 ? '#c9a84c' : '#c0512f'};color:${pct >= 70 ? '#5a7a5e' : pct >= 40 ? '#c9a84c' : '#c0512f'}">${pct}%</div>`
+      : `<div class="dict-score">new</div>`;
+    return `<div class="dict-card" onclick="openModal('${w.id}')">
+      ${scoreHtml}
+      <div class="dict-word">${w.word}</div>
+      <div class="dict-type">${w.type.join(' · ')}</div>
+      <div class="dict-def">${w.definition}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL ──
+function openModal(id) {
+  const w = VOCAB.find(x => x.id === id);
+  document.getElementById('mWord').textContent = w.word;
+  document.getElementById('mType').textContent = w.type.join(' · ');
+  document.getElementById('mDef').textContent = w.definition;
+  document.getElementById('mUsage').innerHTML = w.usage.map(u => `<div class="usage-item">"${u}"</div>`).join('');
+
+  const oppSec = document.getElementById('mOppSec');
+  if (w.opposites.length) {
+    document.getElementById('mOpp').innerHTML = w.opposites.map(o => `<span class="tag opposite">${o}</span>`).join('');
+    oppSec.style.display = '';
+  } else { oppSec.style.display = 'none'; }
+
+  const tenseEntries = Object.entries(w.tenses || {});
+  const tenseSec = document.getElementById('mTenseSec');
+  if (tenseEntries.length) {
+    document.getElementById('mTenses').innerHTML = tenseEntries.map(([k, v]) => `<span class="tag tense">${k}: ${v}</span>`).join('');
+    tenseSec.style.display = '';
+  } else { tenseSec.style.display = 'none'; }
+
+  const relSec = document.getElementById('mRelSec');
+  if (w.related && w.related.length) {
+    document.getElementById('mRel').innerHTML = w.related.map(r => `<span class="tag related">${r}</span>`).join('');
+    relSec.style.display = '';
+  } else { relSec.style.display = 'none'; }
+
+  document.getElementById('mPhonetic').textContent = w.phonetic || '';
+  const audioBtn = document.getElementById('mAudioBtn');
+  if (w.audio) {
+    audioBtn.style.display = 'inline-block';
+    audioBtn.onclick = () => {
+      const a = new Audio(w.audio);
+      a.play();
+    };
+  } else { audioBtn.style.display = 'none'; }
+
+  const sourceSec = document.getElementById('mSourceSec');
+  const sourceLink = document.getElementById('mSourceLink');
+  if (w.source) {
+    sourceSec.style.display = 'block';
+    sourceLink.href = w.source;
+  } else { sourceSec.style.display = 'none'; }
+
+  const noteEl = document.getElementById('mNote');
+  noteEl.innerHTML = w.note ? `<div class="modal-note">${w.note}</div>` : '';
+
+  // Project selector in modal
+  const mPSelect = document.getElementById('modalProjectSelect');
+  mPSelect.innerHTML = projects.map(p => `<option value="${p.id}" ${p.id === w.projectId ? 'selected' : ''}>${p.name}</option>`).join('');
+  
+  // Store ID for moveWordToProject
+  mPSelect.setAttribute('data-word-id', id);
+
+  document.getElementById('mDeleteBtn').onclick = () => deleteWord(id);
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function moveWordToProject(projectId) {
+  const wordId = document.getElementById('modalProjectSelect').getAttribute('data-word-id');
+  const word = ALL_VOCAB.find(x => x.id === wordId);
+  const quizWord = ALL_QUIZ_VOCAB.find(x => x.id === wordId);
+  
+  if (word) word.projectId = projectId;
+  if (quizWord) quizWord.projectId = projectId;
+  
+  // Save custom word update
+  if (wordId.startsWith('c_')) {
+    const customVocab = ALL_VOCAB.filter(w => w.id.startsWith('c_'));
+    lsSet('custom_vocab', customVocab);
+    syncToCloud({ custom_vocab: customVocab });
+  }
+  
+  applyProjectFilter();
+}
+
+function deleteWord(id) {
+  if (!confirm(`Are you sure you want to delete this word? This action cannot be easily undone.`)) return;
+
+  try {
+    if (id.startsWith('c_')) {
+      // Delete custom word
+      let customVocab = lsGet('custom_vocab', []);
+      customVocab = customVocab.filter(w => w.id !== id);
+      lsSet('custom_vocab', customVocab);
+      syncToCloud({ custom_vocab: customVocab });
+    } else {
+      // Blacklist core word
+      let deletedIDs = lsGet('deleted_vocab', []);
+      if (!deletedIDs.includes(id)) deletedIDs.push(id);
+      lsSet('deleted_vocab', deletedIDs);
+      syncToCloud({ deleted_vocab: deletedIDs });
+    }
+
+    // Update in-memory lists
+    VOCAB = VOCAB.filter(w => w.id !== id);
+    QUIZ_VOCAB = QUIZ_VOCAB.filter(w => w.id !== id);
+    ALL_VOCAB = ALL_VOCAB.filter(w => w.id !== id);
+    ALL_QUIZ_VOCAB = ALL_QUIZ_VOCAB.filter(w => w.id !== id);
+    
+    // Refresh UI
+    document.getElementById('wordCount').textContent = VOCAB.length + ' words';
+    renderDict();
+    initFlash();
+    initQuiz();
+    initFill();
+    
+    closeModalBtn();
+  } catch(e) {
+    alert("Error deleting word: " + e.message);
+  }
+}
+
+function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalBtn(); }
+function closeModalBtn() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+// ── AI MODAL & IMAGE PROCESSING ──
+function openAiModal() {
+  document.getElementById('aiModalOverlay').classList.add('open');
+  const storedKey = localStorage.getItem('gemini_key'); // Gemini key is global, not user-namespaced
+  if (storedKey) document.getElementById('geminiApiKey').value = storedKey;
+  document.getElementById('aiImageInput').value = '';
+  document.getElementById('aiUploadPlaceholder').textContent = 'Click to take photo or upload';
+  document.getElementById('aiLoadingIndicator').style.display = 'none';
+  document.querySelector('.ai-upload-area').style.display = 'block';
+}
+
+function closeAiModal(e) { if (e.target === document.getElementById('aiModalOverlay')) closeAiModalBtn(); }
+function closeAiModalBtn() { document.getElementById('aiModalOverlay').classList.remove('open'); }
+
+async function processImage(inputSelector) {
+  const file = inputSelector.files[0];
+  if (!file) return;
+
+  const apiKey = document.getElementById('geminiApiKey').value.trim();
+  if (!apiKey) {
+    alert("Please enter a Gemini API Key first.");
+    inputSelector.value = '';
+    return;
+  }
+  
+  localStorage.setItem('gemini_key', apiKey); // Store API key globally (not user-namespaced)
+  
+  document.getElementById('aiUploadPlaceholder').textContent = file.name;
+  document.querySelector('.ai-upload-area').style.display = 'none';
+  document.getElementById('aiLoadingIndicator').style.display = 'block';
+
+  try {
+    const base64Str = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const promptText = `You are an expert OCR assistant. Look at the provided image of a book page. Identify every single word that has a pen or pencil underline beneath it. Return a JSON object containing exactly one key: 'words', which should be an array of strings representing the lowercase underlined words. Do not include punctuation attached to the words. If no words are underlined, return {"words": []}. Do not return Markdown blocks, just the raw JSON.`;
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: promptText },
+            { inline_data: { mime_type: file.type, data: base64Str } }
+          ]
+        }]
+      })
+    });
+
+    if (!res.ok) {
+       const err = await res.json();
+       throw new Error(err.error?.message || "API Request Failed");
+    }
+
+    const data = await res.json();
+    let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '{"words":[]}';
+    textOutput = textOutput.replace(/```json\n?|\n?```/g, '').trim(); 
+    
+    let wordsObj = { words: [] };
+    try { wordsObj = JSON.parse(textOutput); } 
+    catch(e) { throw new Error("Could not parse AI response as JSON."); }
+
+    if (!wordsObj.words || wordsObj.words.length === 0) {
+      alert("No underlined words found in the image.");
+    } else {
+      const confirmAdd = confirm(`The AI found ${wordsObj.words.length} underlined words:\n\n${wordsObj.words.join(', ')}\n\nDo you want to add these to your Lexicon?`);
+      if (confirmAdd) {
+        document.getElementById('addWordInput').value = wordsObj.words.join(', ');
+        closeAiModalBtn();
+        addWords(); // Triggers the existing pipeline
+      }
+    }
+  } catch (err) {
+    alert("Error processing image: " + err.message);
+  } finally {
+    document.querySelector('.ai-upload-area').style.display = 'block';
+    document.getElementById('aiLoadingIndicator').style.display = 'none';
+    inputSelector.value = '';
+    closeAiModalBtn();
+  }
+}
+
+// ── CUSTOM FLASHCARDS ──
+function openCustomCardModal() {
+  document.getElementById('customCardModalOverlay').classList.add('open');
+  document.getElementById('customFrontInput').value = '';
+  document.getElementById('customBackInput').value = '';
+}
+
+function closeCustomCardModal(e) { if (e.target === document.getElementById('customCardModalOverlay')) closeCustomCardModalBtn(); }
+function closeCustomCardModalBtn() { document.getElementById('customCardModalOverlay').classList.remove('open'); }
+
+function saveCustomCard() {
+  const front = document.getElementById('customFrontInput').value.trim();
+  const back = document.getElementById('customBackInput').value.trim();
+  const projectId = document.getElementById('customCardProjectSelect').value;
+  
+  if (!front || !back) {
+    alert("Please fill in both the front and back of the card.");
+    return;
+  }
+  
+  const customCards = lsGet('lexicon_custom_cards', []);
+  const newCard = {
+    id: 'cc_' + Date.now(),
+    isCustom: true,
+    front,
+    back,
+    projectId
+  };
+  
+  customCards.push(newCard);
+  ALL_CUSTOM_CARDS.push(newCard);
+  lsSet('lexicon_custom_cards', customCards);
+  syncToCloud({ lexicon_custom_cards: customCards });
+  
+  closeCustomCardModalBtn();
+  applyProjectFilter();
+}
+
+function deleteCustomCard(id) {
+  if (!confirm("Delete this custom card?")) return;
+  let customCards = lsGet('lexicon_custom_cards', []);
+  customCards = customCards.filter(c => c.id !== id);
+  lsSet('lexicon_custom_cards', customCards);
+  ALL_CUSTOM_CARDS = ALL_CUSTOM_CARDS.filter(c => c.id !== id);
+  syncToCloud({ lexicon_custom_cards: customCards });
+  initFlash();
+}
+
+// ── FLASHCARDS ──
+let flashQueue = [], flashIdx = 0, flashCorrect = 0, flashWrong = 0, flashMode = 'word', isFlipped = false;
+
+function setFlashMode(mode, btn) {
+  flashMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  initFlash();
+}
+
+function initFlash() {
+  let baseQueue = [...QUIZ_VOCAB];
+  const includeCustom = document.getElementById('includeCustomToggle').checked;
+  if (includeCustom) {
+    const customCards = lsGet('lexicon_custom_cards', []);
+    baseQueue = baseQueue.concat(customCards);
+  }
+  
+  flashQueue = shuffle(baseQueue);
+  flashIdx = 0; flashCorrect = 0; flashWrong = 0;
+  document.getElementById('flashDone').style.display = 'none';
+  document.getElementById('flipCard').style.display = '';
+  document.getElementById('flipActions').style.display = 'none';
+  document.getElementById('flipNext').style.display = 'none';
+  showFlashCard();
+}
+
+function showFlashCard() {
+  if (flashIdx >= flashQueue.length) { showFlashDone(); return; }
+  const w = flashQueue[flashIdx];
+  isFlipped = false;
+  document.getElementById('flipCard').classList.remove('flipped');
+
+  const frontEl = document.getElementById('flashFront');
+  const typeEl = document.getElementById('flashType');
+  const hintEl = document.querySelector('.flip-front .flip-hint');
+  const labelEl = document.querySelector('.flip-front .flip-label');
+  const defEl = document.getElementById('flashDef');
+  const usageEl = document.getElementById('flashUsage');
+  const backLabelEl = document.querySelector('.flip-back .flip-label');
+
+  if (w.isCustom) {
+    frontEl.textContent = w.front;
+    typeEl.textContent = '';
+    hintEl.textContent = 'Click to reveal the back';
+    labelEl.textContent = 'Front';
+    
+    backLabelEl.textContent = 'Back';
+    defEl.textContent = w.back;
+    usageEl.style.display = 'none';
+    
+    const delBtn = document.getElementById('flashDeleteBtn');
+    delBtn.style.display = 'block';
+    delBtn.onclick = (e) => { e.stopPropagation(); deleteCustomCard(w.id); };
+  } else {
+    document.getElementById('flashDeleteBtn').style.display = 'none';
+    usageEl.style.display = 'block';
+    if (flashMode === 'word') {
+      frontEl.textContent = w.word;
+      typeEl.textContent = w.type.join(' · ');
+      hintEl.textContent = 'Click the card to see the definition';
+      labelEl.textContent = 'Word';
+      
+      backLabelEl.textContent = 'Definition';
+      defEl.textContent = w.definition;
+    } else if (flashMode === 'def') {
+      frontEl.textContent = w.definition.length > 120 ? w.definition.slice(0, 120) + '…' : w.definition;
+      typeEl.textContent = '';
+      hintEl.textContent = 'Click to reveal the word';
+      labelEl.textContent = 'Definition';
+      
+      backLabelEl.textContent = 'Word';
+      defEl.textContent = w.word;
+    } else {
+      frontEl.textContent = `"${w.usage[0]}"`;
+      typeEl.textContent = '';
+      hintEl.textContent = 'Click to reveal the word used';
+      labelEl.textContent = 'Usage Sentence';
+      
+      backLabelEl.textContent = 'Word';
+      defEl.textContent = w.word;
+    }
+    usageEl.textContent = `"${w.usage[1] || w.usage[0]}"`;
+  }
+
+  const total = flashQueue.length;
+  document.getElementById('flashCounter').textContent = `${flashIdx + 1} / ${total}`;
+  document.getElementById('flashProgress').style.width = `${((flashIdx + 1) / total) * 100}%`;
+  document.getElementById('flashScore').textContent = `✓ ${flashCorrect}   ✗ ${flashWrong}`;
+  document.getElementById('flipActions').style.display = 'none';
+  document.getElementById('flipNext').style.display = 'none';
+}
+
+function flipCard() {
+  if (isFlipped) return;
+  isFlipped = true;
+  document.getElementById('flipCard').classList.add('flipped');
+  setTimeout(() => {
+    document.getElementById('flipActions').style.display = 'flex';
+  }, 300);
+}
+
+function rateCard(correct) {
+  const w = flashQueue[flashIdx];
+  if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0}, fill: {c:0, w:0} };
+  
+  if (correct) { perf[w.id].flash.c++; flashCorrect++; }
+  else { perf[w.id].flash.w++; flashWrong++; }
+  savePerf();
+  flashIdx++;
+  document.getElementById('flipActions').style.display = 'none';
+  showFlashCard();
+}
+
+function nextFlashCard() { flashIdx++; showFlashCard(); }
+
+function showFlashDone() {
+  document.getElementById('flipCard').style.display = 'none';
+  document.getElementById('flipActions').style.display = 'none';
+  document.getElementById('flipNext').style.display = 'none';
+  document.getElementById('flashDone').style.display = 'block';
+  const total = flashCorrect + flashWrong;
+  document.getElementById('flashFinalScore').textContent = `${flashCorrect}/${total}`;
+}
+
+function restartFlash() { initFlash(); }
+
+// ── QUIZ ──
+let quizQueue = [], quizIdx = 0, quizCorrect = 0, quizWrong = 0, quizLevel = 1, quizInProgress = false;
+let quizStates = { 1: null, 2: null, 3: null }; // Per-level state preservation
+let currentTrack = []; // Array to hold generated options and answers per question
+
+function initQuiz() {
+  quizInProgress = false;
+  document.getElementById('quizDone').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('quizLevelSelect').style.display = 'flex';
+  updateLevelBtnLabels();
+}
+
+function updateLevelBtnLabels() {
+  const labels = { 1: 'Easy', 2: 'Medium', 3: 'Hard' };
+  const btns = document.querySelectorAll('.level-btn');
+  btns.forEach((btn, i) => {
+    const lvl = i + 1;
+    const saved = quizStates[lvl];
+    const h3 = btn.querySelector('h3');
+    if (saved) {
+      h3.textContent = `${labels[lvl]} — Resume (${saved.idx}/${saved.queue.length})`;
+    } else {
+      h3.textContent = labels[lvl];
+    }
+  });
+}
+
+function startQuiz(level) {
+  quizLevel = level;
+  quizInProgress = true;
+
+  if (quizStates[level]) {
+    // Restore saved session for this level
+    const s = quizStates[level];
+    quizQueue = s.queue;
+    quizIdx = s.idx;
+    quizCorrect = s.correct;
+    quizWrong = s.wrong;
+    currentTrack = s.track;
+  } else {
+    // Fresh start
+    quizQueue = shuffle(QUIZ_VOCAB);
+    quizIdx = 0; quizCorrect = 0; quizWrong = 0;
+    currentTrack = Array(quizQueue.length).fill(null);
+  }
+
+  document.getElementById('quizLevelSelect').style.display = 'none';
+  document.getElementById('quizArea').style.display = '';
+  document.getElementById('quizDone').style.display = 'none';
+  showQuizCard();
+}
+
+function showQuizCard() {
+  if (quizIdx >= quizQueue.length) { showQuizDone(); return; }
+  
+  document.getElementById('quizPrevArrow').disabled = (quizIdx === 0);
+  
+  const w = quizQueue[quizIdx];
+  const total = quizQueue.length;
+
+  document.getElementById('quizCounter').textContent = `${quizIdx + 1} / ${total}`;
+  document.getElementById('quizProgress').style.width = `${((quizIdx + 1) / total) * 100}%`;
+  document.getElementById('quizScore').textContent = `✓ ${quizCorrect}   ✗ ${quizWrong}`;
+  
+  // Clean up previous state
+  document.getElementById('quizFeedback').className = 'quiz-feedback';
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('quizNextBtn').style.display = 'none';
+
+  // Generate or retrieve track data for this question
+  if (!currentTrack[quizIdx]) {
+    const types = ['def', 'usage', 'opposite'];
+    const qtype = types[Math.floor(Math.random() * types.length)];
+    let questionText = '', instruction = '';
+
+    if (qtype === 'def') {
+      instruction = 'Which word matches this definition?';
+      questionText = w.definition;
+    } else if (qtype === 'usage') {
+      instruction = 'Which word fits this sentence?';
+      questionText = w.usage[0].replace(new RegExp('\\b' + w.word + '\\b', 'gi'), '______');
+    } else {
+      instruction = 'What is the correct word?';
+      questionText = `This word means: "${w.definition}"`;
+    }
+
+    let possibleDistractors = QUIZ_VOCAB.filter(x => x.id !== w.id);
+    if (quizLevel === 2) {
+      let samePOS = possibleDistractors.filter(x => x.type.some(t => w.type.includes(t)));
+      if (samePOS.length >= 3) possibleDistractors = samePOS;
+    } else if (quizLevel === 3) {
+      let hardDistractors = possibleDistractors.filter(x => 
+        x.type.some(t => w.type.includes(t)) && 
+        (Math.abs(x.difficulty - w.difficulty) <= 1 || x.difficulty >= 2)
+      );
+      if (hardDistractors.length >= 3) possibleDistractors = hardDistractors;
+      else {
+        let samePOS = possibleDistractors.filter(x => x.type.some(t => w.type.includes(t)));
+        if (samePOS.length >= 3) possibleDistractors = samePOS;
+      }
+    }
+
+    const wrong3 = shuffle(possibleDistractors).slice(0, 3);
+    const options = shuffle([w, ...wrong3]);
+
+    currentTrack[quizIdx] = {
+      instruction,
+      questionText,
+      options,
+      answered: false,
+      selectedId: null,
+      correct: null
+    };
+  }
+
+  const track = currentTrack[quizIdx];
+  document.getElementById('quizInstruction').textContent = track.instruction;
+  document.getElementById('quizQuestion').textContent = track.questionText;
+
+  document.getElementById('quizOptions').innerHTML = track.options.map(opt => `
+    <button class="quiz-option" id="opt-${opt.id}" onclick="selectQuizOption('${opt.id}', '${w.id}', '${w.word.replace(/'/g, "\\'")}')">${opt.word}</button>
+  `).join('');
+
+  // If already answered, restore visual state
+  if (track.answered) {
+    document.querySelectorAll('.quiz-option').forEach(b => {
+      b.disabled = true;
+      if (b.id === `opt-${w.id}`) b.classList.add('reveal-correct');
+    });
+    
+    const selectedBtn = document.getElementById(`opt-${track.selectedId}`);
+    if (track.correct) {
+      if (selectedBtn) selectedBtn.classList.add('selected-correct');
+      document.getElementById('quizFeedback').textContent = `✓ Correct! "${w.usage[0]}"`;
+      document.getElementById('quizFeedback').className = 'quiz-feedback correct';
+    } else {
+      if (selectedBtn) selectedBtn.classList.add('selected-wrong');
+      document.getElementById('quizFeedback').textContent = `✗ The answer was "${w.word}". ${w.definition}`;
+      document.getElementById('quizFeedback').className = 'quiz-feedback wrong';
+    }
+    // Restore the Next button if they are looking at a previously answered question
+    document.getElementById('quizNextBtn').style.display = 'block';
+  }
+}
+
+function selectQuizOption(selectedId, correctId, correctWord) {
+  const track = currentTrack[quizIdx];
+  if (track.answered) return;
+  
+  track.answered = true;
+  track.selectedId = selectedId;
+  const w = quizQueue[quizIdx];
+  const correct = selectedId === correctId;
+  track.correct = correct;
+
+  document.querySelectorAll('.quiz-option').forEach(b => {
+    b.disabled = true;
+    if (b.id === `opt-${correctId}`) b.classList.add('reveal-correct');
+  });
+
+  const btn = document.getElementById(`opt-${selectedId}`);
+  if (correct) {
+    btn.classList.add('selected-correct');
+    perf[w.id].quiz.c++; quizCorrect++;
+    document.getElementById('quizFeedback').textContent = `✓ Correct! "${w.usage[0]}"`;
+    document.getElementById('quizFeedback').className = 'quiz-feedback correct';
+  } else {
+    btn.classList.add('selected-wrong');
+    perf[w.id].quiz.w++; quizWrong++;
+    document.getElementById('quizFeedback').textContent = `✗ The answer was "${correctWord}". ${w.definition}`;
+    document.getElementById('quizFeedback').className = 'quiz-feedback wrong';
+  }
+  savePerf();
+  
+  // Show the Next button so user can easily proceed after reading feedback
+  document.getElementById('quizNextBtn').style.display = 'block';
+}
+
+function prevQuiz() { 
+  if (quizIdx > 0) {
+    quizIdx--; 
+    showQuizCard(); 
+  }
+}
+function nextQuiz() { 
+  quizIdx++; 
+  showQuizCard(); 
+}
+
+function showQuizDone() {
+  quizInProgress = false;
+  quizStates[quizLevel] = null; // Clear saved state for this level when completed
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('quizDone').style.display = 'block';
+  const total = quizCorrect + quizWrong;
+  const pct = Math.round((quizCorrect / total) * 100);
+  document.getElementById('quizFinalScore').textContent = `${quizCorrect}/${total} (${pct}%)`;
+  document.getElementById('quizFinalMsg').textContent = pct >= 80 ? 'Excellent work! 🎉' : pct >= 60 ? 'Good effort — keep going!' : 'Keep practicing, you\'ll get there!';
+}
+
+function restartQuiz() {
+  quizStates[quizLevel] = null; // Clear saved state and start fresh for same level
+  startQuiz(quizLevel);
+}
+function changeLevelQuiz() {
+  // Save current session state before going back to level selector
+  if (quizInProgress && quizQueue.length) {
+    quizStates[quizLevel] = { queue: quizQueue, idx: quizIdx, correct: quizCorrect, wrong: quizWrong, track: currentTrack };
+  }
+  initQuiz();
+}
+
+// ── FILL BLANKS ──
+let fillQueue = [], fillIdx = 0, fillCorrect = 0, fillWrong = 0;
+
+function initFill() {
+  fillQueue = shuffle(QUIZ_VOCAB);
+  fillIdx = 0; fillCorrect = 0; fillWrong = 0;
+  document.getElementById('fillDone').style.display = 'none';
+  document.getElementById('fillArea').style.display = '';
+  showFillCard();
+}
+
+function showFillCard() {
+  if (fillIdx >= fillQueue.length) { showFillDone(); return; }
+  const w = fillQueue[fillIdx];
+  const total = fillQueue.length;
+
+  document.getElementById('fillCounter').textContent = `${fillIdx + 1} / ${total}`;
+  document.getElementById('fillProgress').style.width = `${((fillIdx + 1) / total) * 100}%`;
+  document.getElementById('fillScore').textContent = `✓ ${fillCorrect}   ✗ ${fillWrong}`;
+
+  // Use usage sentence with blank
+  const sentence = w.usage[0];
+  const blanked = sentence.replace(new RegExp('\\b' + w.word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\b', 'gi'), '______');
+  
+  let questionText = blanked !== sentence 
+    ? `Fill in the blank:\n\n"${blanked}"`
+    : `What word means:\n\n"${w.definition}"`;
+
+  document.getElementById('fillQuestion').textContent = questionText;
+  document.getElementById('fillInput').value = '';
+  document.getElementById('fillInput').className = 'blank-input';
+  document.getElementById('fillFeedback').className = 'quiz-feedback';
+  document.getElementById('fillFeedback').textContent = '';
+  document.getElementById('fillNextBtn').style.display = 'none';
+  document.getElementById('fillInput').disabled = false;
+  setTimeout(() => document.getElementById('fillInput').focus(), 100);
+}
+
+function checkFill() {
+  const w = fillQueue[fillIdx];
+  const input = document.getElementById('fillInput');
+  const answer = input.value.trim().toLowerCase();
+  const correct = answer === w.word.toLowerCase() || answer === w.word.split(' ')[0].toLowerCase();
+
+  input.disabled = true;
+  if (correct) {
+    input.className = 'blank-input correct';
+    perf[w.id].fill.c++; fillCorrect++;
+    document.getElementById('fillFeedback').textContent = `✓ Correct! "${w.usage[0]}"`;
+    document.getElementById('fillFeedback').className = 'quiz-feedback correct';
+  } else {
+    input.className = 'blank-input wrong';
+    perf[w.id].fill.w++; fillWrong++;
+    document.getElementById('fillFeedback').textContent = `✗ The answer was "${w.word}". ${w.definition}`;
+    document.getElementById('fillFeedback').className = 'quiz-feedback wrong';
+  }
+  savePerf();
+  document.getElementById('fillNextBtn').style.display = 'block';
+}
+
+function nextFill() { fillIdx++; showFillCard(); }
+
+function showFillDone() {
+  document.getElementById('fillArea').style.display = 'none';
+  document.getElementById('fillDone').style.display = 'block';
+  const total = fillCorrect + fillWrong;
+  document.getElementById('fillFinalScore').textContent = `${fillCorrect}/${total}`;
+}
+
+function restartFill() { initFill(); }
+
+// ── STATS ──
+function renderStats() {
+  let totalC = 0, totalW = 0;
+  QUIZ_VOCAB.forEach(w => { 
+    totalC += perf[w.id].quiz.c + perf[w.id].flash.c + perf[w.id].fill.c; 
+    totalW += perf[w.id].quiz.w + perf[w.id].flash.w + perf[w.id].fill.w; 
+  });
+  const total = totalC + totalW;
+  const acc = total ? Math.round((totalC / total) * 100) : 0;
+
+  document.getElementById('statTotal').textContent = QUIZ_VOCAB.length;
+  document.getElementById('statCorrect').textContent = totalC;
+  document.getElementById('statAccuracy').textContent = acc + '%';
+
+  const sorted = [...QUIZ_VOCAB].sort((a, b) => {
+    const aC = perf[a.id].quiz.c + perf[a.id].flash.c + perf[a.id].fill.c;
+    const aW = perf[a.id].quiz.w + perf[a.id].flash.w + perf[a.id].fill.w;
+    const bC = perf[b.id].quiz.c + perf[b.id].flash.c + perf[b.id].fill.c;
+    const bW = perf[b.id].quiz.w + perf[b.id].flash.w + perf[b.id].fill.w;
+    const aP = (aC + aW) ? aC / (aC + aW) : 0;
+    const bP = (bC + bW) ? bC / (bC + bW) : 0;
+    return aP - bP;
+  });
+
+  document.getElementById('wordStatsList').innerHTML = sorted.map(w => {
+    const p = perf[w.id];
+    const tC = p.quiz.c + p.flash.c + p.fill.c;
+    const tW = p.quiz.w + p.flash.w + p.fill.w;
+    const t = tC + tW;
+    const pct = t ? Math.round((tC / t) * 100) : 0;
+    const color = pct >= 70 ? '#5a7a5e' : pct >= 40 ? '#c9a84c' : '#c0512f';
+
+    const renderSeg = (stat, label) => {
+      const segTot = stat.c + stat.w;
+      if (!segTot) return `<span class="stat-label" style="opacity:0.3">${label}: -</span>`;
+      const segPct = Math.round((stat.c / segTot) * 100);
+      return `<span class="stat-label">${label}: ${segPct}% (${stat.c}/${segTot})</span>`;
+    };
+
+    return `<div class="word-stat-row" style="flex-wrap:wrap;">
+      <div class="ws-word" style="flex:1; min-width:120px;">${w.word}</div>
+      <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+         <div class="ws-acc" style="color:${color}; font-weight:bold;">${pct}% Overall</div>
+         <div style="display:flex; gap:10px; font-size:0.7em;">
+           ${renderSeg(p.flash, 'Flash')}
+           ${renderSeg(p.quiz, 'Quiz')}
+           ${renderSeg(p.fill, 'Fill')}
+         </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── INIT ──
+// Auth-aware init: if Firebase is loaded, it will call loadVocab via handleAuthState.
+// If Firebase keys are not set (config stub), show login screen for guest skip or sign-in attempt.
+// The login screen is shown by default (see HTML). Guest skip calls loadVocab directly.
+if (window._fbAuth === undefined) {
+  // Firebase module hasn't loaded yet — it's async; polling for it
+  let _fbWaitCount = 0;
+  const _fbWait = setInterval(() => {
+    _fbWaitCount++;
+    if (window._pendingAuthUser !== undefined) {
+      clearInterval(_fbWait);
+      window.handleAuthState(window._pendingAuthUser);
+      delete window._pendingAuthUser;
+    } else if (_fbWaitCount > 30) {
+      // Firebase took too long or config is invalid — fall back to guest
+      clearInterval(_fbWait);
+      // Leave login screen open (user can skip manually)
+    }
+  }, 100);
+}
+</script>
+</body>
+</html>

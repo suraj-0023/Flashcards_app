@@ -1,0 +1,17 @@
+{
+  "activeProjectId": "default",
+  "projects": [
+    {
+      "id": "default",
+      "name": "General Vocabulary",
+      "path": "vocabulary.json",
+      "quizPath": "quiz_words.json"
+    },
+    {
+      "id": "book_name",
+      "name": "BOOK_Name",
+      "path": "projects/BOOK_Name/vocabulary.json",
+      "quizPath": ""
+    }
+  ]
+}

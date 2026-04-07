@@ -1,0 +1,16 @@
+{
+  "words": [
+    {
+      "id": "b1_001",
+      "word": "prologue",
+      "type": ["noun"],
+      "definition": "A separate introductory section of a literary or musical work.",
+      "usage": ["The prologue sets the scene for the drama that follows."],
+      "opposites": ["epilogue"],
+      "tenses": {},
+      "related": ["preface", "introduction"],
+      "addedOn": "2026-03-25",
+      "difficulty": 1
+    }
+  ]
+}
