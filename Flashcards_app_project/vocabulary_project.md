@@ -87,11 +87,6 @@ Each word in `vocabulary.json` follows this schema:
 - Correct answer revealed with feedback after each question
 - Session score shown at the end
 
-### Fill in the Blanks Tab
-- Usage sentences with the target word removed
-- Type the missing word and press Enter or click Check
-- Immediate feedback with correct answer shown if wrong
-
 ### Stats Tab
 - Overall accuracy percentage across all sessions
 - Total correct answers and total words
@@ -143,7 +138,7 @@ Each word in `vocabulary.json` follows this schema:
 
 ## Performance Tracking
 
-- Each word tracks correct and wrong answers independently across all modes (flashcards, quiz, fill blanks)
+- Each word tracks correct and wrong answers independently across all modes (flashcards, quiz)
 - Performance is saved in the browser's `localStorage` so it persists across sessions
 - Stats tab shows cumulative accuracy per word
 

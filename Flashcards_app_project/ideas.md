@@ -7,7 +7,7 @@ Ideas are categorized into "To Be Done" and "Already Done".
 
 ### 1. Core Feature Enhancements & Organization
 ### 2. User Accounts & App Ecosystem
-- [x] Add a profile for the app where the user will log in with Gmail or email to access their directory.
+
 - [ ] Make sure the user can use and save progress across web and app.
 
 ### 3. AI & Advanced Features
@@ -33,3 +33,4 @@ Ideas are categorized into "To Be Done" and "Already Done".
 - [x] Add an option to delete a word from the directory.
 - [x] Add an input option to enter one/multiple words to the directory separated by commas.
 - [x] Add an option to upload images of pages so that underlined words in the page(s) will be extracted and added to the directory.
+- [x] Add a profile for the app where the user will log in with Gmail or email to access their directory.

@@ -11,16 +11,15 @@
   import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-  // ── FIREBASE CONFIG ── 
-  // IMPORTANT: Replace these values with your own Firebase project configuration.
-  // Get them from: https://console.firebase.google.com → Your Project → Project Settings → Web App
+  // ── FIREBASE CONFIG ──
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MSG_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBcZ4x6_ivQVVurC4ODZCv2gI4_xuv978o",
+    authDomain: "flashcards-application-25af5.firebaseapp.com",
+    projectId: "flashcards-application-25af5",
+    storageBucket: "flashcards-application-25af5.firebasestorage.app",
+    messagingSenderId: "232131280428",
+    appId: "1:232131280428:web:0131392ca4b7588cc69b89",
+    measurementId: "G-V3S77L6BH5"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -44,6 +43,7 @@
 
   // Auth state listener — called as soon as Firebase SDK is ready
   onAuthStateChanged(auth, (user) => {
+    console.log("Firebase Auth: onAuthStateChanged event fired. User:", user ? user.email || user.uid : "None");
     if (window.handleAuthState) window.handleAuthState(user);
     else window._pendingAuthUser = user; // store until app is ready
   });
@@ -764,40 +764,6 @@
   }
   .quiz-next:hover { opacity: 0.85; }
 
-  /* Fill blank */
-  .blank-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1.5px solid var(--border);
-    background: var(--paper);
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    color: var(--ink);
-    border-radius: 3px;
-    outline: none;
-    transition: border-color 0.2s;
-    margin-bottom: 14px;
-  }
-  .blank-input:focus { border-color: var(--gold); }
-  .blank-input.correct { border-color: var(--sage); background: rgba(90,122,94,0.06); }
-  .blank-input.wrong { border-color: var(--rust); background: rgba(192,81,47,0.05); }
-
-  .submit-btn {
-    padding: 10px 28px;
-    background: var(--gold);
-    color: var(--ink);
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 0.85rem;
-    cursor: pointer;
-    border-radius: 2px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    transition: opacity 0.2s;
-  }
-  .submit-btn:hover { opacity: 0.85; }
-
   /* ── STATS VIEW ── */
   .stats-header {
     font-family: 'Playfair Display', serif;
@@ -1266,6 +1232,788 @@
     50% { opacity: 0.4; }
   }
   .syncing { animation: syncPulse 1.2s ease-in-out infinite; }
+
+  /* ── SIDEBAR PRACTICE SECTION ── */
+  .sidebar-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8e8ea0;
+    padding: 6px 12px 4px;
+    margin-top: 8px;
+  }
+  .practice-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--sidebar-text);
+    transition: background 0.2s;
+  }
+  .practice-link:hover { background: var(--sidebar-hover); }
+  .practice-link.active { background: var(--sidebar-hover); font-weight: 500; }
+  .practice-link i { font-size: 0.9rem; color: #8e8ea0; }
+
+  /* ── DECK HEADER BAR ── */
+  .deck-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 36px;
+    border-bottom: 1.5px solid var(--border);
+    background: rgba(245,240,232,0.92);
+    backdrop-filter: blur(6px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  .deck-header-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+  }
+  .deck-header-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .deck-header-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-left: 2px;
+  }
+
+  /* ── PRACTICE OVERLAY ── */
+  #practiceOverlay {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .practice-back-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 36px;
+    border-bottom: 1.5px solid var(--border);
+    background: rgba(245,240,232,0.92);
+    backdrop-filter: blur(6px);
+    flex-shrink: 0;
+  }
+  .practice-back-btn {
+    background: none; border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    padding: 0;
+  }
+  .practice-back-btn:hover { color: var(--ink); }
+  .practice-view-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+  }
+  .practice-scroll {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .practice-scroll .view { display: none; }
+  .practice-scroll .view.active { display: block; }
+
+  /* ── MAIN SCROLLABLE PAGE ── */
+  #mainPage {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .main-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 36px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  /* ── ADD SECTION CARD ── */
+  .add-section-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .add-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .add-section-label span { color: var(--ink); font-weight: 500; }
+  .add-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: var(--paper);
+    color: var(--ink);
+    resize: none;
+    min-height: 68px;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+  .add-textarea:focus { border-color: var(--gold); }
+  .add-textarea::placeholder { color: var(--muted); }
+
+  /* Add toolbar row */
+  .add-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .file-attach-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .file-add-btn {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg);
+    color: var(--muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .file-add-btn:hover { border-color: var(--gold); color: var(--ink); }
+  .file-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    z-index: 200;
+    min-width: 130px;
+    overflow: hidden;
+  }
+  .file-dropdown-item {
+    padding: 9px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+    transition: background 0.15s;
+  }
+  .file-dropdown-item:hover { background: var(--cream); }
+  .file-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+  }
+  .file-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink);
+    max-width: 120px;
+  }
+  .file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-chip-remove {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 0.8rem; padding: 0; line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .file-chip-remove:hover { color: var(--rust); }
+  .toolbar-divider {
+    width: 1px;
+    height: 22px;
+    background: var(--border);
+    flex-shrink: 0;
+    margin: 0 2px;
+  }
+  .type-pills-group {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .type-pill {
+    padding: 4px 11px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .type-pill:hover { border-color: var(--gold); color: var(--ink); }
+  .type-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .add-deck-select {
+    padding: 4px 8px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    color: var(--ink);
+    cursor: pointer;
+    outline: none;
+    max-width: 140px;
+  }
+  .add-deck-select:focus { border-color: var(--gold); }
+  .generate-btn {
+    padding: 5px 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .generate-btn:hover { opacity: 0.8; }
+
+  /* ── AI PREVIEW SECTION ── */
+  .ai-preview-section {
+    background: rgba(201,168,76,0.06);
+    border: 1.5px solid var(--gold-light);
+    border-radius: 6px;
+    padding: 18px 20px;
+  }
+  .ai-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .ai-preview-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .ai-preview-cards-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .ai-preview-card {
+    flex: 1;
+    min-width: 200px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: opacity 0.3s;
+  }
+  .ai-preview-card.accepted { opacity: 0.4; }
+  .ai-preview-card-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .ai-preview-card-content {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--ink);
+    flex: 1;
+  }
+  .ai-preview-card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .ai-preview-btn {
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .ai-preview-btn.accept { border-color: var(--sage); color: var(--sage); }
+  .ai-preview-btn.accept:hover { background: var(--sage); color: white; }
+  .ai-preview-btn.discard { border-color: var(--rust); color: var(--rust); }
+  .ai-preview-btn.discard:hover { background: var(--rust); color: white; }
+  .ai-preview-btn.edit:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* ── LIBRARY SECTION ── */
+  .library-section { display: flex; flex-direction: column; gap: 16px; }
+  .library-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .library-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .lib-filter-pills {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .lib-pill {
+    padding: 4px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .lib-pill:hover { border-color: var(--gold); color: var(--ink); }
+  .lib-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* Library note card (reuses .dict-card base) */
+  .lib-note-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .lib-note-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+  .lib-note-card .lib-card-type-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .lib-note-card .lib-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .lib-note-card .lib-card-preview {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* Custom flashcard in library */
+  .lib-flash-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .lib-flash-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  /* ── DECK DASHBOARD ── */
+  .deck-section-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 16px;
+  }
+  @media (max-width: 640px) { .deck-section-grid { grid-template-columns: 1fr; } }
+
+  .deck-section-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 36px 24px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .deck-section-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .deck-card-icon { font-size: 2.4rem; line-height: 1; }
+  .deck-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .deck-card-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── NOTES SECTION ── */
+  .notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .notes-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+  }
+  .new-note-btn {
+    padding: 10px 20px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s;
+  }
+  .new-note-btn:hover { opacity: 0.8; }
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .note-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .note-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+  .note-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .note-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .note-delete-btn {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 0.85rem; padding: 2px 4px;
+    border-radius: 3px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+  .note-delete-btn:hover { color: var(--rust); }
+  .note-content {
+    font-size: 0.84rem;
+    color: var(--muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-wrap;
+    min-height: 60px;
+  }
+  .note-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-top: auto;
+  }
+  .notes-empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .notes-empty p { margin-top: 8px; }
+
+  /* ── NOTE EDITOR MODAL ── */
+  .note-editor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .note-editor-title-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .note-editor-title-input:focus { border-color: var(--gold); }
+  .note-editor-content-input {
+    width: 100%;
+    padding: 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    resize: vertical;
+    min-height: 220px;
+    line-height: 1.65;
+    transition: border-color 0.2s;
+  }
+  .note-editor-content-input:focus { border-color: var(--gold); }
+
+  /* ── LIBRARY SUMMARY TILES ── */
+  .library-summary-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .library-summary-tiles { grid-template-columns: 1fr; } }
+  .lib-summary-tile {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 32px 20px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .lib-summary-tile:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .lib-tile-icon { font-size: 2rem; line-height: 1; }
+  .lib-tile-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--ink); }
+  .lib-tile-count { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* ── LIBRARY LIST VIEW ── */
+  .lib-list-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .lib-list-back-btn {
+    background: none; border: none;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); cursor: pointer;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: color 0.2s; padding: 0; flex-shrink: 0;
+  }
+  .lib-list-back-btn:hover { color: var(--ink); }
+  .lib-list-title-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700; flex: 1;
+  }
+  .lib-list-controls { display: flex; gap: 8px; align-items: center; }
+  .lib-list-sort {
+    padding: 5px 10px;
+    border: 1.5px solid var(--border); border-radius: 4px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.78rem;
+    background: var(--card-bg); color: var(--ink);
+    cursor: pointer; outline: none;
+  }
+  .lib-list-sort:focus { border-color: var(--gold); }
+  .lib-shuffle-btn {
+    padding: 5px 14px;
+    border: 1.5px solid var(--border); background: transparent;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); cursor: pointer; border-radius: 4px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .lib-shuffle-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .lib-list-row {
+    display: flex; align-items: center;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg); border-radius: 4px;
+    margin-bottom: 8px; cursor: pointer;
+    transition: all 0.2s; gap: 12px;
+  }
+  .lib-list-row:hover { border-color: var(--gold); transform: translateX(3px); }
+  .lib-list-row-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; flex: 1; }
+  .lib-list-row-meta { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); flex-shrink: 0; }
+
+  /* ── DETAIL POPUP NAV ── */
+  .detail-popup-nav {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-top: 24px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .detail-nav-arrow {
+    background: none; border: 1.5px solid var(--border);
+    border-radius: 50%; width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: var(--muted); cursor: pointer;
+    transition: all 0.2s; user-select: none;
+  }
+  .detail-nav-arrow:hover:not(:disabled) { border-color: var(--gold); color: var(--ink); }
+  .detail-nav-arrow:disabled { opacity: 0.3; cursor: default; }
+  .detail-nav-counter { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+
+  /* ── DETAIL FLASHCARD FLIP ── */
+  .detail-flashcard-scene { perspective: 1000px; cursor: pointer; margin: 12px 0; }
+  .detail-flashcard-inner {
+    position: relative; width: 100%; height: 160px;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .detail-flashcard-inner.flipped { transform: rotateY(180deg); }
+  .detail-fc-front, .detail-fc-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: var(--cream); border: 1.5px solid var(--border);
+    border-radius: 4px; padding: 20px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .detail-fc-back { transform: rotateY(180deg); }
+
+  /* ── FLASHCARD DECK SELECTION ── */
+  .deck-select-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-bottom: 24px;
+  }
+  @media (max-width: 500px) { .deck-select-grid { grid-template-columns: 1fr; } }
+  .deck-select-card {
+    padding: 16px; border: 1.5px solid var(--border);
+    background: var(--card-bg); border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .deck-select-card:hover { border-color: var(--gold); }
+  .deck-select-card.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .deck-sel-checkbox {
+    width: 18px; height: 18px; border: 1.5px solid var(--border);
+    border-radius: 3px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; font-size: 0.8rem;
+    background: transparent;
+  }
+  .deck-select-card.selected .deck-sel-checkbox { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .deck-sel-name { font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; }
+  .deck-select-card.selected .deck-sel-name { color: var(--paper); }
+  .deck-sel-count { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+  .deck-select-card.selected .deck-sel-count { color: rgba(245,240,232,0.6); }
+  .start-practice-btn {
+    width: 100%; padding: 14px;
+    background: var(--ink); color: var(--paper);
+    border: none; border-radius: 4px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    font-weight: 500; cursor: pointer;
+    transition: opacity 0.2s; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .start-practice-btn:hover:not(:disabled) { opacity: 0.85; }
+  .start-practice-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── VOCAB PRACTICE LANDING ── */
+  .vocab-practice-option {
+    padding: 28px 24px;
+    background: var(--card-bg); border: 1.5px solid var(--border);
+    border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    margin-bottom: 14px;
+  }
+  .vocab-practice-option:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .vocab-practice-option h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 6px; }
+  .vocab-practice-option p { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -1311,14 +2059,28 @@
 <div id="loadingScreen" style="display:none;align-items:center;justify-content:center;min-height:100vh;font-family:'Playfair Display',serif;font-size:1.2rem;color:#8a7f72;letter-spacing:0.05em;">Loading vocabulary...</div>
 <div id="app" style="display:none;">
   <aside>
-    <button class="new-project-btn" onclick="openProjectModal()">
-      <span>+</span> New Project
+    <button class="new-project-btn" onclick="openNewDeckModal()">
+      <span>+</span> New Deck
     </button>
     <div class="sidebar-nav" id="sidebarProjectList">
-      <!-- Projects will be rendered here -->
+      <!-- Decks rendered here by JS -->
     </div>
+
+    <!-- Practice section -->
+    <div style="margin-top: 8px;">
+      <div class="sidebar-section-label">Practice</div>
+      <div class="practice-link" id="practiceLink-flashcards" onclick="openPracticeView('flashcards')">
+        <i>🃏</i> Flashcards
+      </div>
+      <div class="practice-link" id="practiceLink-vocab" onclick="openPracticeView('vocab')">
+        <i>📖</i> Vocab
+      </div>
+      <div class="practice-link" id="practiceLink-stats" onclick="openPracticeView('stats')">
+        <i>📊</i> Stats
+      </div>
+    </div>
+
     <div class="sidebar-profile" id="sidebarProfile">
-      <!-- Filled by JS based on auth state -->
       <button class="profile-signin-btn" onclick="openLoginScreen()" id="sidebarSigninBtn">
         <span>👤</span> Sign In / Create Account
       </button>
@@ -1327,183 +2089,313 @@
   </aside>
 
   <main>
-    <header>
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <h2 id="currentProjectTitle" style="font-family: 'Playfair Display', serif; font-size: 1.4rem;">All Words</h2>
-        <div class="word-count" id="wordCount">... words</div>
-      </div>
-      <nav>
-        <button class="active" onclick="showView('dictionary', this)">Dictionary</button>
-        <button onclick="showView('flashcards', this)">Flashcards</button>
-        <button onclick="showView('quiz', this)">Quiz</button>
-        <button onclick="showView('fill', this)">Fill Blanks</button>
-        <button onclick="showView('stats', this)">Stats</button>
-      </nav>
-    </header>
 
-    <!-- DICTIONARY -->
-    <div class="view active" id="view-dictionary">
-      <div class="dict-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <p style="margin:0; color: var(--muted); font-size: 0.85rem;">Click any word for full details</p>
-        </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <button onclick="openAiModal()" style="padding:10px 14px; background:var(--card-bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.9rem; display:flex; align-items:center; gap:6px;" title="Scan a book page to extract words">📷 Add Photo</button>
-          <input type="text" id="addWordInput" placeholder="Add words (comma separated)..." style="padding:10px 14px; border:1px solid var(--border); border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.9rem; width:220px; background:var(--card-bg); color:var(--ink);">
-          <button id="addWordBtn" onclick="addWords()" style="padding:10px 16px; background:var(--ink); color:var(--paper); border:none; border-radius:4px; cursor:pointer; font-family:'DM Mono',monospace; font-size:0.8rem; letter-spacing:0.05em; text-transform:uppercase; transition:opacity 0.2s;">Add</button>
-        </div>
+    <!-- ── PRACTICE OVERLAY (Flashcards / Quiz / Stats) ── -->
+    <div id="practiceOverlay">
+      <div class="practice-back-bar">
+        <button class="practice-back-btn" onclick="closePracticeOverlay()">← Library</button>
+        <span class="practice-view-title" id="practiceViewTitle">Flashcards</span>
       </div>
-    <div class="dict-grid" id="dictGrid"></div>
-  </div>
+      <div class="practice-scroll">
 
-  <!-- FLASHCARDS -->
-  <div class="view" id="view-flashcards">
-    <div class="flash-controls" style="display:flex; flex-direction:column; gap:12px; align-items:center;">
-      <div style="display:flex; gap:8px;">
-        <button class="mode-btn active" onclick="setFlashMode('word', this)">Word → Meaning</button>
-        <button class="mode-btn" onclick="setFlashMode('def', this)">Meaning → Word</button>
-        <button class="mode-btn" onclick="setFlashMode('usage', this)">Usage → Word</button>
-      </div>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--muted); font-family:'DM Mono',monospace;">
-          <input type="checkbox" id="includeCustomToggle" onchange="initFlash()" checked style="cursor:pointer;">
-          <label for="includeCustomToggle" style="cursor:pointer;">Include Custom Cards</label>
-        </div>
-        <button onclick="openCustomCardModal()" style="padding:6px 12px; background:var(--card-bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.8rem; display:flex; align-items:center; gap:6px;">+ Create Custom Card</button>
-      </div>
-    </div>
-    <div class="flash-progress">
-      <span id="flashCounter">1 / 16</span>
-      <div class="progress-bar"><div class="progress-fill" id="flashProgress" style="width:6%"></div></div>
-      <span id="flashScore">✓ 0 &nbsp; ✗ 0</span>
-    </div>
-    <div class="flip-scene">
-      <div class="flip-card" id="flipCard" onclick="flipCard()">
-        <div class="flip-front">
-          <div class="flip-label">Tap to reveal</div>
-          <div class="flip-word" id="flashFront">—</div>
-          <div class="flip-type-badge" id="flashType">noun</div>
-          <div class="flip-hint">Click the card to see the definition</div>
-        </div>
-        <div class="flip-back">
-          <div class="flip-label">Definition</div>
-          <div class="flip-def" id="flashDef">—</div>
-          <div class="flip-usage" id="flashUsage">—</div>
-          <button id="flashDeleteBtn" style="display:none; margin-top:10px; background:none; border:none; color:var(--rust); cursor:pointer; font-family:'DM Mono',monospace; font-size:0.7rem; text-decoration:underline; text-transform:uppercase;">Delete Card</button>
-        </div>
-      </div>
-    </div>
-    <div class="flip-actions" id="flipActions" style="display:none;">
-      <button class="action-btn wrong" onclick="rateCard(false)">✗ Need Practice</button>
-      <button class="action-btn correct" onclick="rateCard(true)">✓ Got It</button>
-    </div>
-    <div class="flip-actions" id="flipNext" style="display:none;">
-      <button class="action-btn next" onclick="nextFlashCard()">Next Word →</button>
-    </div>
-    <div id="flashDone" style="display:none;" class="session-done">
-      <h2>Session Complete</h2>
-      <div class="score-display" id="flashFinalScore">—</div>
-      <p>Keep practicing the ones you missed!</p>
-      <button class="restart-btn" onclick="restartFlash()">Start Again</button>
-    </div>
-  </div>
+        <!-- FLASHCARDS -->
+        <div class="view" id="view-flashcards">
 
-  <!-- QUIZ -->
-  <div class="view" id="view-quiz">
-    <div id="quizLevelSelect" class="level-select">
-      <div class="dict-header" style="text-align:center; display: flex; flex-direction:column; align-items:center;">
-        <h2 style="margin-bottom:10px;">Select Difficulty</h2>
-        <p>Choose a level to start your quiz session</p>
-      </div>
-      <button class="level-btn easy" onclick="startQuiz(1)">
-        <h3>Easy</h3>
-        <p>Random distractors. Good for quick recall.</p>
-      </button>
-      <button class="level-btn medium" onclick="startQuiz(2)">
-        <h3>Medium</h3>
-        <p>Distractors match the word's Part of Speech.</p>
-      </button>
-      <button class="level-btn hard" onclick="startQuiz(3)">
-        <h3>Hard</h3>
-        <p>Distractors match Part of Speech & Difficulty.</p>
-      </button>
-    </div>
-
-    <div id="quizArea" style="display:none;">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-        <button onclick="changeLevelQuiz()" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;text-decoration:underline;">↩ Change Level</button>
-      </div>
-      <div class="quiz-nav-container">
-        <button class="nav-arrow" id="quizPrevArrow" onclick="prevQuiz()">‹</button>
-        <div class="quiz-card" id="quizCard" style="flex: 1; margin-bottom:0;">
-          <div class="quiz-instruction" id="quizInstruction">Choose the correct definition</div>
-          <div class="flash-progress">
-            <span id="quizCounter">1 / 16</span>
-            <div class="progress-bar"><div class="progress-fill" id="quizProgress" style="width:6%"></div></div>
-            <span id="quizScore">✓ 0 &nbsp; ✗ 0</span>
+          <!-- Deck Selection Screen (shown first) -->
+          <div id="flashDeckSelect">
+            <div style="margin-bottom:24px;">
+              <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:400;margin-bottom:6px;">Select Decks</h2>
+              <p style="color:var(--muted);font-size:0.85rem;">Choose which decks to practice from</p>
+            </div>
+            <div class="deck-select-grid" id="deckSelectGrid"></div>
+            <button class="start-practice-btn" id="startPracticeBtn" onclick="startFlashWithSelectedDecks()" disabled>Start Practice →</button>
           </div>
-          <div class="quiz-question" id="quizQuestion">—</div>
-          <div class="quiz-options" id="quizOptions"></div>
-          <div class="quiz-feedback" id="quizFeedback"></div>
-        </div>
-        <button class="nav-arrow" id="quizNextArrow" onclick="nextQuiz()">›</button>
-      </div>
-      <button class="quiz-next" id="quizNextBtn" onclick="nextQuiz()" style="display:none;">Next →</button>
-    </div>
-    <div id="quizDone" style="display:none;" class="session-done">
-      <h2>Quiz Complete!</h2>
-      <div class="score-display" id="quizFinalScore">—</div>
-      <p id="quizFinalMsg">—</p>
-      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
-        <button class="restart-btn" style="background:var(--paper);color:var(--ink);border:1.5px solid var(--border);" onclick="changeLevelQuiz()">Change Level</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- FILL BLANKS -->
-  <div class="view" id="view-fill">
-    <div id="fillArea">
-      <div class="quiz-card" id="fillCard">
-        <div class="quiz-instruction">Type the missing word</div>
-        <div class="flash-progress">
-          <span id="fillCounter">1 / 16</span>
-          <div class="progress-bar"><div class="progress-fill" id="fillProgress" style="width:6%"></div></div>
-          <span id="fillScore">✓ 0 &nbsp; ✗ 0</span>
+          <!-- Flashcard Practice Content (shown after deck selection) -->
+          <div id="flashPracticeContent" style="display:none;">
+          <div class="flash-controls" style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+            <div style="display:flex; gap:8px;">
+              <button class="mode-btn active" onclick="setFlashMode('word', this)">Word → Meaning</button>
+              <button class="mode-btn" onclick="setFlashMode('def', this)">Meaning → Word</button>
+              <button class="mode-btn" onclick="setFlashMode('usage', this)">Usage → Word</button>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--muted); font-family:'DM Mono',monospace;">
+                <input type="checkbox" id="includeCustomToggle" onchange="initFlash()" checked style="cursor:pointer;">
+                <label for="includeCustomToggle" style="cursor:pointer;">Include Custom Cards</label>
+              </div>
+              <button onclick="openCustomCardModal()" style="padding:6px 12px; background:var(--card-bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.8rem; display:flex; align-items:center; gap:6px;">+ Create Custom Card</button>
+            </div>
+          </div>
+          <div class="flash-progress">
+            <span id="flashCounter">1 / 16</span>
+            <div class="progress-bar"><div class="progress-fill" id="flashProgress" style="width:6%"></div></div>
+            <span id="flashScore">✓ 0 &nbsp; ✗ 0</span>
+          </div>
+          <div class="flip-scene">
+            <div class="flip-card" id="flipCard" onclick="flipCard()">
+              <div class="flip-front">
+                <div class="flip-label">Tap to reveal</div>
+                <div class="flip-word" id="flashFront">—</div>
+                <div class="flip-type-badge" id="flashType">noun</div>
+                <div class="flip-hint">Click the card to see the definition</div>
+              </div>
+              <div class="flip-back">
+                <div class="flip-label">Definition</div>
+                <div class="flip-def" id="flashDef">—</div>
+                <div class="flip-usage" id="flashUsage">—</div>
+                <button id="flashDeleteBtn" style="display:none; margin-top:10px; background:none; border:none; color:var(--rust); cursor:pointer; font-family:'DM Mono',monospace; font-size:0.7rem; text-decoration:underline; text-transform:uppercase;">Delete Card</button>
+              </div>
+            </div>
+          </div>
+          <div class="flip-actions" id="flipActions" style="display:none;">
+            <button class="action-btn wrong" onclick="rateCard(false)">✗ Need Practice</button>
+            <button class="action-btn correct" onclick="rateCard(true)">✓ Got It</button>
+          </div>
+          <div class="flip-actions" id="flipNext" style="display:none;">
+            <button class="action-btn next" onclick="nextFlashCard()">Next Word →</button>
+          </div>
+          <div id="flashDone" style="display:none;" class="session-done">
+            <h2>Session Complete</h2>
+            <div class="score-display" id="flashFinalScore">—</div>
+            <p>Keep practicing the ones you missed!</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+              <button class="restart-btn" onclick="restartFlash()">Start Again</button>
+              <button class="restart-btn" style="background:var(--paper);color:var(--ink);border:1.5px solid var(--border);" onclick="renderDeckSelection()">Change Decks</button>
+            </div>
+          </div>
+          </div><!-- end #flashPracticeContent -->
         </div>
-        <div class="quiz-question" id="fillQuestion">—</div>
-        <input class="blank-input" id="fillInput" placeholder="Type your answer here…" onkeydown="if(event.key==='Enter') checkFill()">
-        <button class="submit-btn" onclick="checkFill()">Check Answer</button>
-        <div class="quiz-feedback" id="fillFeedback"></div>
-      </div>
-      <button class="quiz-next" id="fillNextBtn" onclick="nextFill()" style="display:none;">Next →</button>
-    </div>
-    <div id="fillDone" style="display:none;" class="session-done">
-      <h2>Fill Blanks Done!</h2>
-      <div class="score-display" id="fillFinalScore">—</div>
-      <p>Well done! Check your stats to see progress.</p>
-      <button class="restart-btn" onclick="restartFill()">Try Again</button>
-    </div>
-  </div>
 
-  <!-- STATS -->
-  <div class="view" id="view-stats">
-    <div class="stats-header">Your Progress</div>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-num" id="statTotal">—</div>
-        <div class="stat-label">Total Words</div>
+        <!-- VOCAB (Quiz renamed) -->
+        <div class="view" id="view-quiz">
+
+          <!-- Vocab Practice Landing (default) -->
+          <div id="vocabPracticeLanding">
+            <div style="margin-bottom:24px;">
+              <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:400;margin-bottom:6px;">Vocab Practice</h2>
+              <p style="color:var(--muted);font-size:0.85rem;">Choose how to practice your vocabulary</p>
+            </div>
+            <div class="vocab-practice-option" onclick="startVocabFlashcards()">
+              <h3>🃏 Vocab Flashcards</h3>
+              <p>Flip-card mode — word on the front, definition on the back. Perfect for memorization.</p>
+            </div>
+            <div class="vocab-practice-option" onclick="startVocabQuiz()">
+              <h3>📝 Vocab Quiz</h3>
+              <p>Multiple choice — 4 options per question, generated from your deck vocab.</p>
+            </div>
+          </div>
+
+          <!-- Vocab Flashcard Mode -->
+          <div id="vocabFlipSection" style="display:none;">
+            <button onclick="showVocabLanding()" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;padding:0;margin-bottom:20px;transition:color 0.2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">← Back</button>
+            <div class="flash-progress">
+              <span id="vfCounter">1 / 1</span>
+              <div class="progress-bar"><div class="progress-fill" id="vfProgress" style="width:0%"></div></div>
+              <span id="vfScore">✓ 0 &nbsp; ✗ 0</span>
+            </div>
+            <div class="flip-scene">
+              <div class="flip-card" id="vfFlipCard" onclick="vfFlipCard()">
+                <div class="flip-front">
+                  <div class="flip-label">Word</div>
+                  <div class="flip-word" id="vfFront">—</div>
+                  <div class="flip-type-badge" id="vfType"></div>
+                  <div class="flip-hint">Click to reveal definition</div>
+                </div>
+                <div class="flip-back">
+                  <div class="flip-label">Definition</div>
+                  <div class="flip-def" id="vfDef">—</div>
+                  <div class="flip-usage" id="vfUsage">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="flip-actions" id="vfActions" style="display:none;">
+              <button class="action-btn wrong" onclick="vfRateCard(false)">✗ Need Practice</button>
+              <button class="action-btn correct" onclick="vfRateCard(true)">✓ Got It</button>
+            </div>
+            <div id="vfDone" style="display:none;" class="session-done">
+              <h2>Session Complete</h2>
+              <div class="score-display" id="vfFinalScore">—</div>
+              <p>Keep practicing!</p>
+              <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                <button class="restart-btn" onclick="startVocabFlashcards()">Start Again</button>
+                <button class="restart-btn" style="background:var(--paper);color:var(--ink);border:1.5px solid var(--border);" onclick="showVocabLanding()">Change Mode</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz Level Select (shown when Vocab Quiz selected) -->
+          <div id="quizLevelSelect" class="level-select" style="display:none;">
+            <button onclick="showVocabLanding()" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;padding:0;margin-bottom:16px;transition:color 0.2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">← Back</button>
+            <div class="dict-header" style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+              <h2 style="margin-bottom:10px;">Select Difficulty</h2>
+              <p>Choose a level to start your quiz session</p>
+            </div>
+            <button class="level-btn easy" onclick="startQuiz(1)"><h3>Easy</h3><p>Random distractors. Good for quick recall.</p></button>
+            <button class="level-btn medium" onclick="startQuiz(2)"><h3>Medium</h3><p>Distractors match the word's Part of Speech.</p></button>
+            <button class="level-btn hard" onclick="startQuiz(3)"><h3>Hard</h3><p>Distractors match Part of Speech & Difficulty.</p></button>
+          </div>
+          <div id="quizArea" style="display:none;">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+              <button onclick="changeLevelQuiz()" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;text-decoration:underline;">↩ Change Level</button>
+            </div>
+            <div class="quiz-nav-container">
+              <button class="nav-arrow" id="quizPrevArrow" onclick="prevQuiz()">‹</button>
+              <div class="quiz-card" id="quizCard" style="flex:1; margin-bottom:0;">
+                <div class="quiz-instruction" id="quizInstruction">Choose the correct definition</div>
+                <div class="flash-progress">
+                  <span id="quizCounter">1 / 16</span>
+                  <div class="progress-bar"><div class="progress-fill" id="quizProgress" style="width:6%"></div></div>
+                  <span id="quizScore">✓ 0 &nbsp; ✗ 0</span>
+                </div>
+                <div class="quiz-question" id="quizQuestion">—</div>
+                <div class="quiz-options" id="quizOptions"></div>
+                <div class="quiz-feedback" id="quizFeedback"></div>
+              </div>
+              <button class="nav-arrow" id="quizNextArrow" onclick="nextQuiz()">›</button>
+            </div>
+            <button class="quiz-next" id="quizNextBtn" onclick="nextQuiz()" style="display:none;">Next →</button>
+          </div>
+          <div id="quizDone" style="display:none;" class="session-done">
+            <h2>Quiz Complete!</h2>
+            <div class="score-display" id="quizFinalScore">—</div>
+            <p id="quizFinalMsg">—</p>
+            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+              <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+              <button class="restart-btn" style="background:var(--paper);color:var(--ink);border:1.5px solid var(--border);" onclick="changeLevelQuiz()">Change Level</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="view" id="view-stats">
+          <div class="stats-header">Your Progress</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Words</div></div>
+            <div class="stat-card"><div class="stat-num" id="statCorrect">—</div><div class="stat-label">Correct Answers</div></div>
+            <div class="stat-card"><div class="stat-num" id="statAccuracy">—</div><div class="stat-label">Accuracy</div></div>
+          </div>
+          <div class="word-stats-list" id="wordStatsList"></div>
+        </div>
+
+      </div><!-- end .practice-scroll -->
+    </div><!-- end #practiceOverlay -->
+
+    <!-- ── MAIN PAGE (single scrollable) ── -->
+    <div id="mainPage">
+
+      <!-- Deck header bar -->
+      <div class="deck-header-bar">
+        <div class="deck-header-dot"></div>
+        <span class="deck-header-name" id="deckHeaderName">All Words</span>
+        <span class="deck-header-count" id="deckHeaderCount"></span>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statCorrect">—</div>
-        <div class="stat-label">Correct Answers</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statAccuracy">—</div>
-        <div class="stat-label">Accuracy</div>
-      </div>
+
+      <!-- Scrollable content -->
+      <div class="main-scroll-area">
+
+        <!-- 1. Add Section -->
+        <div class="add-section-card">
+          <div class="add-section-label">Add to <span id="addDeckLabel">All Words</span></div>
+          <textarea id="addContentTextarea" class="add-textarea" rows="3" placeholder="Enter words, paste text, or write a note…"></textarea>
+          <div class="add-toolbar">
+            <!-- File attach -->
+            <div class="file-attach-group">
+              <button class="file-add-btn" onclick="toggleFileDropdown(event)" title="Attach file">+</button>
+              <div id="fileDropdownMenu" class="file-dropdown" style="display:none;">
+                <label class="file-dropdown-item" style="cursor:pointer;" onclick="closeFileDropdown()">
+                  <input type="file" id="addImageInput" accept="image/*" capture="environment" style="display:none" onchange="handleFileAttach(this,'image')">
+                  📷 Image
+                </label>
+                <label class="file-dropdown-item" style="cursor:pointer;" onclick="closeFileDropdown()">
+                  <input type="file" id="addPdfInput" accept=".pdf" style="display:none" onchange="handleFileAttach(this,'pdf')">
+                  📄 PDF
+                </label>
+                <label class="file-dropdown-item" style="cursor:pointer;" onclick="closeFileDropdown()">
+                  <input type="file" id="addFileInput" style="display:none" onchange="handleFileAttach(this,'file')">
+                  📎 File
+                </label>
+              </div>
+            </div>
+            <div id="fileChipsContainer" class="file-chips"></div>
+            <div class="toolbar-divider"></div>
+            <!-- Type pills -->
+            <div class="type-pills-group" id="typePillsGroup">
+              <button class="type-pill active" data-type="vocab" onclick="toggleTypePill(this)">Vocab</button>
+              <button class="type-pill" data-type="notes" onclick="toggleTypePill(this)">Notes</button>
+              <button class="type-pill" data-type="flashcard" onclick="toggleTypePill(this)">Flashcard</button>
+            </div>
+            <!-- Deck select -->
+            <select id="addDeckSelect" class="add-deck-select"></select>
+            <!-- Generate -->
+            <button class="generate-btn" onclick="handleGenerate()">Generate →</button>
+          </div>
+        </div>
+
+        <!-- 2. AI Preview (hidden by default) -->
+        <div id="aiPreviewSection" class="ai-preview-section" style="display:none;">
+          <div class="ai-preview-header">
+            <span class="ai-preview-label">AI preview · accept, edit or discard</span>
+            <button onclick="document.getElementById('aiPreviewSection').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;">✕</button>
+          </div>
+          <div id="aiPreviewCards" class="ai-preview-cards-row"></div>
+        </div>
+
+        <!-- 3. Library -->
+        <div class="library-section">
+          <div class="library-header">
+            <span class="library-title">Library</span>
+          </div>
+          <!-- Summary Tiles -->
+          <div id="librarySummaryTiles" class="library-summary-tiles">
+            <div class="lib-summary-tile" onclick="showLibraryList('notes')">
+              <div class="lib-tile-icon">📝</div>
+              <div class="lib-tile-name">Notes</div>
+              <div class="lib-tile-count" id="libTileCountNotes">0 notes</div>
+            </div>
+            <div class="lib-summary-tile" onclick="showLibraryList('flashcards')">
+              <div class="lib-tile-icon">🃏</div>
+              <div class="lib-tile-name">Flashcards</div>
+              <div class="lib-tile-count" id="libTileCountFlashcards">0 flashcards</div>
+            </div>
+            <div class="lib-summary-tile" onclick="showLibraryList('vocab')">
+              <div class="lib-tile-icon">📖</div>
+              <div class="lib-tile-name">Vocab</div>
+              <div class="lib-tile-count" id="libTileCountVocab">0 words</div>
+            </div>
+          </div>
+          <!-- List View (shown when a tile is clicked) -->
+          <div id="libraryListView" style="display:none;">
+            <div class="lib-list-header">
+              <button class="lib-list-back-btn" onclick="hideLibraryList()">← Back</button>
+              <span class="lib-list-title-text" id="libListTitle">Notes</span>
+              <div class="lib-list-controls">
+                <select class="lib-list-sort" id="libListSort" onchange="applySortLibraryList()">
+                  <option value="time">Time Added</option>
+                  <option value="alpha">Alphabetical</option>
+                </select>
+                <button class="lib-shuffle-btn" onclick="shuffleLibraryList()">⇌ Shuffle</button>
+              </div>
+            </div>
+            <div id="libListItems"></div>
+          </div>
+        </div>
+
+      </div><!-- end .main-scroll-area -->
+    </div><!-- end #mainPage -->
+
+  </main>
+
+<!-- DETAIL POPUP MODAL -->
+<div class="modal-overlay" id="detailPopupOverlay" onclick="closeDetailPopup(event)">
+  <div class="modal" style="max-width:620px;">
+    <button class="modal-close" onclick="closeDetailPopup()">×</button>
+    <div id="detailPopupContent"></div>
+    <div class="detail-popup-nav">
+      <button class="detail-nav-arrow" id="detailPrevBtn" onclick="navigateDetail(-1)" disabled>‹</button>
+      <span class="detail-nav-counter" id="detailNavCounter">1 / 1</span>
+      <button class="detail-nav-arrow" id="detailNextBtn" onclick="navigateDetail(1)" disabled>›</button>
     </div>
-    <div class="word-stats-list" id="wordStatsList"></div>
   </div>
 </div>
 
@@ -1578,20 +2470,23 @@
   </div>
 </div>
 <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
+<!-- Hidden legacy inputs used by addWords() and AI scan flow -->
+<input type="hidden" id="addWordInput">
+<input type="hidden" id="addWordBtn">
 
 <!-- NEW PROJECT MODAL -->
 <div class="modal-overlay" id="newProjectModalOverlay" onclick="closeNewProjectModal(event)">
   <div class="modal" id="newProjectModal" style="max-width: 400px; text-align: left;">
     <button class="modal-close" onclick="closeNewProjectModalBtn()">✕</button>
-    <div class="modal-word" style="font-size:1.8rem; margin-bottom:5px;">New Project</div>
-    <p style="color:var(--muted); font-size:0.9rem; line-height:1.4; margin-bottom: 20px;">Create a new collection for a specific book or topic.</p>
-    
+    <div class="modal-word" style="font-size:1.8rem; margin-bottom:5px;">New Deck</div>
+    <p style="color:var(--muted); font-size:0.9rem; line-height:1.4; margin-bottom: 20px;">Create a new deck for a specific book, topic, or subject.</p>
+
     <div class="custom-card-form">
       <div>
-        <label>Project Name</label>
+        <label>Deck Name</label>
         <input type="text" id="projectNameInput" class="ai-api-key-input" style="margin-top: 5px; margin-bottom: 20px;" placeholder="e.g., Harry Potter, Business English...">
       </div>
-      <button class="restart-btn" style="width: 100%;" onclick="createNewProject()">Create Project</button>
+      <button class="restart-btn" style="width: 100%;" onclick="createNewDeck()">Create Deck</button>
     </div>
   </div>
 </div>
@@ -1624,18 +2519,32 @@
   </main>
 </div>
 
+<!-- NOTE EDITOR MODAL -->
+<div class="modal-overlay" id="noteEditorOverlay" onclick="closeNoteEditor(event)">
+  <div class="modal" style="max-width: 560px; text-align: left;">
+    <button class="modal-close" onclick="closeNoteEditor()">✕</button>
+    <div class="modal-word" style="font-size:1.6rem; margin-bottom:4px;">Edit Note</div>
+    <input type="hidden" id="noteEditorId">
+    <div class="note-editor-form">
+      <input type="text" id="noteEditorTitle" class="note-editor-title-input" placeholder="Note title...">
+      <textarea id="noteEditorContent" class="note-editor-content-input" placeholder="Write your note here..."></textarea>
+      <button class="custom-card-btn" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
 <!-- PROJECT MANAGEMENT MODAL -->
 <div class="modal-overlay" id="projectModalOverlay" onclick="closeProjectModal(event)">
   <div class="modal" id="projectModal" style="max-width: 450px; text-align: left;">
     <button class="modal-close" onclick="closeProjectModalBtn()">✕</button>
-    <div class="modal-word" style="font-size:1.5rem; margin-bottom:10px;">Manage Projects</div>
-    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:20px;">Organize your words and cards into theme-based folders.</p>
-    
+    <div class="modal-word" style="font-size:1.5rem; margin-bottom:10px;">Manage Decks</div>
+    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:20px;">Organize your words and cards into theme-based decks.</p>
+
     <div style="margin-bottom:24px;">
-      <label style="font-family:'DM Mono',monospace; font-size:0.75rem; text-transform:uppercase; color:var(--muted);">New Project Name</label>
+      <label style="font-family:'DM Mono',monospace; font-size:0.75rem; text-transform:uppercase; color:var(--muted);">New Deck Name</label>
       <div style="display:flex; gap:8px; margin-top:8px;">
         <input type="text" id="newProjectInput" class="project-select" style="flex:1;" placeholder="e.g., Biology Test">
-        <button class="custom-card-btn" style="margin:0; padding:8px 16px;" onclick="createProject()">Create</button>
+        <button class="custom-card-btn" style="margin:0; padding:8px 16px;" onclick="createDeck()">Create</button>
       </div>
     </div>
     
@@ -1649,8 +2558,12 @@
 // ── STATE ──
 let VOCAB = [];
 let QUIZ_VOCAB = [];
-let ALL_CORE_VOCAB = []; 
+let ALL_VOCAB = [];
+let ALL_QUIZ_VOCAB = [];
+let ALL_CUSTOM_CARDS = [];
+let ALL_CORE_VOCAB = [];
 let ALL_CORE_QUIZ = [];
+let ALL_NOTES = [];
 
 let projects = JSON.parse(localStorage.getItem('lexicon_projects') || '[{"id":"general", "name":"General"}]');
 let currentProjectId = localStorage.getItem('lexicon_current_project') || 'all';
@@ -1701,6 +2614,7 @@ async function syncToCloud(partial = {}) {
       deleted_vocab: lsGet('deleted_vocab', []),
       custom_vocab: lsGet('custom_vocab', []),
       lexicon_custom_cards: lsGet('lexicon_custom_cards', []),
+      lexicon_notes: lsGet('lexicon_notes', []),
       updatedAt: Date.now()
     }, partial);
     await window._fbSetDoc(ref, payload, { merge: true });
@@ -1734,6 +2648,7 @@ async function pullFromCloud() {
       if (d.deleted_vocab) lsSet('deleted_vocab', d.deleted_vocab);
       if (d.custom_vocab) lsSet('custom_vocab', d.custom_vocab);
       if (d.lexicon_custom_cards) lsSet('lexicon_custom_cards', d.lexicon_custom_cards);
+      if (d.lexicon_notes) lsSet('lexicon_notes', d.lexicon_notes);
       // Restore perf keys
       Object.keys(d).forEach(k => {
         if (k.startsWith('lexicon_perf_')) lsSet(k, d[k]);
@@ -1759,18 +2674,29 @@ function updateSyncBadge(state) {
 window.handleAuthState = async function(user) {
   currentUser = user;
   if (user) {
-    // User is signed in — hide login screen, show loading, pull cloud data
+    console.log("handleAuthState: User is signed in!", { email: user.email, uid: user.uid, displayName: user.displayName });
+
+    // STEP 1: Hide login, load from local storage IMMEDIATELY (no waiting)
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('loadingScreen').style.display = 'flex';
-    
-    // Re-init projects from cloud-namespaced localStorage (or cloud)
-    await pullFromCloud();
     projects = lsGet('lexicon_projects', [{"id":"general", "name":"General"}]);
     currentProjectId = lsGet('lexicon_current_project', 'all');
     
+    // STEP 2: Load the app instantly using saved local data
     await loadVocab();
     renderSidebarProfile(user);
+
+    // STEP 3: NOW sync with cloud SILENTLY in the background
+    // This does NOT block the app from showing
+    pullFromCloud().then(() => {
+      projects = lsGet('lexicon_projects', [{"id":"general", "name":"General"}]);
+      currentProjectId = lsGet('lexicon_current_project', 'all');
+      loadVocab(); // Refresh silently with the latest cloud data
+    }).catch(e => {
+      console.warn('Background cloud sync failed:', e.message);
+    });
+
   } else {
+    console.log("handleAuthState: No user is signed in.");
     // Not signed in — update profile area if app is already visible
     renderSidebarProfile(null);
   }
@@ -1851,16 +2777,27 @@ function toggleSignUpMode() {
 
 async function signInGoogle() {
   if (!window._fbAuth) {
+    console.error("signInGoogle: Firebase Auth instance is not initialized or missing.");
     showLoginError('Firebase is not configured yet. Please set up your Firebase project keys first, or continue without signing in.');
     return;
   }
   hideLoginError();
+  console.log("signInGoogle: Initiating sign in with popup...");
+  
   try {
-    await window._fbSignInWithPopup(window._fbAuth, window._fbGoogleProvider);
-    // onAuthStateChanged will fire and call handleAuthState
+    const result = await window._fbSignInWithPopup(window._fbAuth, window._fbGoogleProvider);
+    console.log("signInGoogle: Successfully signed in! User details:", result.user);
+    // onAuthStateChanged will fire and call handleAuthState automatically
   } catch(e) {
+    console.error("signInGoogle: Handled error during sign-in:", e);
+    console.error("Error Code:", e.code);
+    console.error("Error Message:", e.message);
+    if (e.customData) console.error("Error Custom Data:", e.customData);
+    
     if (e.code !== 'auth/popup-closed-by-user') {
-      showLoginError(friendlyAuthError(e.code));
+      showLoginError(friendlyAuthError(e.code) + " (Check console for exact error)");
+    } else {
+      console.warn("signInGoogle: Popup was closed by the user before completing sign-in.");
     }
   }
 }
@@ -1950,20 +2887,23 @@ async function loadVocab() {
     // Render Project Selectors
     updateProjectUI();
 
-    // 1. Fetch Core Vocab
-    const res = await fetch('vocabulary.json');
-    if (!res.ok) throw new Error('vocabulary.json not found');
-    const data = await res.json();
+    // 1. Fetch Core Vocab in Parallel
+    const [vocabRes, quizRes] = await Promise.all([
+      fetch('vocabulary.json'),
+      fetch('quiz_words.json').catch(() => null)
+    ]);
+
+    if (!vocabRes.ok) throw new Error('vocabulary.json not found');
+    const data = await vocabRes.json();
     let coreVocab = data.words || [];
     
     let coreQuiz = [];
-    try {
-      const quizRes = await fetch('quiz_words.json');
-      if (quizRes.ok) {
+    if (quizRes && quizRes.ok) {
+      try {
         const quizData = await quizRes.json();
         coreQuiz = quizData.words || [];
-      }
-    } catch(e) {}
+      } catch(e) {}
+    }
     
     // 2. Load Custom Entries (from user-namespaced localStorage)
     const customVocab = lsGet('custom_vocab', []);
@@ -1983,16 +2923,25 @@ async function loadVocab() {
     // 4. Initialize Perf for any new words
     perf = lsGet(getPerfKey(), {});
     ALL_QUIZ_VOCAB.forEach(w => { 
-      if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0}, fill: {c:0, w:0} };
+      if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0} };
     });
     savePerf();
 
-    // 5. Setup UI
+    // 5. Load notes
+    ALL_NOTES = lsGet('lexicon_notes', []);
+
+    // 6. Setup UI
     updateProjectUI();
     applyProjectFilter();
-    
+
     loading.style.display = 'none';
     appEl.style.display = '';
+
+    // 7. Ensure main page is visible (practice overlay hidden)
+    const practiceEl = document.getElementById('practiceOverlay');
+    const mainEl = document.getElementById('mainPage');
+    if (practiceEl) practiceEl.style.display = 'none';
+    if (mainEl) mainEl.style.display = 'flex';
   } catch(err) {
     loading.innerHTML = `<div style="text-align:center;padding:80px 20px;">
       <h3>Error Loading App</h3>
@@ -2005,6 +2954,8 @@ function switchProject(id) {
   currentProjectId = id;
   lsSet('lexicon_current_project', id);
   syncToCloud({ currentProjectId: id });
+  // Close practice overlay if open
+  closePracticeOverlay();
   updateProjectUI();
   applyProjectFilter();
 }
@@ -2017,20 +2968,38 @@ function applyProjectFilter() {
     VOCAB = ALL_VOCAB.filter(w => w.projectId === currentProjectId);
     QUIZ_VOCAB = ALL_QUIZ_VOCAB.filter(w => w.projectId === currentProjectId);
   }
-  
-  document.getElementById('wordCount').textContent = VOCAB.length + ' words';
-  
-  // Re-render all views to show filtered data
-  renderDict();
-  if (document.getElementById('view-stats').classList.contains('active')) renderStats();
-  
-  // Reset study sessions to use the new filter
+
+  // Update deck header count
+  const totalItems = VOCAB.length
+    + ALL_NOTES.filter(n => currentProjectId === 'all' || n.deckId === currentProjectId).length
+    + ALL_CUSTOM_CARDS.filter(c => currentProjectId === 'all' || c.projectId === currentProjectId).length;
+  const countEl = document.getElementById('deckHeaderCount');
+  if (countEl) countEl.textContent = totalItems + ' items';
+
+  // Reset library list to tiles view on deck switch
+  if (currentLibListType) hideLibraryList();
+  renderLibrary();
   initFlash();
   initQuiz();
-  initFill();
 }
 
 function updateProjectUI() {
+  // Update deck header name
+  const activeProject = projects.find(p => p.id === currentProjectId);
+  const deckName = currentProjectId === 'all' ? 'All Words' : (activeProject ? activeProject.name : 'All Words');
+  const headerName = document.getElementById('deckHeaderName');
+  if (headerName) headerName.textContent = deckName;
+  const addLabel = document.getElementById('addDeckLabel');
+  if (addLabel) addLabel.textContent = deckName;
+
+  // Update addDeckSelect
+  const addDeckSel = document.getElementById('addDeckSelect');
+  if (addDeckSel) {
+    addDeckSel.innerHTML = projects.map(p =>
+      `<option value="${p.id}" ${p.id === (currentProjectId === 'all' ? 'general' : currentProjectId) ? 'selected' : ''}>${p.name}</option>`
+    ).join('');
+  }
+
   const sidebarList = document.getElementById('sidebarProjectList');
   const customPSelect = document.getElementById('customCardProjectSelect');
   if (!sidebarList) return;
@@ -2043,22 +3012,42 @@ function updateProjectUI() {
     </div>
     ${projects.map(p => `
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
-        <i>📁</i> <span>${p.name}</span>
+        <i>🗂️</i> <span>${p.name}</span>
         <div class="project-actions">
-           ${p.id !== 'general' ? `<button class="project-action-btn" onclick="event.stopPropagation(); deleteProject('${p.id}')">🗑️</button>` : ''}
+           ${p.id !== 'general' ? `<button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>` : ''}
         </div>
       </div>
     `).join('')}
   `;
 
-  // Update Title
-  const activeProject = projects.find(p => p.id === currentProjectId);
-  document.getElementById('currentProjectTitle').textContent = activeProject ? activeProject.name : 'All Words';
+  // Update Title (legacy element may not exist in new layout)
+  const titleEl = document.getElementById('currentProjectTitle');
+  if (titleEl) titleEl.textContent = deckName;
   
   // Update Custom Card Project Select
   if (customPSelect) {
     customPSelect.innerHTML = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   }
+}
+
+function openNewDeckModal() {
+  document.getElementById('newProjectModalOverlay').classList.add('open');
+  document.getElementById('projectNameInput').value = '';
+}
+
+function closeNewProjectModal(e) { if (e.target === document.getElementById('newProjectModalOverlay')) closeNewProjectModalBtn(); }
+function closeNewProjectModalBtn() { document.getElementById('newProjectModalOverlay').classList.remove('open'); }
+
+function createNewDeck() {
+  const name = document.getElementById('projectNameInput').value.trim();
+  if (!name) return;
+  const id = 'p_' + Date.now();
+  projects.push({ id, name });
+  lsSet('lexicon_projects', projects);
+  syncToCloud({ projects });
+  updateProjectUI();
+  closeNewProjectModalBtn();
+  switchProject(id);
 }
 
 function openProjectModal() {
@@ -2070,7 +3059,7 @@ function openProjectModal() {
 function closeProjectModal(e) { if (e.target === document.getElementById('projectModalOverlay')) closeProjectModalBtn(); }
 function closeProjectModalBtn() { document.getElementById('projectModalOverlay').classList.remove('open'); }
 
-function createProject() {
+function createDeck() {
   const name = document.getElementById('newProjectInput').value.trim();
   if (!name) return;
   const id = 'p_' + Date.now();
@@ -2081,27 +3070,29 @@ function createProject() {
   document.getElementById('newProjectInput').value = '';
 }
 
-function deleteProject(id) {
+function deleteDeck(id) {
   if (id === 'general') return;
-  if (!confirm("Are you sure? All words in this project will be moved back to 'General'.")) return;
-  
+  if (!confirm("Are you sure? All words in this deck will be moved back to 'General'.")) return;
+
   projects = projects.filter(p => p.id !== id);
   lsSet('lexicon_projects', projects);
-  
-  // Migrate items
+
+  // Migrate vocab and cards
   [ALL_VOCAB, ALL_QUIZ_VOCAB, ALL_CUSTOM_CARDS].forEach(list => {
     list.forEach(item => { if (item.projectId === id) item.projectId = 'general'; });
   });
-  
-  // Save custom lists
+
+  // Migrate notes
+  ALL_NOTES = ALL_NOTES.filter(n => n.deckId !== id);
+  lsSet('lexicon_notes', ALL_NOTES);
+
   const customVocab = ALL_VOCAB.filter(w => w.id.startsWith('c_'));
   lsSet('custom_vocab', customVocab);
   lsSet('lexicon_custom_cards', ALL_CUSTOM_CARDS);
-  syncToCloud({ projects, custom_vocab: customVocab, lexicon_custom_cards: ALL_CUSTOM_CARDS });
+  syncToCloud({ projects, custom_vocab: customVocab, lexicon_custom_cards: ALL_CUSTOM_CARDS, lexicon_notes: ALL_NOTES });
 
-  if (currentProjectId === id) currentProjectId = 'all';
-  updateProjectUI();
-  applyProjectFilter();
+  if (currentProjectId === id) switchProject('all');
+  else { updateProjectUI(); applyProjectFilter(); }
 }
 
 async function addWords() {
@@ -2172,7 +3163,7 @@ async function addWords() {
       customVocab.push(newWordObj);
       ALL_VOCAB.unshift(newWordObj);
       ALL_QUIZ_VOCAB.unshift(newWordObj);
-      perf[newWordObj.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0}, fill: {c:0, w:0} };
+      perf[newWordObj.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0} };
       added++;
     } catch(e) {
       console.warn('Failed to fetch', wordStr, e);
@@ -2185,26 +3176,25 @@ async function addWords() {
     syncToCloud({ custom_vocab: customVocab });
     applyProjectFilter();
   }
-  
+
   input.value = '';
   input.disabled = false;
-  btn.textContent = 'Add';
-  btn.style.opacity = '1';
+  // Also clear the add textarea if it exists
+  const textarea = document.getElementById('addContentTextarea');
+  if (textarea) textarea.value = '';
   if (added > 0) alert(`Successfully added ${added} new word(s)!`);
   else alert('No valid new words were found or added. They might already exist or are not in the dictionary API.');
 }
 
-// ── NAV ──
+// ── NAV (used internally by practice overlay) ──
 function showView(id, btn) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
-  if (btn) btn.classList.add('active');
+  // Only operates on practice overlay views
+  document.querySelectorAll('#practiceOverlay .view').forEach(v => v.classList.remove('active'));
+  const view = document.getElementById('view-' + id);
+  if (view) view.classList.add('active');
   if (id === 'stats') renderStats();
-  if (id === 'flashcards') initFlash();
-  // Only reset quiz if no session is currently active
-  if (id === 'quiz' && !quizInProgress) initQuiz();
-  if (id === 'fill') initFill();
+  if (id === 'flashcards') renderDeckSelection();
+  if (id === 'quiz') showVocabLanding();
 }
 
 // ── DICTIONARY ──
@@ -2212,8 +3202,8 @@ function renderDict() {
   const grid = document.getElementById('dictGrid');
   grid.innerHTML = VOCAB.map(w => {
     const p = perf[w.id];
-    const totalC = p.quiz.c + p.flash.c + p.fill.c;
-    const totalW = p.quiz.w + p.flash.w + p.fill.w;
+    const totalC = p.quiz.c + p.flash.c;
+    const totalW = p.quiz.w + p.flash.w;
     const total = totalC + totalW;
     const pct = total ? Math.round((totalC / total) * 100) : null;
     const scoreHtml = pct !== null
@@ -2330,11 +3320,9 @@ function deleteWord(id) {
     ALL_QUIZ_VOCAB = ALL_QUIZ_VOCAB.filter(w => w.id !== id);
     
     // Refresh UI
-    document.getElementById('wordCount').textContent = VOCAB.length + ' words';
-    renderDict();
+    applyProjectFilter();
     initFlash();
     initQuiz();
-    initFill();
     
     closeModalBtn();
   } catch(e) {
@@ -2492,7 +3480,8 @@ function setFlashMode(mode, btn) {
 
 function initFlash() {
   let baseQueue = [...QUIZ_VOCAB];
-  const includeCustom = document.getElementById('includeCustomToggle').checked;
+  const toggleEl = document.getElementById('includeCustomToggle');
+  const includeCustom = toggleEl ? toggleEl.checked : true;
   if (includeCustom) {
     const customCards = lsGet('lexicon_custom_cards', []);
     baseQueue = baseQueue.concat(customCards);
@@ -2584,7 +3573,7 @@ function flipCard() {
 
 function rateCard(correct) {
   const w = flashQueue[flashIdx];
-  if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0}, fill: {c:0, w:0} };
+  if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0} };
   
   if (correct) { perf[w.id].flash.c++; flashCorrect++; }
   else { perf[w.id].flash.w++; flashWrong++; }
@@ -2605,7 +3594,7 @@ function showFlashDone() {
   document.getElementById('flashFinalScore').textContent = `${flashCorrect}/${total}`;
 }
 
-function restartFlash() { initFlash(); }
+function restartFlash() { renderDeckSelection(); }
 
 // ── QUIZ ──
 let quizQueue = [], quizIdx = 0, quizCorrect = 0, quizWrong = 0, quizLevel = 1, quizInProgress = false;
@@ -2616,8 +3605,14 @@ function initQuiz() {
   quizInProgress = false;
   document.getElementById('quizDone').style.display = 'none';
   document.getElementById('quizArea').style.display = 'none';
-  document.getElementById('quizLevelSelect').style.display = 'flex';
+  // Don't auto-show quizLevelSelect — caller is responsible for showing it
   updateLevelBtnLabels();
+}
+
+function _showQuizLevelSelect() {
+  document.getElementById('quizLevelSelect').style.display = 'flex';
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('quizDone').style.display = 'none';
 }
 
 function updateLevelBtnLabels() {
@@ -2813,90 +3808,19 @@ function restartQuiz() {
   startQuiz(quizLevel);
 }
 function changeLevelQuiz() {
-  // Save current session state before going back to level selector
   if (quizInProgress && quizQueue.length) {
     quizStates[quizLevel] = { queue: quizQueue, idx: quizIdx, correct: quizCorrect, wrong: quizWrong, track: currentTrack };
   }
   initQuiz();
+  _showQuizLevelSelect();
 }
-
-// ── FILL BLANKS ──
-let fillQueue = [], fillIdx = 0, fillCorrect = 0, fillWrong = 0;
-
-function initFill() {
-  fillQueue = shuffle(QUIZ_VOCAB);
-  fillIdx = 0; fillCorrect = 0; fillWrong = 0;
-  document.getElementById('fillDone').style.display = 'none';
-  document.getElementById('fillArea').style.display = '';
-  showFillCard();
-}
-
-function showFillCard() {
-  if (fillIdx >= fillQueue.length) { showFillDone(); return; }
-  const w = fillQueue[fillIdx];
-  const total = fillQueue.length;
-
-  document.getElementById('fillCounter').textContent = `${fillIdx + 1} / ${total}`;
-  document.getElementById('fillProgress').style.width = `${((fillIdx + 1) / total) * 100}%`;
-  document.getElementById('fillScore').textContent = `✓ ${fillCorrect}   ✗ ${fillWrong}`;
-
-  // Use usage sentence with blank
-  const sentence = w.usage[0];
-  const blanked = sentence.replace(new RegExp('\\b' + w.word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\b', 'gi'), '______');
-  
-  let questionText = blanked !== sentence 
-    ? `Fill in the blank:\n\n"${blanked}"`
-    : `What word means:\n\n"${w.definition}"`;
-
-  document.getElementById('fillQuestion').textContent = questionText;
-  document.getElementById('fillInput').value = '';
-  document.getElementById('fillInput').className = 'blank-input';
-  document.getElementById('fillFeedback').className = 'quiz-feedback';
-  document.getElementById('fillFeedback').textContent = '';
-  document.getElementById('fillNextBtn').style.display = 'none';
-  document.getElementById('fillInput').disabled = false;
-  setTimeout(() => document.getElementById('fillInput').focus(), 100);
-}
-
-function checkFill() {
-  const w = fillQueue[fillIdx];
-  const input = document.getElementById('fillInput');
-  const answer = input.value.trim().toLowerCase();
-  const correct = answer === w.word.toLowerCase() || answer === w.word.split(' ')[0].toLowerCase();
-
-  input.disabled = true;
-  if (correct) {
-    input.className = 'blank-input correct';
-    perf[w.id].fill.c++; fillCorrect++;
-    document.getElementById('fillFeedback').textContent = `✓ Correct! "${w.usage[0]}"`;
-    document.getElementById('fillFeedback').className = 'quiz-feedback correct';
-  } else {
-    input.className = 'blank-input wrong';
-    perf[w.id].fill.w++; fillWrong++;
-    document.getElementById('fillFeedback').textContent = `✗ The answer was "${w.word}". ${w.definition}`;
-    document.getElementById('fillFeedback').className = 'quiz-feedback wrong';
-  }
-  savePerf();
-  document.getElementById('fillNextBtn').style.display = 'block';
-}
-
-function nextFill() { fillIdx++; showFillCard(); }
-
-function showFillDone() {
-  document.getElementById('fillArea').style.display = 'none';
-  document.getElementById('fillDone').style.display = 'block';
-  const total = fillCorrect + fillWrong;
-  document.getElementById('fillFinalScore').textContent = `${fillCorrect}/${total}`;
-}
-
-function restartFill() { initFill(); }
 
 // ── STATS ──
 function renderStats() {
   let totalC = 0, totalW = 0;
   QUIZ_VOCAB.forEach(w => { 
-    totalC += perf[w.id].quiz.c + perf[w.id].flash.c + perf[w.id].fill.c; 
-    totalW += perf[w.id].quiz.w + perf[w.id].flash.w + perf[w.id].fill.w; 
+    totalC += perf[w.id].quiz.c + perf[w.id].flash.c; 
+    totalW += perf[w.id].quiz.w + perf[w.id].flash.w; 
   });
   const total = totalC + totalW;
   const acc = total ? Math.round((totalC / total) * 100) : 0;
@@ -2906,10 +3830,10 @@ function renderStats() {
   document.getElementById('statAccuracy').textContent = acc + '%';
 
   const sorted = [...QUIZ_VOCAB].sort((a, b) => {
-    const aC = perf[a.id].quiz.c + perf[a.id].flash.c + perf[a.id].fill.c;
-    const aW = perf[a.id].quiz.w + perf[a.id].flash.w + perf[a.id].fill.w;
-    const bC = perf[b.id].quiz.c + perf[b.id].flash.c + perf[b.id].fill.c;
-    const bW = perf[b.id].quiz.w + perf[b.id].flash.w + perf[b.id].fill.w;
+    const aC = perf[a.id].quiz.c + perf[a.id].flash.c;
+    const aW = perf[a.id].quiz.w + perf[a.id].flash.w;
+    const bC = perf[b.id].quiz.c + perf[b.id].flash.c;
+    const bW = perf[b.id].quiz.w + perf[b.id].flash.w;
     const aP = (aC + aW) ? aC / (aC + aW) : 0;
     const bP = (bC + bW) ? bC / (bC + bW) : 0;
     return aP - bP;
@@ -2917,8 +3841,8 @@ function renderStats() {
 
   document.getElementById('wordStatsList').innerHTML = sorted.map(w => {
     const p = perf[w.id];
-    const tC = p.quiz.c + p.flash.c + p.fill.c;
-    const tW = p.quiz.w + p.flash.w + p.fill.w;
+    const tC = p.quiz.c + p.flash.c;
+    const tW = p.quiz.w + p.flash.w;
     const t = tC + tW;
     const pct = t ? Math.round((tC / t) * 100) : 0;
     const color = pct >= 70 ? '#5a7a5e' : pct >= 40 ? '#c9a84c' : '#c0512f';
@@ -2937,11 +3861,737 @@ function renderStats() {
          <div style="display:flex; gap:10px; font-size:0.7em;">
            ${renderSeg(p.flash, 'Flash')}
            ${renderSeg(p.quiz, 'Quiz')}
-           ${renderSeg(p.fill, 'Fill')}
          </div>
       </div>
     </div>`;
   }).join('');
+}
+
+// ── FLASHCARD DECK SELECTION ──
+
+let selectedDeckIds = new Set();
+
+function renderDeckSelection() {
+  document.getElementById('flashDeckSelect').style.display = 'block';
+  document.getElementById('flashPracticeContent').style.display = 'none';
+  selectedDeckIds = new Set();
+
+  const grid = document.getElementById('deckSelectGrid');
+  if (!grid) return;
+
+  const deckList = [{ id: 'all', name: 'All Words' }].concat(projects);
+  grid.innerHTML = deckList.map(d => {
+    const vocabCount = d.id === 'all' ? ALL_QUIZ_VOCAB.length : ALL_QUIZ_VOCAB.filter(w => w.projectId === d.id).length;
+    const cardCount = d.id === 'all' ? ALL_CUSTOM_CARDS.length : ALL_CUSTOM_CARDS.filter(c => c.projectId === d.id).length;
+    const total = vocabCount + cardCount;
+    return `<div class="deck-select-card" id="dsc-${d.id}" onclick="toggleDeckSelection('${d.id}')">
+      <div class="deck-sel-checkbox">□</div>
+      <div>
+        <div class="deck-sel-name">${d.name}</div>
+        <div class="deck-sel-count">${total} card${total !== 1 ? 's' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  _updateStartPracticeBtn();
+}
+
+function toggleDeckSelection(deckId) {
+  const card = document.getElementById('dsc-' + deckId);
+  if (!card) return;
+  if (selectedDeckIds.has(deckId)) {
+    selectedDeckIds.delete(deckId);
+    card.classList.remove('selected');
+    card.querySelector('.deck-sel-checkbox').textContent = '□';
+  } else {
+    selectedDeckIds.add(deckId);
+    card.classList.add('selected');
+    card.querySelector('.deck-sel-checkbox').textContent = '✓';
+  }
+  _updateStartPracticeBtn();
+}
+
+function _updateStartPracticeBtn() {
+  const btn = document.getElementById('startPracticeBtn');
+  if (btn) btn.disabled = selectedDeckIds.size === 0;
+}
+
+function startFlashWithSelectedDecks() {
+  if (selectedDeckIds.size === 0) return;
+
+  let baseQueue = [];
+  if (selectedDeckIds.has('all')) {
+    baseQueue = [...ALL_QUIZ_VOCAB, ...ALL_CUSTOM_CARDS];
+  } else {
+    selectedDeckIds.forEach(deckId => {
+      baseQueue = baseQueue.concat(
+        ALL_QUIZ_VOCAB.filter(w => w.projectId === deckId),
+        ALL_CUSTOM_CARDS.filter(c => c.projectId === deckId)
+      );
+    });
+    // Deduplicate
+    const seen = new Set();
+    baseQueue = baseQueue.filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; });
+  }
+
+  flashQueue = shuffle(baseQueue);
+  flashIdx = 0; flashCorrect = 0; flashWrong = 0;
+
+  document.getElementById('flashDeckSelect').style.display = 'none';
+  document.getElementById('flashPracticeContent').style.display = 'block';
+  document.getElementById('flashDone').style.display = 'none';
+  document.getElementById('flipCard').style.display = '';
+  document.getElementById('flipActions').style.display = 'none';
+  document.getElementById('flipNext').style.display = 'none';
+  showFlashCard();
+}
+
+// ── PRACTICE OVERLAY ──
+
+function openPracticeView(type) {
+  document.querySelectorAll('.practice-link').forEach(el => el.classList.remove('active'));
+  // Map 'vocab' to the quiz link id since we reuse that view
+  const linkId = type === 'vocab' ? 'practiceLink-vocab' : 'practiceLink-' + type;
+  const link = document.getElementById(linkId);
+  if (link) link.classList.add('active');
+
+  document.getElementById('practiceOverlay').style.display = 'flex';
+  document.getElementById('mainPage').style.display = 'none';
+
+  const titles = { flashcards: 'Flashcards', vocab: 'Vocab', stats: 'Stats' };
+  document.getElementById('practiceViewTitle').textContent = titles[type] || type;
+
+  document.querySelectorAll('#practiceOverlay .view').forEach(v => v.classList.remove('active'));
+
+  if (type === 'flashcards') {
+    const view = document.getElementById('view-flashcards');
+    if (view) view.classList.add('active');
+    renderDeckSelection();
+  } else if (type === 'vocab') {
+    const view = document.getElementById('view-quiz');
+    if (view) view.classList.add('active');
+    showVocabLanding();
+  } else {
+    const view = document.getElementById('view-' + type);
+    if (view) view.classList.add('active');
+    if (type === 'stats') renderStats();
+  }
+}
+
+function closePracticeOverlay() {
+  document.getElementById('practiceOverlay').style.display = 'none';
+  document.getElementById('mainPage').style.display = 'flex';
+  document.querySelectorAll('.practice-link').forEach(el => el.classList.remove('active'));
+}
+
+// ── VOCAB PRACTICE ──
+
+let vfQueue = [], vfIdx = 0, vfCorrect = 0, vfWrong = 0, _vfFlipped = false;
+
+function showVocabLanding() {
+  document.getElementById('vocabPracticeLanding').style.display = 'block';
+  document.getElementById('vocabFlipSection').style.display = 'none';
+  document.getElementById('quizLevelSelect').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('quizDone').style.display = 'none';
+}
+
+function startVocabFlashcards() {
+  document.getElementById('vocabPracticeLanding').style.display = 'none';
+  document.getElementById('vocabFlipSection').style.display = 'block';
+  _initVocabFlash();
+}
+
+function startVocabQuiz() {
+  document.getElementById('vocabPracticeLanding').style.display = 'none';
+  document.getElementById('vocabFlipSection').style.display = 'none';
+  initQuiz();
+  _showQuizLevelSelect();
+}
+
+function _initVocabFlash() {
+  vfQueue = shuffle([...VOCAB]);
+  vfIdx = 0; vfCorrect = 0; vfWrong = 0; _vfFlipped = false;
+  document.getElementById('vfDone').style.display = 'none';
+  document.getElementById('vfFlipCard').style.display = '';
+  document.getElementById('vfActions').style.display = 'none';
+  _showVFCard();
+}
+
+function _showVFCard() {
+  if (vfIdx >= vfQueue.length) { _showVFDone(); return; }
+  const w = vfQueue[vfIdx];
+  _vfFlipped = false;
+  document.getElementById('vfFlipCard').classList.remove('flipped');
+  document.getElementById('vfFront').textContent = w.word;
+  document.getElementById('vfType').textContent = (w.type || []).join(' · ');
+  document.getElementById('vfDef').textContent = w.definition;
+  document.getElementById('vfUsage').textContent = w.usage && w.usage[0] ? `"${w.usage[0]}"` : '';
+  document.getElementById('vfCounter').textContent = `${vfIdx + 1} / ${vfQueue.length}`;
+  document.getElementById('vfProgress').style.width = `${((vfIdx + 1) / vfQueue.length) * 100}%`;
+  document.getElementById('vfScore').textContent = `✓ ${vfCorrect}   ✗ ${vfWrong}`;
+  document.getElementById('vfActions').style.display = 'none';
+}
+
+function vfFlipCard() {
+  if (_vfFlipped) return;
+  _vfFlipped = true;
+  document.getElementById('vfFlipCard').classList.add('flipped');
+  setTimeout(() => { document.getElementById('vfActions').style.display = 'flex'; }, 300);
+}
+
+function vfRateCard(correct) {
+  const w = vfQueue[vfIdx];
+  if (!perf[w.id]) perf[w.id] = { quiz:{c:0,w:0}, flash:{c:0,w:0} };
+  if (correct) { perf[w.id].flash.c++; vfCorrect++; }
+  else { perf[w.id].flash.w++; vfWrong++; }
+  savePerf();
+  vfIdx++;
+  document.getElementById('vfActions').style.display = 'none';
+  _showVFCard();
+}
+
+function _showVFDone() {
+  document.getElementById('vfFlipCard').style.display = 'none';
+  document.getElementById('vfActions').style.display = 'none';
+  document.getElementById('vfDone').style.display = 'block';
+  document.getElementById('vfFinalScore').textContent = `${vfCorrect}/${vfCorrect + vfWrong}`;
+}
+
+// ── LIBRARY ──
+
+function renderLibrary() {
+  const notesItems = ALL_NOTES.filter(n => currentProjectId === 'all' || n.deckId === currentProjectId);
+  const flashItems = ALL_CUSTOM_CARDS.filter(c => currentProjectId === 'all' || c.projectId === currentProjectId);
+  const vocabItems = VOCAB;
+
+  const nc = document.getElementById('libTileCountNotes');
+  const fc = document.getElementById('libTileCountFlashcards');
+  const vc = document.getElementById('libTileCountVocab');
+  if (nc) nc.textContent = `${notesItems.length} note${notesItems.length !== 1 ? 's' : ''}`;
+  if (fc) fc.textContent = `${flashItems.length} flashcard${flashItems.length !== 1 ? 's' : ''}`;
+  if (vc) vc.textContent = `${vocabItems.length} word${vocabItems.length !== 1 ? 's' : ''}`;
+
+  // Refresh list view if currently open
+  if (currentLibListType) renderLibraryList();
+}
+
+// ── LIBRARY LIST VIEW ──
+
+let currentLibListType = null;
+let currentLibListItems = [];
+
+function showLibraryList(type) {
+  currentLibListType = type;
+
+  document.getElementById('librarySummaryTiles').style.display = 'none';
+  document.getElementById('libraryListView').style.display = 'block';
+
+  const titles = { notes: 'Notes', flashcards: 'Flashcards', vocab: 'Vocab' };
+  document.getElementById('libListTitle').textContent = titles[type] || type;
+
+  const sortSel = document.getElementById('libListSort');
+  if (type === 'vocab') {
+    sortSel.innerHTML = `<option value="time">Time Added</option><option value="alpha">Alphabetical</option><option value="pos">Part of Speech</option>`;
+  } else {
+    sortSel.innerHTML = `<option value="time">Time Added</option><option value="alpha">Alphabetical</option>`;
+  }
+  sortSel.value = 'time';
+
+  renderLibraryList();
+}
+
+function hideLibraryList() {
+  currentLibListType = null;
+  document.getElementById('libraryListView').style.display = 'none';
+  document.getElementById('librarySummaryTiles').style.display = 'grid';
+}
+
+function renderLibraryList() {
+  if (!currentLibListType) return;
+  const type = currentLibListType;
+  let items = [];
+
+  if (type === 'notes') {
+    items = ALL_NOTES.filter(n => currentProjectId === 'all' || n.deckId === currentProjectId);
+  } else if (type === 'flashcards') {
+    items = ALL_CUSTOM_CARDS.filter(c => currentProjectId === 'all' || c.projectId === currentProjectId);
+  } else {
+    items = [...VOCAB];
+  }
+
+  const sort = document.getElementById('libListSort') ? document.getElementById('libListSort').value : 'time';
+  if (sort === 'alpha') {
+    items = [...items].sort((a, b) => (a.word || a.title || a.front || '').localeCompare(b.word || b.title || b.front || ''));
+  } else if (sort === 'pos' && type === 'vocab') {
+    items = [...items].sort((a, b) => ((a.type || []).join('')).localeCompare((b.type || []).join('')));
+  }
+
+  currentLibListItems = items;
+  _renderLibListHTML();
+}
+
+function applySortLibraryList() {
+  renderLibraryList();
+}
+
+function shuffleLibraryList() {
+  currentLibListItems = shuffle(currentLibListItems);
+  _renderLibListHTML();
+}
+
+function _renderLibListHTML() {
+  const type = currentLibListType;
+  const items = currentLibListItems;
+  const container = document.getElementById('libListItems');
+  if (!container) return;
+
+  if (!items.length) {
+    container.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:0.9rem;">Nothing here yet. Add some ${type} first!</div>`;
+    return;
+  }
+
+  container.innerHTML = items.map((item, idx) => {
+    if (type === 'notes') {
+      return `<div class="lib-list-row" onclick="openDetailPopup(${idx})">
+        <div class="lib-list-row-title">${item.title || 'Untitled'}</div>
+        <div class="lib-list-row-meta">${item.updatedAt || ''}</div>
+      </div>`;
+    } else if (type === 'flashcards') {
+      return `<div class="lib-list-row" onclick="openDetailPopup(${idx})">
+        <div class="lib-list-row-title">${item.front}</div>
+        <div class="lib-list-row-meta">Flashcard</div>
+      </div>`;
+    } else {
+      const typeStr = (item.type || []).join(' · ');
+      return `<div class="lib-list-row" onclick="openDetailPopup(${idx})">
+        <div style="flex:1;">
+          <div class="lib-list-row-title">${item.word}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.06em;margin-top:2px;">${typeStr}</div>
+        </div>
+        <div class="lib-list-row-meta">${item.addedOn || ''}</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+// ── DETAIL POPUP ──
+
+let detailPopupIdx = 0;
+let _detailFlipped = false;
+
+function openDetailPopup(idx) {
+  detailPopupIdx = idx;
+  _detailFlipped = false;
+  _renderDetailPopup();
+  document.getElementById('detailPopupOverlay').classList.add('open');
+}
+
+function closeDetailPopup(e) {
+  if (!e || e.target === document.getElementById('detailPopupOverlay')) {
+    document.getElementById('detailPopupOverlay').classList.remove('open');
+  }
+}
+
+function navigateDetail(dir) {
+  const newIdx = detailPopupIdx + dir;
+  if (newIdx < 0 || newIdx >= currentLibListItems.length) return;
+  detailPopupIdx = newIdx;
+  _detailFlipped = false;
+  _renderDetailPopup();
+}
+
+function flipDetailFlashcard() {
+  _detailFlipped = !_detailFlipped;
+  const inner = document.getElementById('detailFCInner');
+  if (inner) inner.classList.toggle('flipped', _detailFlipped);
+}
+
+function _renderDetailPopup() {
+  const item = currentLibListItems[detailPopupIdx];
+  const type = currentLibListType;
+  const total = currentLibListItems.length;
+
+  const prevBtn = document.getElementById('detailPrevBtn');
+  const nextBtn = document.getElementById('detailNextBtn');
+  const counter = document.getElementById('detailNavCounter');
+  if (prevBtn) prevBtn.disabled = (detailPopupIdx === 0);
+  if (nextBtn) nextBtn.disabled = (detailPopupIdx >= total - 1);
+  if (counter) counter.textContent = `${detailPopupIdx + 1} / ${total}`;
+
+  const contentEl = document.getElementById('detailPopupContent');
+  if (!contentEl || !item) return;
+
+  if (type === 'vocab') {
+    const p = perf[item.id] || { quiz:{c:0,w:0}, flash:{c:0,w:0} };
+    const tC = p.quiz.c + p.flash.c, tW = p.quiz.w + p.flash.w;
+    const t = tC + tW;
+    const pct = t ? Math.round((tC/t)*100) + '%' : 'new';
+    const typeStr = (item.type || []).join(' · ');
+    const usageHtml = (item.usage || []).map(u => `<div class="usage-item">"${u}"</div>`).join('');
+    const oppHtml = (item.opposites || []).length
+      ? `<div class="modal-section"><h4>Opposites</h4><div class="tag-list">${item.opposites.map(o=>`<span class="tag opposite">${o}</span>`).join('')}</div></div>` : '';
+    const relHtml = (item.related || []).length
+      ? `<div class="modal-section"><h4>Related</h4><div class="tag-list">${item.related.map(r=>`<span class="tag related">${r}</span>`).join('')}</div></div>` : '';
+    contentEl.innerHTML = `
+      <div class="modal-word">${item.word}</div>
+      <div class="modal-type">${typeStr}</div>
+      <div class="modal-section"><h4>Definition</h4><div class="modal-def">${item.definition}</div></div>
+      <div class="modal-section"><h4>Usage Examples</h4><div>${usageHtml || '<span style="color:var(--muted);font-size:0.85rem;">No examples.</span>'}</div></div>
+      ${oppHtml}${relHtml}
+      <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">Score: ${pct}</div>
+    `;
+  } else if (type === 'notes') {
+    const content = (item.content || '').replace(/</g, '&lt;');
+    contentEl.innerHTML = `
+      <div class="modal-word" style="font-size:1.5rem;">${item.title || 'Untitled'}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-bottom:16px;">${item.updatedAt || ''}</div>
+      <div style="font-size:0.9rem;line-height:1.7;white-space:pre-wrap;">${content || '<em style="color:var(--muted);">Empty note</em>'}</div>
+    `;
+  } else if (type === 'flashcards') {
+    contentEl.innerHTML = `
+      <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em;">Flashcard — tap to flip</div>
+      <div class="detail-flashcard-scene" onclick="flipDetailFlashcard()">
+        <div id="detailFCInner" class="detail-flashcard-inner">
+          <div class="detail-fc-front">
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.1em;">Front</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;">${item.front}</div>
+          </div>
+          <div class="detail-fc-back">
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.1em;">Back</div>
+            <div style="font-size:1rem;line-height:1.6;">${item.back}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ── ADD SECTION ──
+
+let attachedFiles = [];
+
+function toggleTypePill(btn) {
+  btn.classList.toggle('active');
+}
+
+function toggleFileDropdown(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('fileDropdownMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  if (menu.style.display === 'block') {
+    // Close on outside click
+    setTimeout(() => document.addEventListener('click', closeFileDropdown, { once: true }), 0);
+  }
+}
+
+function closeFileDropdown() {
+  const menu = document.getElementById('fileDropdownMenu');
+  if (menu) menu.style.display = 'none';
+}
+
+function handleFileAttach(input, type) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  attachedFiles.push({ file, type });
+  renderFileChips();
+  input.value = '';
+}
+
+function renderFileChips() {
+  const container = document.getElementById('fileChipsContainer');
+  if (!container) return;
+  container.innerHTML = attachedFiles.map((f, i) => `
+    <div class="file-chip">
+      <span>${f.file.name}</span>
+      <button class="file-chip-remove" onclick="removeFileChip(${i})" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+function removeFileChip(idx) {
+  attachedFiles.splice(idx, 1);
+  renderFileChips();
+}
+
+function getSelectedTypes() {
+  return [...document.querySelectorAll('.type-pill.active')].map(b => b.dataset.type);
+}
+
+function handleGenerate() {
+  const text = document.getElementById('addContentTextarea').value.trim();
+  const types = getSelectedTypes();
+  const deckId = document.getElementById('addDeckSelect').value || (currentProjectId === 'all' ? 'general' : currentProjectId);
+
+  // If vocab type selected and text provided — use existing addWords flow
+  if (types.includes('vocab') && text) {
+    document.getElementById('addWordInput') && (document.getElementById('addWordInput').value = text);
+    // Inline call: set addWordInput value and trigger
+    const fakeInput = { value: text };
+    _addWordsFromText(text, deckId);
+    document.getElementById('addContentTextarea').value = '';
+    return;
+  }
+
+  // Show AI preview placeholder for non-vocab types
+  if (!types.length && !text && !attachedFiles.length) {
+    alert('Please enter some text and select at least one type.');
+    return;
+  }
+
+  const previewSection = document.getElementById('aiPreviewSection');
+  const previewCards = document.getElementById('aiPreviewCards');
+
+  const activeTypes = types.length ? types : ['notes'];
+  previewCards.innerHTML = activeTypes.map(type => {
+    const labels = { vocab: 'Vocab', notes: 'Note', flashcard: 'Flashcard', quiz: 'Quiz' };
+    const previews = {
+      vocab: `<strong>Word:</strong> ${text || '…'}<br><em>Definition will be fetched from dictionary.</em>`,
+      notes: `<strong>${text ? text.split('\n')[0].slice(0,40) : 'New Note'}</strong><br>${text || 'Empty note.'}`,
+      flashcard: `<strong>Front:</strong> ${text || '…'}<br><strong>Back:</strong> (fill in answer)`,
+      quiz: `<strong>Q:</strong> ${text || '…'}<br><strong>A:</strong> (fill in answer)`
+    };
+    return `<div class="ai-preview-card" id="preview-${type}" data-deck-id="${deckId}">
+      <div class="ai-preview-card-type">${labels[type] || type}</div>
+      <div class="ai-preview-card-content">${previews[type] || text}</div>
+      <div class="ai-preview-card-actions">
+        <button class="ai-preview-btn accept" onclick="acceptPreview('${type}','${deckId}')">✓ Accept</button>
+        <button class="ai-preview-btn edit" onclick="editPreview('${type}')">Edit</button>
+        <button class="ai-preview-btn discard" onclick="discardPreview('${type}')">✕ Discard</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  previewSection.style.display = 'block';
+  previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function acceptPreview(type, deckId) {
+  const card = document.getElementById('preview-' + type);
+  if (!card) return;
+  const text = document.getElementById('addContentTextarea').value.trim();
+
+  if (type === 'notes') {
+    const note = {
+      id: 'n_' + Date.now(),
+      deckId: deckId || (currentProjectId === 'all' ? 'general' : currentProjectId),
+      title: text ? text.split('\n')[0].slice(0, 60) : 'New Note',
+      content: text || '',
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0]
+    };
+    ALL_NOTES.push(note);
+    lsSet('lexicon_notes', ALL_NOTES);
+    syncToCloud({ lexicon_notes: ALL_NOTES });
+  } else if (type === 'flashcard') {
+    const newCard = { id: 'cc_' + Date.now(), isCustom: true, front: text || 'Front', back: '(back)', projectId: deckId };
+    ALL_CUSTOM_CARDS.push(newCard);
+    const cards = lsGet('lexicon_custom_cards', []);
+    cards.push(newCard);
+    lsSet('lexicon_custom_cards', cards);
+    syncToCloud({ lexicon_custom_cards: cards });
+  }
+
+  card.classList.add('accepted');
+  card.querySelector('.ai-preview-card-actions').innerHTML = '<span style="font-family:\'DM Mono\',monospace;font-size:0.72rem;color:var(--sage);">✓ Saved</span>';
+  renderLibrary();
+}
+
+function discardPreview(type) {
+  const card = document.getElementById('preview-' + type);
+  if (card) card.remove();
+  if (!document.getElementById('aiPreviewCards').children.length) {
+    document.getElementById('aiPreviewSection').style.display = 'none';
+  }
+}
+
+function editPreview(type) {
+  const card = document.getElementById('preview-' + type);
+  if (!card) return;
+  const contentEl = card.querySelector('.ai-preview-card-content');
+  const actionsEl = card.querySelector('.ai-preview-card-actions');
+  const currentText = contentEl.innerText;
+
+  contentEl.innerHTML = `<textarea id="preview-edit-${type}" data-original="${currentText.replace(/"/g,'&quot;')}" style="width:100%;min-height:80px;padding:6px 8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;line-height:1.55;border:1.5px solid var(--gold);border-radius:3px;background:var(--paper);color:var(--ink);resize:vertical;outline:none;box-sizing:border-box;">${currentText}</textarea>`;
+  actionsEl.innerHTML = `
+    <button class="ai-preview-btn accept" onclick="savePreviewEdit('${type}')">Save</button>
+    <button class="ai-preview-btn edit" onclick="cancelPreviewEdit('${type}')">Cancel</button>
+  `;
+  document.getElementById('preview-edit-' + type).focus();
+}
+
+function savePreviewEdit(type) {
+  const card = document.getElementById('preview-' + type);
+  if (!card) return;
+  const textarea = document.getElementById('preview-edit-' + type);
+  const newText = textarea ? textarea.value : '';
+  const contentEl = card.querySelector('.ai-preview-card-content');
+  const actionsEl = card.querySelector('.ai-preview-card-actions');
+  const deckId = card.dataset.deckId || (currentProjectId === 'all' ? 'general' : currentProjectId);
+
+  contentEl.innerHTML = newText.replace(/</g, '&lt;');
+  actionsEl.innerHTML = `
+    <button class="ai-preview-btn accept" onclick="acceptPreview('${type}','${deckId}')">✓ Accept</button>
+    <button class="ai-preview-btn edit" onclick="editPreview('${type}')">Edit</button>
+    <button class="ai-preview-btn discard" onclick="discardPreview('${type}')">✕ Discard</button>
+  `;
+}
+
+function cancelPreviewEdit(type) {
+  const card = document.getElementById('preview-' + type);
+  if (!card) return;
+  const textarea = document.getElementById('preview-edit-' + type);
+  if (textarea) textarea.value = textarea.dataset.original || textarea.value;
+  savePreviewEdit(type);
+}
+
+async function _addWordsFromText(text, deckId) {
+  const origProjectId = currentProjectId;
+  // Temporarily set a fake addWordInput so addWords() works
+  let input = document.getElementById('addWordInput');
+  if (!input) {
+    input = document.createElement('input');
+    input.id = 'addWordInput';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+  }
+  input.value = text;
+  // Temporarily switch to target deck
+  if (deckId && deckId !== currentProjectId) {
+    currentProjectId = deckId;
+  }
+  await addWords();
+  currentProjectId = origProjectId;
+  document.getElementById('addContentTextarea').value = '';
+}
+
+// Keep legacy addWordInput for compatibility — hidden element
+// (addWords() reads from #addWordInput)
+
+// ── DECK DASHBOARD ──
+
+function showDeckHome() {
+  // No-op in new layout — deck home is now the main page itself
+}
+
+function renderDeckHome() {
+  const deck = projects.find(p => p.id === currentProjectId);
+  const deckName = deck ? deck.name : 'Deck';
+
+  const vocabCount = ALL_VOCAB.filter(w => w.projectId === currentProjectId).length;
+  const flashCount = ALL_CUSTOM_CARDS.filter(c => c.projectId === currentProjectId).length;
+  const notesData = lsGet('lexicon_notes', []);
+  const notesCount = notesData.filter(n => n.deckId === currentProjectId).length;
+
+  document.getElementById('deck-home-content').innerHTML = `
+    <div style="margin-bottom: 32px;">
+      <h2 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:400; margin-bottom:6px;">${deckName}</h2>
+      <p style="color:var(--muted); font-size:0.85rem;">Choose a section to get started</p>
+    </div>
+    <div class="deck-section-grid">
+      <div class="deck-section-card" onclick="showDeckSection('notes', null)">
+        <div class="deck-card-icon">📝</div>
+        <div class="deck-card-title">Notes</div>
+        <div class="deck-card-count">${notesCount} note${notesCount !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="deck-section-card" onclick="showDeckSection('flashcards', null)">
+        <div class="deck-card-icon">🃏</div>
+        <div class="deck-card-title">Flashcards</div>
+        <div class="deck-card-count">${flashCount} card${flashCount !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="deck-section-card" onclick="showDeckSection('vocab', null)">
+        <div class="deck-card-icon">📖</div>
+        <div class="deck-card-title">Vocabulary</div>
+        <div class="deck-card-count">${vocabCount} word${vocabCount !== 1 ? 's' : ''}</div>
+      </div>
+    </div>
+  `;
+}
+
+function showDeckSection(section, btn) {
+  // No-op in new layout — deck sections are in the library
+  if (section === 'flashcards') {
+    openPracticeView('flashcards');
+    initFlash();
+  }
+}
+
+// ── NOTES ──
+
+function renderNotes() {
+  ALL_NOTES = lsGet('lexicon_notes', []);
+  const deckNotes = ALL_NOTES.filter(n => n.deckId === currentProjectId);
+  const container = document.getElementById('notesList');
+  if (!container) return;
+
+  if (!deckNotes.length) {
+    container.innerHTML = `<div class="notes-empty"><div style="font-size:2rem;">📝</div><p>No notes yet. Create your first note!</p></div>`;
+    return;
+  }
+
+  container.innerHTML = deckNotes.map(n => `
+    <div class="note-card" onclick="openNoteEditor('${n.id}')">
+      <div class="note-header">
+        <div class="note-title">${n.title || 'Untitled'}</div>
+        <button class="note-delete-btn" onclick="event.stopPropagation(); deleteNote('${n.id}')">🗑️</button>
+      </div>
+      <div class="note-content">${n.content ? n.content.replace(/</g, '&lt;') : '<span style="opacity:0.4;font-style:italic;">Empty note</span>'}</div>
+      <div class="note-date">${n.updatedAt || ''}</div>
+    </div>
+  `).join('');
+}
+
+function createNote() {
+  const note = {
+    id: 'n_' + Date.now(),
+    deckId: currentProjectId,
+    title: '',
+    content: '',
+    createdAt: new Date().toISOString().split('T')[0],
+    updatedAt: new Date().toISOString().split('T')[0]
+  };
+  ALL_NOTES.push(note);
+  lsSet('lexicon_notes', ALL_NOTES);
+  syncToCloud({ lexicon_notes: ALL_NOTES });
+  openNoteEditor(note.id);
+}
+
+function openNoteEditor(noteId) {
+  const note = ALL_NOTES.find(n => n.id === noteId);
+  if (!note) return;
+  document.getElementById('noteEditorTitle').value = note.title || '';
+  document.getElementById('noteEditorContent').value = note.content || '';
+  document.getElementById('noteEditorId').value = noteId;
+  document.getElementById('noteEditorOverlay').classList.add('open');
+}
+
+function saveNote() {
+  const noteId = document.getElementById('noteEditorId').value;
+  const title = document.getElementById('noteEditorTitle').value.trim();
+  const content = document.getElementById('noteEditorContent').value;
+  const note = ALL_NOTES.find(n => n.id === noteId);
+  if (!note) return;
+  note.title = title || 'Untitled';
+  note.content = content;
+  note.updatedAt = new Date().toISOString().split('T')[0];
+  lsSet('lexicon_notes', ALL_NOTES);
+  syncToCloud({ lexicon_notes: ALL_NOTES });
+  document.getElementById('noteEditorOverlay').classList.remove('open');
+  renderLibrary();
+}
+
+function deleteNote(noteId) {
+  if (!confirm('Delete this note?')) return;
+  ALL_NOTES = ALL_NOTES.filter(n => n.id !== noteId);
+  lsSet('lexicon_notes', ALL_NOTES);
+  syncToCloud({ lexicon_notes: ALL_NOTES });
+  renderLibrary();
+}
+
+function closeNoteEditor(e) {
+  if (!e || e.target === document.getElementById('noteEditorOverlay')) {
+    document.getElementById('noteEditorOverlay').classList.remove('open');
+  }
 }
 
 // ── INIT ──
