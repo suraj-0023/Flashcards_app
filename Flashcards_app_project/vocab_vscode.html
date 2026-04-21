@@ -2775,6 +2775,12 @@ window.handleAuthState = async function(user) {
       }
       projects = lsGet('lexicon_projects', [{"id":"general", "name":"General"}]);
       currentProjectId = lsGet('lexicon_current_project', 'all');
+      // Merge demo decks once per account, now that real cloud data is loaded
+      if (!lsGet('lexicon_demo_seeded', false)) {
+        mergeDemoDataForUser();
+        lsSet('lexicon_demo_seeded', true);
+        syncToCloud();
+      }
       loadVocab(); // Refresh silently with the latest cloud data
     }).catch(e => {
       console.warn('Background cloud sync failed:', e.message);
@@ -3087,15 +3093,9 @@ const DEMO_DATA = {
 };
 
 function seedDemoData() {
+  if (currentUser) return; // logged-in users handled by mergeDemoDataForUser after cloud pull
   if (lsGet('lexicon_demo_seeded', false)) return;
-  // Don't overwrite if user already has custom data
-  const hasCustomData = lsGet('custom_vocab', []).length > 0 ||
-    lsGet('lexicon_custom_cards', []).length > 0 ||
-    lsGet('lexicon_notes', []).length > 0;
-  if (hasCustomData) { lsSet('lexicon_demo_seeded', true); return; }
-  // Preserve 'General' deck if already present, then add demo decks
-  const existing = lsGet('lexicon_projects', []);
-  const generalDeck = existing.find(p => p.id === 'general') || { id: 'general', name: 'General' };
+  const generalDeck = { id: 'general', name: 'General' };
   const demoProjects = [generalDeck, ...DEMO_DATA.projects];
   lsSet('lexicon_projects', demoProjects);
   lsSet('lexicon_notes', DEMO_DATA.notes);
@@ -3104,6 +3104,29 @@ function seedDemoData() {
   lsSet('lexicon_demo_seeded', true);
   projects = demoProjects;
   currentProjectId = 'all';
+}
+
+// Merges demo decks/notes/cards into a logged-in user's data without overwriting anything.
+// Called once per account (after cloud pull) when lexicon_demo_seeded is not yet set.
+function mergeDemoDataForUser() {
+  const existingIds = new Set(projects.map(p => p.id));
+  const newProjects = DEMO_DATA.projects.filter(p => !existingIds.has(p.id));
+  if (newProjects.length) {
+    const generalDeck = projects.find(p => p.id === 'general') || { id: 'general', name: 'General' };
+    projects = [generalDeck, ...projects.filter(p => p.id !== 'general'), ...newProjects];
+    lsSet('lexicon_projects', projects);
+  }
+  const existingNoteIds = new Set(lsGet('lexicon_notes', []).map(n => n.id));
+  const mergedNotes = [...lsGet('lexicon_notes', []), ...DEMO_DATA.notes.filter(n => !existingNoteIds.has(n.id))];
+  lsSet('lexicon_notes', mergedNotes);
+
+  const existingCardIds = new Set(lsGet('lexicon_custom_cards', []).map(c => c.id));
+  const mergedCards = [...lsGet('lexicon_custom_cards', []), ...DEMO_DATA.custom_cards.filter(c => !existingCardIds.has(c.id))];
+  lsSet('lexicon_custom_cards', mergedCards);
+
+  const existingVocabIds = new Set(lsGet('custom_vocab', []).map(v => v.id));
+  const mergedVocab = [...lsGet('custom_vocab', []), ...DEMO_DATA.custom_vocab.filter(v => !existingVocabIds.has(v.id))];
+  lsSet('custom_vocab', mergedVocab);
 }
 
 // ── LOAD FROM JSON ──
