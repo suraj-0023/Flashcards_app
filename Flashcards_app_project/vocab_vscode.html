@@ -2565,8 +2565,8 @@ let ALL_CORE_VOCAB = [];
 let ALL_CORE_QUIZ = [];
 let ALL_NOTES = [];
 
-let projects = JSON.parse(localStorage.getItem('lexicon_projects') || '[{"id":"general", "name":"General"}]');
-let currentProjectId = localStorage.getItem('lexicon_current_project') || 'all';
+let projects = [{"id":"general", "name":"General"}];
+let currentProjectId = 'all';
 
 let perf = {};
 let currentUser = null; // Firebase user object, null = guest
@@ -2634,9 +2634,10 @@ async function syncPerfToCloud() {
   } catch(e) {}
 }
 
-// Pull data from Firestore and populate localStorage namespace
+// Pull data from Firestore and populate localStorage namespace.
+// Returns true if the user is brand-new (no Firestore doc yet).
 async function pullFromCloud() {
-  if (!currentUser || !window._fbDb) return;
+  if (!currentUser || !window._fbDb) return false;
   try {
     updateSyncBadge('syncing');
     const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
@@ -2653,12 +2654,24 @@ async function pullFromCloud() {
       Object.keys(d).forEach(k => {
         if (k.startsWith('lexicon_perf_')) lsSet(k, d[k]);
       });
+      updateSyncBadge('synced');
+      return false; // existing user
     }
     updateSyncBadge('synced');
+    return true; // brand-new user, no doc in Firestore
   } catch(e) {
     console.warn('Cloud pull error:', e.message);
     updateSyncBadge('offline');
+    return false;
   }
+}
+
+// Keys that hold un-namespaced guest data. Clearing these ensures a fresh
+// guest session for the next visitor after a sign-out or post-migration.
+const GUEST_LS_KEYS = ['custom_vocab','lexicon_custom_cards','lexicon_notes','deleted_vocab','lexicon_projects','lexicon_current_project'];
+
+function clearGuestLocalStorage() {
+  GUEST_LS_KEYS.forEach(k => localStorage.removeItem(k));
 }
 
 function updateSyncBadge(state) {
@@ -2687,7 +2700,23 @@ window.handleAuthState = async function(user) {
 
     // STEP 3: NOW sync with cloud SILENTLY in the background
     // This does NOT block the app from showing
-    pullFromCloud().then(() => {
+    pullFromCloud().then(async (isNewUser) => {
+      if (isNewUser) {
+        // Migrate any data the user created as a guest into their UID namespace
+        const guestVocab = JSON.parse(localStorage.getItem('custom_vocab') || '[]');
+        const guestCards = JSON.parse(localStorage.getItem('lexicon_custom_cards') || '[]');
+        const guestNotes = JSON.parse(localStorage.getItem('lexicon_notes') || '[]');
+        const guestDeleted = JSON.parse(localStorage.getItem('deleted_vocab') || '[]');
+        if (guestVocab.length || guestCards.length || guestNotes.length) {
+          lsSet('custom_vocab', guestVocab);
+          lsSet('lexicon_custom_cards', guestCards);
+          lsSet('lexicon_notes', guestNotes);
+          lsSet('deleted_vocab', guestDeleted);
+          await syncToCloud();
+        }
+        // Clear un-namespaced guest keys so the next visitor starts clean
+        clearGuestLocalStorage();
+      }
       projects = lsGet('lexicon_projects', [{"id":"general", "name":"General"}]);
       currentProjectId = lsGet('lexicon_current_project', 'all');
       loadVocab(); // Refresh silently with the latest cloud data
@@ -2856,9 +2885,25 @@ async function handleSignOut() {
   }
   currentUser = null;
   renderSidebarProfile(null);
-  // Reset to guest localStorage
-  projects = JSON.parse(localStorage.getItem('lexicon_projects') || '[{"id":"general", "name":"General"}]');
-  currentProjectId = localStorage.getItem('lexicon_current_project') || 'all';
+
+  // Reset all in-memory state so no data from the signed-out user lingers
+  ALL_VOCAB = [];
+  ALL_QUIZ_VOCAB = [];
+  ALL_CUSTOM_CARDS = [];
+  ALL_CORE_VOCAB = [];
+  ALL_CORE_QUIZ = [];
+  ALL_NOTES = [];
+  VOCAB = [];
+  QUIZ_VOCAB = [];
+  perf = {};
+
+  // Clear any leftover un-namespaced guest keys so the next visitor starts clean
+  clearGuestLocalStorage();
+
+  // Reset to empty guest defaults
+  projects = [{"id":"general", "name":"General"}];
+  currentProjectId = 'all';
+
   // Reload the app for the now-guest user
   document.getElementById('loadingScreen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
