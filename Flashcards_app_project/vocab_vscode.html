@@ -1920,6 +1920,62 @@
     transition: all 0.2s; white-space: nowrap;
   }
   .lib-shuffle-btn:hover { border-color: var(--ink); color: var(--ink); }
+  /* ── LIBRARY LIST GRID ── */
+  .lib-list-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 520px) { .lib-list-grid { grid-template-columns: 1fr; } }
+  .lib-list-card {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 80px;
+  }
+  .lib-list-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.07); }
+  .lib-list-card .lib-card-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .lib-list-card .lib-card-preview {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+  .lib-deck-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    align-self: flex-start;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
   .lib-list-row {
     display: flex; align-items: center;
     padding: 12px 16px;
@@ -3031,14 +3087,22 @@ const DEMO_DATA = {
 };
 
 function seedDemoData() {
-  if (currentUser) return; // only seed for guest sessions
-  if (lsGet('lexicon_demo_seeded', false)) return; // already seeded
-  lsSet('lexicon_projects', DEMO_DATA.projects);
+  if (lsGet('lexicon_demo_seeded', false)) return;
+  // Don't overwrite if user already has custom data
+  const hasCustomData = lsGet('custom_vocab', []).length > 0 ||
+    lsGet('lexicon_custom_cards', []).length > 0 ||
+    lsGet('lexicon_notes', []).length > 0;
+  if (hasCustomData) { lsSet('lexicon_demo_seeded', true); return; }
+  // Preserve 'General' deck if already present, then add demo decks
+  const existing = lsGet('lexicon_projects', []);
+  const generalDeck = existing.find(p => p.id === 'general') || { id: 'general', name: 'General' };
+  const demoProjects = [generalDeck, ...DEMO_DATA.projects];
+  lsSet('lexicon_projects', demoProjects);
   lsSet('lexicon_notes', DEMO_DATA.notes);
   lsSet('lexicon_custom_cards', DEMO_DATA.custom_cards);
   lsSet('custom_vocab', DEMO_DATA.custom_vocab);
   lsSet('lexicon_demo_seeded', true);
-  projects = DEMO_DATA.projects;
+  projects = demoProjects;
   currentProjectId = 'all';
 }
 
@@ -3180,7 +3244,7 @@ function updateProjectUI() {
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
         <i>🗂️</i> <span>${p.name}</span>
         <div class="project-actions">
-           ${p.id !== 'general' ? `<button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>` : ''}
+           <button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>
         </div>
       </div>
     `).join('')}
@@ -3237,15 +3301,17 @@ function createDeck() {
 }
 
 function deleteDeck(id) {
-  if (id === 'general') return;
-  if (!confirm("Are you sure? All words in this deck will be moved back to 'General'.")) return;
+  if (projects.length <= 1) { alert("You need at least one deck."); return; }
+  const fallbackId = (projects.find(p => p.id !== id) || projects[0]).id;
+  const fallbackName = (projects.find(p => p.id !== id) || projects[0]).name;
+  if (!confirm(`Are you sure? All items in this deck will be moved to "${fallbackName}".`)) return;
 
   projects = projects.filter(p => p.id !== id);
   lsSet('lexicon_projects', projects);
 
   // Migrate vocab and cards
   [ALL_VOCAB, ALL_QUIZ_VOCAB, ALL_CUSTOM_CARDS].forEach(list => {
-    list.forEach(item => { if (item.projectId === id) item.projectId = 'general'; });
+    list.forEach(item => { if (item.projectId === id) item.projectId = fallbackId; });
   });
 
   // Migrate notes
@@ -4317,28 +4383,36 @@ function _renderLibListHTML() {
     return;
   }
 
-  container.innerHTML = items.map((item, idx) => {
+  const cards = items.map((item, idx) => {
+    const deckId = item.deckId || item.projectId || '';
+    const deckProj = projects.find(p => p.id === deckId);
+    const deckName = deckProj ? deckProj.name : (deckId ? 'General' : 'Core Vocab');
+    const badge = `<div class="lib-deck-badge">${deckName}</div>`;
+
     if (type === 'notes') {
-      return `<div class="lib-list-row" onclick="openDetailPopup(${idx})">
-        <div class="lib-list-row-title">${item.title || 'Untitled'}</div>
-        <div class="lib-list-row-meta">${item.updatedAt || ''}</div>
+      const preview = (item.content || '').replace(/</g, '&lt;');
+      return `<div class="lib-list-card" onclick="openDetailPopup(${idx})">
+        <div class="lib-card-word">${item.title || 'Untitled'}</div>
+        <div class="lib-card-preview">${preview}</div>
+        ${badge}
       </div>`;
     } else if (type === 'flashcards') {
-      return `<div class="lib-list-row" onclick="openDetailPopup(${idx})">
-        <div class="lib-list-row-title">${item.front}</div>
-        <div class="lib-list-row-meta">Flashcard</div>
+      return `<div class="lib-list-card" onclick="openDetailPopup(${idx})">
+        <div class="lib-card-word">${item.front}</div>
+        <div class="lib-card-preview">${item.back || ''}</div>
+        ${badge}
       </div>`;
     } else {
       const typeStr = (item.type || []).join(' · ');
-      return `<div class="lib-list-row" onclick="openDetailPopup(${idx})">
-        <div style="flex:1;">
-          <div class="lib-list-row-title">${item.word}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.06em;margin-top:2px;">${typeStr}</div>
-        </div>
-        <div class="lib-list-row-meta">${item.addedOn || ''}</div>
+      return `<div class="lib-list-card" onclick="openDetailPopup(${idx})">
+        <div class="lib-card-word">${item.word}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.06em;">${typeStr}</div>
+        <div class="lib-card-preview">${item.definition || ''}</div>
+        ${badge}
       </div>`;
     }
   }).join('');
+  container.innerHTML = `<div class="lib-list-grid">${cards}</div>`;
 }
 
 // ── DETAIL POPUP ──
