@@ -2287,7 +2287,7 @@
       <!-- Deck header bar -->
       <div class="deck-header-bar">
         <div class="deck-header-dot"></div>
-        <span class="deck-header-name" id="deckHeaderName">All Words</span>
+        <span class="deck-header-name" id="deckHeaderName">Complete Library</span>
         <span class="deck-header-count" id="deckHeaderCount"></span>
       </div>
 
@@ -2296,7 +2296,7 @@
 
         <!-- 1. Add Section -->
         <div class="add-section-card">
-          <div class="add-section-label">Add to <span id="addDeckLabel">All Words</span></div>
+          <div class="add-section-label">Add to <span id="addDeckLabel">Complete Library</span></div>
           <textarea id="addContentTextarea" class="add-textarea" rows="3" placeholder="Enter words, paste text, or write a note…"></textarea>
           <div class="add-toolbar">
             <!-- File attach -->
@@ -2668,7 +2668,7 @@ async function pullFromCloud() {
 
 // Keys that hold un-namespaced guest data. Clearing these ensures a fresh
 // guest session for the next visitor after a sign-out or post-migration.
-const GUEST_LS_KEYS = ['custom_vocab','lexicon_custom_cards','lexicon_notes','deleted_vocab','lexicon_projects','lexicon_current_project'];
+const GUEST_LS_KEYS = ['custom_vocab','lexicon_custom_cards','lexicon_notes','deleted_vocab','lexicon_projects','lexicon_current_project','lexicon_demo_seeded'];
 
 function clearGuestLocalStorage() {
   GUEST_LS_KEYS.forEach(k => localStorage.removeItem(k));
@@ -2924,11 +2924,132 @@ function friendlyAuthError(code) {
   return map[code] || `Sign-in error: ${code}`;
 }
 
+// ── DEMO DATA SEED ──
+const DEMO_DATA = {
+  projects: [
+    { id: 'p_atomic',    name: 'Atomic Habits' },
+    { id: 'p_climate',   name: 'Climate Disaster' },
+    { id: 'p_alchemist', name: 'The Alchemist' },
+    { id: 'p_science10', name: 'Class 10 Science' }
+  ],
+  notes: [
+    // Atomic Habits
+    { id: 'dn_a1', deckId: 'p_atomic',    title: 'The 1% Rule',             content: 'Improving by just 1% each day leads to a 37x improvement over a year. Tiny gains compound into remarkable results. Most breakthroughs look like overnight successes but are years of compounded effort.' },
+    { id: 'dn_a2', deckId: 'p_atomic',    title: 'Identity-Based Habits',   content: 'The most effective way to build lasting habits is to focus on who you want to become, not what you want to achieve. Every action is a vote for the type of person you wish to be. Start with identity, then let behaviour follow.' },
+    { id: 'dn_a3', deckId: 'p_atomic',    title: 'The Habit Loop',          content: 'All habits follow a four-step loop: Cue → Craving → Response → Reward. The cue triggers the craving, the craving motivates the response, and the reward satisfies the craving and teaches the brain to repeat the loop.' },
+    { id: 'dn_a4', deckId: 'p_atomic',    title: '4 Laws of Behaviour',     content: '1st Law (Cue): Make it obvious. 2nd Law (Craving): Make it attractive. 3rd Law (Response): Make it easy. 4th Law (Reward): Make it satisfying. To break a bad habit, invert each law.' },
+    { id: 'dn_a5', deckId: 'p_atomic',    title: 'Environment Design',      content: 'Your environment shapes behaviour more than motivation does. Reduce friction for good habits by making the cues visible and accessible. Increase friction for bad habits by making them invisible or inconvenient.' },
+    { id: 'dn_a6', deckId: 'p_atomic',    title: 'Plateau of Latent Potential', content: 'Progress is rarely linear. Work accumulates silently beneath the surface until a threshold is crossed and results suddenly appear. Most people quit in this "valley of disappointment" before the breakthrough arrives.' },
+    // Climate Disaster
+    { id: 'dn_c1', deckId: 'p_climate',   title: '51 Billion Tons',         content: 'The world emits roughly 51 billion tons of CO2 equivalent each year. To avoid the worst climate outcomes, we must reach net zero. Every number in the climate debate traces back to this baseline figure.' },
+    { id: 'dn_c2', deckId: 'p_climate',   title: 'The Green Premium',       content: 'The "green premium" is the extra cost of choosing a clean alternative over a fossil-fuel-based product. Reducing or eliminating green premiums through innovation is central to making decarbonisation practical and affordable for all countries.' },
+    { id: 'dn_c3', deckId: 'p_climate',   title: 'Five Key Sectors',        content: 'Emissions come from five sectors: (1) Making things – 31%, (2) Plugging in – 27%, (3) Growing things – 19%, (4) Getting around – 16%, (5) Keeping warm & cool – 7%. Any climate plan must address all five.' },
+    { id: 'dn_c4', deckId: 'p_climate',   title: 'Role of Nuclear Power',   content: 'Gates argues nuclear fission is a reliable, zero-carbon power source unfairly stigmatised by public fear. Advanced designs like small modular reactors and fusion research could provide always-on clean electricity that solar and wind cannot alone provide.' },
+    { id: 'dn_c5', deckId: 'p_climate',   title: 'Individual vs Systemic',  content: 'Personal choices (flying less, eating less meat) matter symbolically, but systemic change through policy, R&D investment, and market incentives has a far greater impact. Individuals should vote, advocate, and support companies developing clean solutions.' },
+    { id: 'dn_c6', deckId: 'p_climate',   title: 'Carbon Capture',          content: 'Direct air capture removes CO2 directly from the atmosphere. Currently expensive (~$250–$300/ton), but Gates believes scale and innovation can drive costs down, making it a viable backstop alongside emission reductions.' },
+    // The Alchemist
+    { id: 'dn_al1', deckId: 'p_alchemist', title: 'Personal Legend',         content: 'Every person has a "Personal Legend" — a unique purpose or destiny they are called to fulfill. The universe conspires to help those who pursue it. The tragedy is that most people abandon their Personal Legend early out of fear.' },
+    { id: 'dn_al2', deckId: 'p_alchemist', title: 'Soul of the World',        content: 'Coelho\'s concept of a universal spiritual force that connects all living things. It speaks through omens and signs. Learning to read this language — the Language of the World — allows one to find their path.' },
+    { id: 'dn_al3', deckId: 'p_alchemist', title: 'Santiago\'s Journey',      content: 'A Spanish shepherd boy named Santiago dreams of treasure near the Egyptian Pyramids. He sells his sheep and travels across the Sahara, meeting the king Melchizedek, an Englishman, Fatima, and eventually the Alchemist himself.' },
+    { id: 'dn_al4', deckId: 'p_alchemist', title: 'The Real Treasure',        content: 'Santiago ultimately finds the treasure back at the ruined church in Spain where he began — under the roots of a sycamore tree where he used to sleep. The journey itself was the true treasure: the wisdom, courage, and love he gained.' },
+    { id: 'dn_al5', deckId: 'p_alchemist', title: 'Fear as the Obstacle',     content: '"Tell your heart that the fear of suffering is worse than the suffering itself." Fear of failure, ridicule, or loss is the primary force that stops people from following their Personal Legend. Courage means acting despite fear.' },
+    { id: 'dn_al6', deckId: 'p_alchemist', title: 'Maktub',                   content: '"Maktub" — Arabic for "It is written." Coelho uses it to express the idea that destiny is woven into the fabric of the universe. What must happen will happen, but it is up to us to be awake enough to recognise our path.' },
+    // Class 10 Science
+    { id: 'dn_s1', deckId: 'p_science10', title: 'Chemical Reactions',       content: 'A chemical reaction is a process where reactants are transformed into products through the breaking and forming of chemical bonds. Signs include colour change, gas production, precipitate formation, temperature change, or light emission.' },
+    { id: 'dn_s2', deckId: 'p_science10', title: 'Acids, Bases & pH',        content: 'Acids release H⁺ ions in solution (pH < 7); bases release OH⁻ ions (pH > 7). The pH scale runs from 0–14. Neutral = 7. Indicators like litmus paper and phenolphthalein help identify acids and bases.' },
+    { id: 'dn_s3', deckId: 'p_science10', title: 'Newton\'s Laws of Motion',  content: '1st: An object remains at rest or in uniform motion unless acted upon by a net force. 2nd: F = ma. 3rd: For every action there is an equal and opposite reaction. These laws underpin classical mechanics.' },
+    { id: 'dn_s4', deckId: 'p_science10', title: 'Electricity & Ohm\'s Law',  content: 'Electric current (I) is the flow of charge. Ohm\'s Law: V = IR, where V = voltage (volts), I = current (amperes), R = resistance (ohms). In series circuits, resistance adds up. In parallel, the reciprocal of total resistance equals the sum of reciprocals.' },
+    { id: 'dn_s5', deckId: 'p_science10', title: 'Light – Reflection & Refraction', content: 'Reflection: angle of incidence = angle of reflection. Refraction: light bends when moving between media of different densities (governed by Snell\'s Law). Concave mirrors converge light; convex mirrors diverge. Lenses work similarly.' },
+    { id: 'dn_s6', deckId: 'p_science10', title: 'Carbon & Its Compounds',   content: 'Carbon has a valency of 4, enabling it to form millions of organic compounds. It bonds in chains, branches, and rings. Key functional groups: hydroxyl (–OH) in alcohols, carboxyl (–COOH) in acids, aldehyde (–CHO) in aldehydes.' },
+    { id: 'dn_s7', deckId: 'p_science10', title: 'The Human Eye & Defects',  content: 'The eye focuses light on the retina using the cornea and lens. Myopia (nearsightedness): corrected with concave lens. Hypermetropia (farsightedness): corrected with convex lens. Presbyopia: age-related loss of near focus.' }
+  ],
+  custom_cards: [
+    // Atomic Habits flashcards
+    { id: 'dc_a1', isCustom: true, projectId: 'p_atomic',    front: 'What is the 1% Rule?',                        back: 'Improving by 1% each day compounds to a 37× improvement over a year. Tiny consistent gains lead to remarkable long-term results.' },
+    { id: 'dc_a2', isCustom: true, projectId: 'p_atomic',    front: 'What are the 4 Laws of Behaviour Change?',    back: 'Make it Obvious (Cue) → Make it Attractive (Craving) → Make it Easy (Response) → Make it Satisfying (Reward).' },
+    { id: 'dc_a3', isCustom: true, projectId: 'p_atomic',    front: 'What is Habit Stacking?',                     back: 'Linking a new habit to an existing one using the formula: "After [CURRENT HABIT], I will [NEW HABIT]."' },
+    { id: 'dc_a4', isCustom: true, projectId: 'p_atomic',    front: 'What is the Two-Minute Rule?',                back: 'Scale any habit down to a version that takes 2 minutes or less to start. "Read before bed" → "Read one page."' },
+    { id: 'dc_a5', isCustom: true, projectId: 'p_atomic',    front: 'What is Temptation Bundling?',                back: 'Pairing something you WANT to do with something you NEED to do, making necessary habits more attractive.' },
+    { id: 'dc_a6', isCustom: true, projectId: 'p_atomic',    front: 'What is the Goldilocks Rule?',                back: 'Humans experience peak motivation on tasks that are just at the edge of their current ability — not too easy, not too hard.' },
+    { id: 'dc_a7', isCustom: true, projectId: 'p_atomic',    front: 'What is an Implementation Intention?',        back: 'A specific plan: "I will [BEHAVIOUR] at [TIME] in [LOCATION]." It dramatically increases the likelihood of following through.' },
+    // Climate Disaster flashcards
+    { id: 'dc_c1', isCustom: true, projectId: 'p_climate',   front: 'How many tons of CO2 does the world emit yearly?', back: '51 billion tons of CO2 equivalent per year. This is the baseline Gates uses throughout the book.' },
+    { id: 'dc_c2', isCustom: true, projectId: 'p_climate',   front: 'What is a "Green Premium"?',                  back: 'The extra cost of choosing a clean alternative over a carbon-emitting product. Innovating to reduce green premiums is central to Gates\' plan.' },
+    { id: 'dc_c3', isCustom: true, projectId: 'p_climate',   front: 'Which sector produces the most global emissions?', back: 'Manufacturing (cement, steel, plastic) at ~31% of global emissions.' },
+    { id: 'dc_c4', isCustom: true, projectId: 'p_climate',   front: 'What does "net-zero" mean?',                  back: 'Emitting no more greenhouse gases than are removed from the atmosphere, resulting in no net addition of CO2.' },
+    { id: 'dc_c5', isCustom: true, projectId: 'p_climate',   front: 'Why does Gates argue individual action isn\'t enough?', back: 'Individual choices account for a tiny fraction of emissions. Systemic policy, R&D investment, and market incentives drive meaningful scale.' },
+    { id: 'dc_c6', isCustom: true, projectId: 'p_climate',   front: 'What is direct air capture?',                 back: 'Technology that removes CO2 directly from the atmosphere. Currently costly (~$250–300/ton) but essential as a backstop.' },
+    { id: 'dc_c7', isCustom: true, projectId: 'p_climate',   front: 'What technology does Gates favour for always-on clean power?', back: 'Advanced nuclear energy (fission + future fusion), which provides reliable zero-carbon baseload power unlike intermittent renewables.' },
+    // The Alchemist flashcards
+    { id: 'dc_al1', isCustom: true, projectId: 'p_alchemist', front: 'What is Santiago\'s Personal Legend?',         back: 'To find a great treasure near the Egyptian Pyramids — the recurring dream that starts his entire journey.' },
+    { id: 'dc_al2', isCustom: true, projectId: 'p_alchemist', front: 'Who is Melchizedek?',                          back: 'The King of Salem who gives Santiago two stones (Urim and Thummim) and reveals the concept of Personal Legend.' },
+    { id: 'dc_al3', isCustom: true, projectId: 'p_alchemist', front: 'What is the "Soul of the World"?',             back: 'The universal life force connecting all of creation. Those who pursue their Personal Legend are in harmony with it.' },
+    { id: 'dc_al4', isCustom: true, projectId: 'p_alchemist', front: 'Where was Santiago\'s treasure actually found?', back: 'At the ruins of a church in Andalusia, Spain — back where he started, under the roots of a sycamore tree.' },
+    { id: 'dc_al5', isCustom: true, projectId: 'p_alchemist', front: 'What does "Maktub" mean?',                     back: '"It is written" in Arabic. Coelho uses it to express that destiny is woven into the universe; our role is to recognise and follow it.' },
+    { id: 'dc_al6', isCustom: true, projectId: 'p_alchemist', front: 'What lesson does the Alchemist teach about fear?', back: '"The fear of suffering is worse than the suffering itself." Courage is following your path in spite of fear, not in the absence of it.' },
+    { id: 'dc_al7', isCustom: true, projectId: 'p_alchemist', front: 'What is "Beginner\'s Luck" in the Alchemist?',  back: 'The universe conspires to help those who first pursue their Personal Legend, giving early signs of encouragement.' },
+    // Class 10 Science flashcards
+    { id: 'dc_s1', isCustom: true, projectId: 'p_science10', front: 'What is the pH of a neutral substance?',       back: 'pH 7. Pure water is the standard neutral reference. Below 7 = acidic; above 7 = basic/alkaline.' },
+    { id: 'dc_s2', isCustom: true, projectId: 'p_science10', front: 'State Newton\'s Second Law of Motion.',         back: 'Force = Mass × Acceleration (F = ma). The net force on an object equals its mass times the acceleration it undergoes.' },
+    { id: 'dc_s3', isCustom: true, projectId: 'p_science10', front: 'What is Ohm\'s Law?',                          back: 'V = IR — Voltage (V) equals Current (I) multiplied by Resistance (R). At constant temperature, current is proportional to voltage.' },
+    { id: 'dc_s4', isCustom: true, projectId: 'p_science10', front: 'Which lens corrects myopia?',                  back: 'A concave (diverging) lens. It spreads the incoming light rays so they focus exactly on the retina rather than in front of it.' },
+    { id: 'dc_s5', isCustom: true, projectId: 'p_science10', front: 'What is the valency of carbon?',               back: '4. Carbon can form four covalent bonds, enabling it to create millions of organic compounds including chains, branches, and rings.' },
+    { id: 'dc_s6', isCustom: true, projectId: 'p_science10', front: 'What gas is produced when zinc reacts with HCl?', back: 'Hydrogen gas (H₂). Zinc + Hydrochloric Acid → Zinc Chloride + Hydrogen. The H₂ burns with a "pop" sound.' },
+    { id: 'dc_s7', isCustom: true, projectId: 'p_science10', front: 'What is the role of chlorophyll in photosynthesis?', back: 'Chlorophyll absorbs sunlight (mainly red and blue wavelengths) to power the conversion of CO₂ and water into glucose and oxygen.' }
+  ],
+  custom_vocab: [
+    // Atomic Habits vocab
+    { id: 'cv_a1', isCustom: true, projectId: 'p_atomic',    word: 'compounding',            type: ['noun'], definition: 'The process where small, repeated gains accumulate exponentially over time to produce remarkable results.', usage: ['The compounding effect of daily reading over a decade is extraordinary.'], opposites: [], tenses: {}, related: ['compound interest', 'exponential growth'], addedOn: '2026-01-01' },
+    { id: 'cv_a2', isCustom: true, projectId: 'p_atomic',    word: 'friction',               type: ['noun'], definition: 'Resistance or difficulty that makes a behaviour harder to perform; reducing it makes habits easier to stick to.', usage: ['Laying out your gym clothes the night before reduces friction for morning workouts.'], opposites: ['ease', 'flow'], tenses: {}, related: [], addedOn: '2026-01-01' },
+    { id: 'cv_a3', isCustom: true, projectId: 'p_atomic',    word: 'temptation bundling',    type: ['noun'], definition: 'Linking an action you want to do with one you need to do, making necessary habits more attractive.', usage: ['She only allows herself to watch reality TV while folding laundry — temptation bundling at its finest.'], opposites: [], tenses: {}, related: ['habit stacking', 'Premack\'s principle'], addedOn: '2026-01-01' },
+    { id: 'cv_a4', isCustom: true, projectId: 'p_atomic',    word: 'implementation intention', type: ['noun'], definition: 'A plan specifying exactly when, where, and how a habit will be performed, boosting follow-through.', usage: ['His implementation intention — "I will meditate at 7am in the kitchen" — turned a vague goal into a daily reality.'], opposites: [], tenses: {}, related: ['habit stacking', 'cue'], addedOn: '2026-01-01' },
+    { id: 'cv_a5', isCustom: true, projectId: 'p_atomic',    word: 'identity',               type: ['noun'], definition: 'The collection of beliefs and values that define who you are; the most powerful lever for lasting behaviour change.', usage: ['Shifting from "I am trying to quit smoking" to "I am a non-smoker" is an identity-level change.'], opposites: [], tenses: {}, related: ['self-image', 'character'], addedOn: '2026-01-01' },
+    { id: 'cv_a6', isCustom: true, projectId: 'p_atomic',    word: 'plateau of latent potential', type: ['noun'], definition: 'The period where consistent effort is being made but results are not yet visible, before a breakthrough occurs.', usage: ['Most people quit during the plateau of latent potential, just before their habits begin to pay off.'], opposites: [], tenses: {}, related: ['compounding', 'valley of disappointment'], addedOn: '2026-01-01' },
+    // Climate Disaster vocab
+    { id: 'cv_c1', isCustom: true, projectId: 'p_climate',   word: 'green premium',          type: ['noun'], definition: 'The extra cost of choosing a clean, low-carbon alternative over a fossil-fuel-based product or process.', usage: ['The green premium for green steel is currently 16–25%, making it uncompetitive without subsidies.'], opposites: [], tenses: {}, related: ['carbon neutral', 'decarbonize'], addedOn: '2026-01-01' },
+    { id: 'cv_c2', isCustom: true, projectId: 'p_climate',   word: 'decarbonize',            type: ['verb'], definition: 'To eliminate or significantly reduce carbon dioxide emissions from an industry, process, or economy.', usage: ['The steel industry is the hardest sector to decarbonize because it requires extremely high heat.'], opposites: ['carbonize'], tenses: { past: 'decarbonized', present: 'decarbonizes' }, related: ['net-zero', 'electrification'], addedOn: '2026-01-01' },
+    { id: 'cv_c3', isCustom: true, projectId: 'p_climate',   word: 'electrification',        type: ['noun'], definition: 'Converting processes that currently use fossil fuels to instead run on electricity, which can then come from clean sources.', usage: ['Electrification of transport (EVs) is one of the fastest and most cost-effective decarbonisation pathways.'], opposites: [], tenses: {}, related: ['decarbonize', 'grid'], addedOn: '2026-01-01' },
+    { id: 'cv_c4', isCustom: true, projectId: 'p_climate',   word: 'carbon capture',         type: ['noun'], definition: 'Technology that removes CO₂ from the atmosphere or from emissions at the source, storing it underground or repurposing it.', usage: ['Direct air carbon capture is promising but currently costs roughly $250–300 per ton of CO₂ removed.'], opposites: [], tenses: {}, related: ['net-zero', 'sequestration'], addedOn: '2026-01-01' },
+    { id: 'cv_c5', isCustom: true, projectId: 'p_climate',   word: 'net-zero',               type: ['adjective'], definition: 'A state where the total greenhouse gases emitted equals the total removed, resulting in no net increase in atmospheric CO₂.', usage: ['The EU has committed to achieving net-zero emissions by 2050.'], opposites: ['carbon positive'], tenses: {}, related: ['carbon neutral', 'carbon capture'], addedOn: '2026-01-01' },
+    { id: 'cv_c6', isCustom: true, projectId: 'p_climate',   word: 'grid-scale storage',     type: ['noun'], definition: 'Large battery or energy storage systems that hold surplus renewable electricity and release it when demand is high or generation is low.', usage: ['Grid-scale storage is the missing piece that would make solar and wind fully reliable.'], opposites: [], tenses: {}, related: ['electrification', 'renewable energy'], addedOn: '2026-01-01' },
+    // The Alchemist vocab
+    { id: 'cv_al1', isCustom: true, projectId: 'p_alchemist', word: 'omen',                   type: ['noun'], definition: 'A sign or portent believed to foreshadow a future event; in the novel, Santiago learns to read these signs from the universe.', usage: ['The hawk circling overhead was an omen that danger was near, so Santiago changed his path.'], opposites: [], tenses: { plural: 'omens' }, related: ['portent', 'augury'], addedOn: '2026-01-01' },
+    { id: 'cv_al2', isCustom: true, projectId: 'p_alchemist', word: 'alchemy',                type: ['noun'], definition: 'Historically, the practice of transforming base metals into gold; in the novel, a metaphor for personal transformation and fulfilling one\'s potential.', usage: ['The Alchemist could turn lead into gold, but his true gift was helping Santiago transform his fears into courage.'], opposites: [], tenses: {}, related: ['transmutation', 'philosopher\'s stone'], addedOn: '2026-01-01' },
+    { id: 'cv_al3', isCustom: true, projectId: 'p_alchemist', word: 'maktub',                 type: ['interjection'], definition: 'Arabic phrase meaning "it is written"; used in the novel to express that destiny is predetermined and woven into the fabric of the universe.', usage: ['"Maktub," the Alchemist said with a smile, assuring Santiago that everything was unfolding as it was meant to.'], opposites: [], tenses: {}, related: ['fate', 'destiny', 'kismet'], addedOn: '2026-01-01' },
+    { id: 'cv_al4', isCustom: true, projectId: 'p_alchemist', word: 'Personal Legend',        type: ['noun'], definition: 'One\'s unique purpose or ultimate destiny in life — the mission the universe has set aside for each individual.', usage: ['Santiago\'s Personal Legend was to find treasure at the Pyramids, but its deeper purpose was to teach him about the Soul of the World.'], opposites: [], tenses: {}, related: ['destiny', 'calling', 'vocation'], addedOn: '2026-01-01' },
+    { id: 'cv_al5', isCustom: true, projectId: 'p_alchemist', word: 'covetous',               type: ['adjective'], definition: 'Having a strong, often excessive desire to possess something that belongs to another person.', usage: ['The merchant was covetous of the caravans\' freedom, yet lacked the courage to leave his crystal shop.'], opposites: ['content', 'unenvious'], tenses: {}, related: ['envious', 'greedy', 'acquisitive'], addedOn: '2026-01-01' },
+    { id: 'cv_al6', isCustom: true, projectId: 'p_alchemist', word: 'transmutation',          type: ['noun'], definition: 'The conversion of one substance into another; in alchemy, turning base metals to gold; metaphorically, transformation of the self.', usage: ['The Alchemist\'s greatest act of transmutation was not gold, but turning Santiago\'s doubt into conviction.'], opposites: [], tenses: {}, related: ['alchemy', 'transformation'], addedOn: '2026-01-01' },
+    // Class 10 Science vocab
+    { id: 'cv_s1', isCustom: true, projectId: 'p_science10', word: 'catalyst',               type: ['noun'], definition: 'A substance that speeds up a chemical reaction without being consumed in the process; it lowers the activation energy.', usage: ['MnO₂ acts as a catalyst in the decomposition of hydrogen peroxide into water and oxygen.'], opposites: ['inhibitor'], tenses: { plural: 'catalysts' }, related: ['activation energy', 'enzyme'], addedOn: '2026-01-01' },
+    { id: 'cv_s2', isCustom: true, projectId: 'p_science10', word: 'refraction',             type: ['noun'], definition: 'The bending of light (or other waves) as it passes from one medium into another of different density.', usage: ['A straw in a glass of water appears bent due to the refraction of light at the water-air boundary.'], opposites: ['reflection'], tenses: {}, related: ['refractive index', 'Snell\'s law', 'dispersion'], addedOn: '2026-01-01' },
+    { id: 'cv_s3', isCustom: true, projectId: 'p_science10', word: 'valency',                type: ['noun'], definition: 'The combining capacity of an element, determined by the number of electrons it can lose, gain, or share to form a bond.', usage: ['Carbon\'s valency of 4 allows it to form four bonds simultaneously, giving rise to the entire field of organic chemistry.'], opposites: [], tenses: {}, related: ['covalent bond', 'ionic bond', 'electron configuration'], addedOn: '2026-01-01' },
+    { id: 'cv_s4', isCustom: true, projectId: 'p_science10', word: 'electrolysis',           type: ['noun'], definition: 'The decomposition of a compound in solution using direct electric current; used in electroplating and extraction of metals.', usage: ['Electrolysis of acidified water produces hydrogen at the cathode and oxygen at the anode.'], opposites: [], tenses: {}, related: ['electrode', 'cathode', 'anode', 'electrolyte'], addedOn: '2026-01-01' },
+    { id: 'cv_s5', isCustom: true, projectId: 'p_science10', word: 'osmosis',                type: ['noun'], definition: 'The movement of water molecules from a region of higher water concentration to lower water concentration through a semi-permeable membrane.', usage: ['Plant roots absorb water from the soil by osmosis, as the cell sap has a lower water concentration than the soil solution.'], opposites: ['reverse osmosis'], tenses: {}, related: ['diffusion', 'semi-permeable membrane', 'turgor pressure'], addedOn: '2026-01-01' },
+    { id: 'cv_s6', isCustom: true, projectId: 'p_science10', word: 'photosynthesis',         type: ['noun'], definition: 'The process by which green plants use sunlight, water, and CO₂ to produce glucose and oxygen; occurs in chloroplasts.', usage: ['6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂ is the overall equation for photosynthesis.'], opposites: ['respiration'], tenses: {}, related: ['chlorophyll', 'chloroplast', 'light reaction'], addedOn: '2026-01-01' },
+    { id: 'cv_s7', isCustom: true, projectId: 'p_science10', word: 'myopia',                 type: ['noun'], definition: 'Nearsightedness; a vision defect where the eye focuses light in front of the retina, making distant objects appear blurry.', usage: ['Myopia is corrected with a concave lens that diverges light before it enters the eye.'], opposites: ['hypermetropia'], tenses: {}, related: ['hypermetropia', 'presbyopia', 'concave lens', 'retina'], addedOn: '2026-01-01' }
+  ]
+};
+
+function seedDemoData() {
+  if (currentUser) return; // only seed for guest sessions
+  if (lsGet('lexicon_demo_seeded', false)) return; // already seeded
+  lsSet('lexicon_projects', DEMO_DATA.projects);
+  lsSet('lexicon_notes', DEMO_DATA.notes);
+  lsSet('lexicon_custom_cards', DEMO_DATA.custom_cards);
+  lsSet('custom_vocab', DEMO_DATA.custom_vocab);
+  lsSet('lexicon_demo_seeded', true);
+  projects = DEMO_DATA.projects;
+  currentProjectId = 'all';
+}
+
 // ── LOAD FROM JSON ──
 async function loadVocab() {
   const loading = document.getElementById('loadingScreen');
   const appEl = document.getElementById('app');
   try {
+    // Seed example decks for first-time guests
+    seedDemoData();
+
     // Render Project Selectors
     updateProjectUI();
 
@@ -3031,7 +3152,7 @@ function applyProjectFilter() {
 function updateProjectUI() {
   // Update deck header name
   const activeProject = projects.find(p => p.id === currentProjectId);
-  const deckName = currentProjectId === 'all' ? 'All Words' : (activeProject ? activeProject.name : 'All Words');
+  const deckName = currentProjectId === 'all' ? 'Complete Library' : (activeProject ? activeProject.name : 'Complete Library');
   const headerName = document.getElementById('deckHeaderName');
   if (headerName) headerName.textContent = deckName;
   const addLabel = document.getElementById('addDeckLabel');
@@ -3053,7 +3174,7 @@ function updateProjectUI() {
   const allActive = currentProjectId === 'all';
   sidebarList.innerHTML = `
     <div class="project-item-sidebar ${allActive ? 'active' : ''}" onclick="switchProject('all')">
-      <i>📚</i> <span>All Words</span>
+      <i>📚</i> <span>Complete Library</span>
     </div>
     ${projects.map(p => `
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
@@ -3924,7 +4045,7 @@ function renderDeckSelection() {
   const grid = document.getElementById('deckSelectGrid');
   if (!grid) return;
 
-  const deckList = [{ id: 'all', name: 'All Words' }].concat(projects);
+  const deckList = [{ id: 'all', name: 'Complete Library' }].concat(projects);
   grid.innerHTML = deckList.map(d => {
     const vocabCount = d.id === 'all' ? ALL_QUIZ_VOCAB.length : ALL_QUIZ_VOCAB.filter(w => w.projectId === d.id).length;
     const cardCount = d.id === 'all' ? ALL_CUSTOM_CARDS.length : ALL_CUSTOM_CARDS.filter(c => c.projectId === d.id).length;
