@@ -2872,7 +2872,7 @@ async function pullFromCloud() {
 
 // Keys that hold un-namespaced guest data. Clearing these ensures a fresh
 // guest session for the next visitor after a sign-out or post-migration.
-const GUEST_LS_KEYS = ['custom_vocab','lexicon_custom_cards','lexicon_notes','deleted_vocab','lexicon_projects','lexicon_current_project','lexicon_demo_seeded'];
+const GUEST_LS_KEYS = ['custom_vocab','lexicon_custom_cards','lexicon_notes','deleted_vocab','lexicon_projects','lexicon_current_project','lexicon_demo_seed_version'];
 
 function clearGuestLocalStorage() {
   GUEST_LS_KEYS.forEach(k => localStorage.removeItem(k));
@@ -2923,10 +2923,10 @@ window.handleAuthState = async function(user) {
       }
       projects = lsGet('lexicon_projects', [{"id":"general", "name":"General"}]);
       currentProjectId = lsGet('lexicon_current_project', 'all');
-      // Merge demo decks once per account, now that real cloud data is loaded
-      if (!lsGet('lexicon_demo_seeded', false)) {
+      // Merge demo decks for this account; re-runs when DEMO_SEED_VERSION is bumped
+      if (lsGet('lexicon_demo_seed_version', 0) < DEMO_SEED_VERSION) {
         mergeDemoDataForUser();
-        lsSet('lexicon_demo_seeded', true);
+        lsSet('lexicon_demo_seed_version', DEMO_SEED_VERSION);
         syncToCloud();
       }
       loadVocab(); // Refresh silently with the latest cloud data
@@ -3135,6 +3135,8 @@ function friendlyAuthError(code) {
 }
 
 // ── DEMO DATA SEED ──
+// Bump DEMO_SEED_VERSION whenever DEMO_DATA changes — existing accounts will receive the new content on next login.
+const DEMO_SEED_VERSION = 2;
 const DEMO_DATA = {
   projects: [
     { id: 'p_atomic',    name: 'Atomic Habits' },
@@ -3242,14 +3244,14 @@ const DEMO_DATA = {
 
 function seedDemoData() {
   if (currentUser) return; // logged-in users handled by mergeDemoDataForUser after cloud pull
-  if (lsGet('lexicon_demo_seeded', false)) return;
+  if (lsGet('lexicon_demo_seed_version', 0) >= DEMO_SEED_VERSION) return;
   const generalDeck = { id: 'general', name: 'General' };
   const demoProjects = [generalDeck, ...DEMO_DATA.projects];
   lsSet('lexicon_projects', demoProjects);
   lsSet('lexicon_notes', DEMO_DATA.notes);
   lsSet('lexicon_custom_cards', DEMO_DATA.custom_cards);
   lsSet('custom_vocab', DEMO_DATA.custom_vocab);
-  lsSet('lexicon_demo_seeded', true);
+  lsSet('lexicon_demo_seed_version', DEMO_SEED_VERSION);
   projects = demoProjects;
   currentProjectId = 'all';
 }
