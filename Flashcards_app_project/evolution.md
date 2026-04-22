@@ -1,5 +1,20 @@
 # Project Evolution Log
 
+## 2026-04-23 - Dropdown Clipping Fix & AI Image Word Review UI
+
+- **What**: Fixed the `+` file-attach button dropdown being clipped by parent containers. Upgraded the AI "Scan Page" image flow from a crude `window.confirm()` dialog to a full in-modal word review UI with two toggleable chip sections.
+- **Why**: The dropdown was being cut off at the `.add-section-card` boundary due to `overflow: hidden` on that container and `overflow-y: auto` on `.main-scroll-area`, making it unusable. The old confirm dialog gave no control over which words to add. User wanted to accept/reject individual words and also receive AI-suggested hard words beyond just the underlined ones.
+- **Impact**: The `+` dropdown now renders fully visible regardless of scroll position. The Scan Page flow now shows underlined words and up to 8 AI-suggested hard words as toggleable chips — users can deselect any word before adding to Lexicon. A "← Scan Another Image" link resets the modal for a second scan.
+- **Technical Detail**:
+  - `.file-dropdown` CSS changed from `position: absolute` to `position: fixed` with `z-index: 9999`
+  - `toggleFileDropdown()` now calls `e.currentTarget.getBoundingClientRect()` and sets `menu.style.top`/`left` dynamically, bypassing all overflow clipping
+  - Gemini Vision prompt updated to return `{ "underlined_words": [...], "suggested_words": [...] }` (up to 8 hardest non-underlined words)
+  - `processImage()` parses both arrays with backward-compat fallback to legacy `words` key
+  - New `#aiReviewSection` HTML block added inside `#aiModal` with two chip group divs, "Add Selected Words" button, and reset link
+  - New CSS: `.ai-word-chip` pill (toggle selected/deselected via `.deselected` class), `.ai-review-add-btn`, `.ai-review-reset-link`
+  - New functions: `showWordReview(underlined, suggested)`, `confirmWordSelection()`, `resetAiModal()`
+  - `CLAUDE.md` updated to add Step 0 (update `evolution.md` + `comprehensive_project_summary.md` before every push)
+
 ## 2026-04-22 - M3 Warm/Gamified Design Implementation
 
 - **What**: Applied a complete Material Design 3 (M3) warm/gamified aesthetic inspired by Duolingo and Brainscape across the entire app. Replaced all fonts (Playfair Display / DM Mono / DM Sans) with Plus Jakarta Sans. Converted the dark ChatGPT-inspired sidebar to white with a green-tinted gradient (#F0FDF4), emerald pill-shaped nav with SVG icons, and "L" logo mark. Redesigned cards with 14px radius, color-coded 4px left borders (green for mastered, amber for learning, red for new), circular SVG score rings, and color-coded top borders on flashcards (amber for learning, emerald for mastered). Updated all buttons to pill-shaped with emerald primary and drop-shadow. Changed app background to warm #FFF7ED. Applied M3 rounded aesthetic (18px radius) to the Add panel, flashcards, modals, quiz, and stats views. Login screen now displays as a warm card with emerald CTA buttons.

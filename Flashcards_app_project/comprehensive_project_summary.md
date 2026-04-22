@@ -83,9 +83,10 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 
 ## 5. AI & Word Acquisition
 
-- **Google Gemini 1.5 Flash Vision**: Extracts underlined words from book page photos (uploaded via Add Section file attach)
+- **Google Gemini 1.5 Flash Vision**: Extracts vocabulary from book page photos via the "Scan Page" modal. Returns two lists: `underlined_words` (words visually underlined in the image) and `suggested_words` (up to 8 AI-picked hard/advanced words not underlined). Both lists are presented as toggleable chips — user accepts or rejects each word individually before they enter the Lexicon pipeline.
 - **Free Dictionary API**: Auto-fetches definition, phonetics, audio, usage for typed words (Vocab type in Add Section)
 - **Add Section Generate flow**: Preview-before-save for all content types (layout complete; full AI backend is next roadmap item)
+- **Word Review UI**: After image scan, `#aiReviewSection` inside `#aiModal` shows two chip groups ("Underlined Words" / "AI-Suggested Hard Words"). Chips toggle selected/deselected on click. "Add Selected Words" feeds accepted words to the existing `addWords()` → Dictionary API → Firestore pipeline. "← Scan Another Image" resets the modal.
 
 ---
 
@@ -131,4 +132,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 22, 2026*
+*Last Updated: April 23, 2026*
