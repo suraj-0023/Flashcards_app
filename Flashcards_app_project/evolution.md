@@ -1,5 +1,39 @@
 # Project Evolution Log
 
+## 2026-04-22 - M3 Warm/Gamified Design Implementation
+
+- **What**: Applied a complete Material Design 3 (M3) warm/gamified aesthetic inspired by Duolingo and Brainscape across the entire app. Replaced all fonts (Playfair Display / DM Mono / DM Sans) with Plus Jakarta Sans. Converted the dark ChatGPT-inspired sidebar to white with a green-tinted gradient (#F0FDF4), emerald pill-shaped nav with SVG icons, and "L" logo mark. Redesigned cards with 14px radius, color-coded 4px left borders (green for mastered, amber for learning, red for new), circular SVG score rings, and color-coded top borders on flashcards (amber for learning, emerald for mastered). Updated all buttons to pill-shaped with emerald primary and drop-shadow. Changed app background to warm #FFF7ED. Applied M3 rounded aesthetic (18px radius) to the Add panel, flashcards, modals, quiz, and stats views. Login screen now displays as a warm card with emerald CTA buttons.
+- **Why**: To create a more engaging, gamified, and visually cohesive user experience that encourages learning through warm colors and playful design language.
+- **Impact**: The app now feels modern, cohesive, and premium. The warm palette and M3 design system make vocabulary learning feel more rewarding and less sterile.
+- **Technical Detail**: Font changed to Plus Jakarta Sans throughout; palette includes #FFF7ED (warm bg), #10B981 (emerald), #F59E0B (amber), #EF4444 (red), #F0FDF4 (sidebar gradient). All components (sidebar, cards, buttons, modals, flashcards, quiz) updated to M3 specifications.
+
+## 2026-04-21 - Per-User Data Isolation & Sample Decks for All Users
+
+- **What**: Fixed demo deck seeding for logged-in users: `seedDemoData` is now guest-only; new `mergeDemoDataForUser()` runs after `pullFromCloud` resolves to merge demo decks without overwriting real user data (triggered once per account via `lexicon_demo_seeded` flag). Added delete button (🗑️) for every sidebar deck; deletion moves items to the first remaining deck instead of hardcoded General. Replaced Library list view with a 2-column card grid showing content preview and deck-name badge per card.
+- **Why**: Users wanted to see example decks even after signing in, and the previous approach (seeding before cloud pull) meant existing users never got the demo content. Also improved library browsing with a visual card-based grid.
+- **Impact**: All users (guest and signed-in) see curated example decks with sample content. Any deck can be deleted without data loss.
+- **Technical Detail**: Added `mergeDemoDataForUser()` with `lexicon_demo_seeded` guard flag (user-namespaced, per-account). Library grid now renders 2 columns of cards with preview content and deck badge.
+
+## 2026-04-21 - GitHub Push Process & Project Conventions
+
+- **What**: Added `CLAUDE.md` at project root documenting the mandatory 3-step GitHub workflow (commit → create issue → close issue), curl-based GitHub API approach (since gh CLI is not installed), commit message conventions (feat/fix/docs/refactor), and project overview for future Claude Code sessions.
+- **Why**: To establish a repeatable, documented process for pushing code and creating issue records without relying on third-party CLI tools.
+- **Impact**: Future development sessions have a clear, copy-paste-ready workflow for all GitHub interactions.
+
+## 2026-04-21 - Example Decks with Full Content & Complete Library Rename
+
+- **What**: Seeded 4 example decks for first-time guests: "Atomic Habits", "How to Avoid a Climate Disaster" (Bill Gates), "The Alchemist", and "Class 10 Science". Each deck contains 6–7 notes, 7 flashcards, and 6–7 vocabulary items. Renamed "All Words" aggregate view to "Complete Library" across 5 locations (HTML, sidebar, deck header, quiz selector, JS logic). Added `lexicon_demo_seeded` guard flag to prevent re-seeding on return visits.
+- **Why**: To give new users immediate, engaging content to explore and learn from, reducing the blank-slate friction.
+- **Impact**: First-time users see a rich, pre-populated library with diverse learning material. The Complete Library branding is more descriptive and premium.
+- **Technical Detail**: Example deck data added to seedDemoData(); guard flag prevents re-seeding unless user clears browser storage or signs out.
+
+## 2026-04-21 - Enforce Per-User Data Isolation & Clear Guest State
+
+- **What**: Removed un-namespaced localStorage reads at global init and sign-out; reset all in-memory arrays (ALL_VOCAB, ALL_NOTES, perf, etc.) on sign-out; clear un-namespaced guest localStorage keys on sign-out. `pullFromCloud` now returns true for brand-new users. On first login, migrate any guest-created data into the user's UID namespace, then clear guest keys. Firestore security rules enforce server-side that each user can only read/write their own document.
+- **Why**: Previous sessions leaked data between different email accounts on the same browser because `localStorage` was not namespaced and Firestore had no server-side access control.
+- **Impact**: Multi-user security is now enforced. Guest data no longer persists between sessions and doesn't leak to logged-in users.
+- **Technical Detail**: All localStorage keys now scoped by userId; Firestore rules check uid == request.auth.uid; guest data migrated on first sign-in via `migrateGuestData()`.
+
 ## 2026-04-20 - Single-Page Layout Restructure & Notes/Deck Pivot
 
 - **What**: Replaced the tab-based navigation with a single scrollable main page. Renamed "Projects" to "Decks". Added a sidebar Practice section. Introduced a Library grid combining all content types (Vocab, Notes, Flashcards). Added Notes as a first-class content type. Added an Add Section card with type pills, file attachment, and a Generate → AI preview flow.

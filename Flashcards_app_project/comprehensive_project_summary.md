@@ -6,38 +6,52 @@ This document provides a unified overview of the development journey, features, 
 
 ## 1. App Purpose & Pivot
 
-Originally a vocabulary flashcards tool. As of April 2026, pivoted to a full **note-taking + flashcards + vocabulary learning platform** organised around "Decks" (formerly "Projects").
+Originally a vocabulary flashcards tool. As of April 2026, evolved into a full **note-taking + flashcards + vocabulary learning platform** organized around "Decks" (formerly "Projects"). The app now combines personal notes, custom flashcards, and curated vocabulary learning in a single, gamified experience inspired by Duolingo and Brainscape.
 
 ---
 
-## 2. Current Layout & UX
+## 2. Current Layout & UX (M3 Warm/Gamified Design)
 
-### Sidebar (dark, ChatGPT-inspired)
-- **New Deck** button → creates a named deck
-- **Deck list** → clicking a deck filters the main page to that deck's content
-- **Practice section** → links to Flashcards, Quiz, Stats (open as a full-area overlay)
+### Sidebar (M3 White + Green-Tinted Gradient)
+- **Logo**: "L" mark in emerald (#10B981)
+- **New Deck** button → pill-shaped, emerald, creates a named deck
+- **Deck list** → emerald pill active state, white/muted default; clicking filters the main page to that deck's content
+- **Practice section** → SVG icons (flashcard, vocab, chart); links to Flashcards, Vocab, Stats (open as full-area overlay)
 - **Profile** → auth state, sign in/out, sync badge
+- **Background**: White with subtle #F0FDF4 green-tinted gradient; 14px border-radius on deck pills
 
 ### Main Area — Single Scrollable Page
 1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch
-2. **Add Section** (compact card)
+2. **Add Section** (M3 rounded card with 18px radius)
    - Textarea for input
-   - Toolbar: `[+]` file attach (Image/PDF/File) → dismissible chips | type pills `[Vocab][Notes][Flashcard][Quiz]` | deck `<select>` | `Generate →`
-   - Vocab pill + text → fetches from dictionary API immediately
+   - Toolbar: `[+]` file attach (Image/PDF/File) → dismissible chips | type pills `[Vocab][Notes][Flashcard]` | deck `<select>` | `Generate →`
+   - Vocab pill + text → fetches from Free Dictionary API immediately
    - Other types → shows AI Preview section
+   - Buttons: pill-shaped, emerald primary, drop-shadow
 3. **AI Preview** (hidden by default, appears after Generate →)
    - One card per selected type with `[Accept]` `[Edit]` `[Discard]`
    - Accept saves the item; dims card and shows ✓ Saved
-4. **Library** (filter pills: All / Notes / Flashcards / Quizzes / Vocab)
+4. **Library** (2-column card grid)
    - Unified grid of all content types for the active deck
-   - Vocab cards: existing dict-card design with accuracy badge
-   - Note cards: title + preview + date
-   - Flashcard cards: front + back preview
+   - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), circular SVG score ring badge, accuracy label
+   - **Note cards**: 14px radius, title + content preview + creation date, color-coded left border
+   - **Flashcard cards**: 14px radius, front + back preview, color-coded left border
+   - Each card shows a small deck-name badge in the top corner
+5. **Background**: Warm #FFF7ED, M3 rounded aesthetic throughout
 
-### Practice Overlay (Flashcards / Quiz / Stats)
+### Practice Overlay (Flashcards / Vocab / Stats)
 - Accessed via sidebar Practice links
 - Full-area overlay with `← Library` back button
-- Contains existing flip-card flashcard session, multi-level quiz, and stats view — all unchanged
+- **Flashcards**: 18px radius cards with amber (learning) or emerald (mastered) top border; flip-card animation; self-rated (Got It / Need Practice); 3 modes (Word→Def, Def→Word, Usage→Word)
+- **Vocab**: Landing screen with two options (Vocab Flashcards, Quiz); Quiz shows multi-tier difficulty (Easy/Medium/Hard) with intelligent distractor logic
+- **Stats**: Displays per-word accuracy breakdown across quiz and flashcard modes
+- All rounded, M3-compliant design
+
+### Login Screen
+- Warm card design (#FFF7ED-ish background)
+- Emerald CTA buttons (Google Sign-In, Email Sign-In)
+- M3 rounded corners (18px), drop-shadow
+- Responsive, centered layout
 
 ---
 
@@ -51,23 +65,26 @@ Originally a vocabulary flashcards tool. As of April 2026, pivoted to a full **n
 | `lexicon_custom_cards` | Front/back custom flashcards `{id, front, back, projectId}` |
 | `lexicon_notes` | Notes `{id, deckId, title, content, createdAt, updatedAt}` |
 | `lexicon_perf_*` | Per-word performance stats scoped by deck |
+| `lexicon_demo_seeded` | Flag (user-namespaced) indicating demo decks have been merged for this account |
 
-All keys namespaced by `userId` when signed in. Full Firestore sync on every mutation.
+All keys namespaced by `userId` when signed in. Full Firestore sync on every mutation. Security enforced server-side: each user can only read/write their own document. Guest data is un-namespaced and cleared on sign-out or new guest session.
 
 ---
 
-## 4. Core Learning System (unchanged)
+## 4. Core Learning System
 
-- **Flashcards**: Self-rated (Got It / Need Practice), 3 modes (Word→Def, Def→Word, Usage→Word), includes custom cards
-- **Quiz**: 3-tier difficulty (Easy/Medium/Hard), intelligent distractor logic, state-persistent sessions (Back/Next)
-- **Stats**: Per-word accuracy breakdown across quiz and flashcard modes
+- **Flashcards**: Self-rated (Got It / Need Practice), 3 modes (Word→Def, Def→Word, Usage→Word), includes custom cards. Deck selection screen before practice; state-persistent sessions (Back/Next).
+- **Vocab Practice**: Landing screen with two options:
+  1. Vocab Flashcards — flip-card review of all vocab in selected decks
+  2. Quiz — 3-tier difficulty (Easy/Medium/Hard), intelligent distractor selection, multi-level progression
+- **Stats**: Per-word accuracy breakdown across quiz and flashcard modes; visual accuracy indicators on library cards
 
 ---
 
 ## 5. AI & Word Acquisition
 
-- **Google Gemini 1.5 Flash Vision**: Extracts underlined words from book page photos
-- **Free Dictionary API**: Auto-fetches definition, phonetics, audio, usage for typed words
+- **Google Gemini 1.5 Flash Vision**: Extracts underlined words from book page photos (uploaded via Add Section file attach)
+- **Free Dictionary API**: Auto-fetches definition, phonetics, audio, usage for typed words (Vocab type in Add Section)
 - **Add Section Generate flow**: Preview-before-save for all content types (layout complete; full AI backend is next roadmap item)
 
 ---
@@ -77,19 +94,41 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 - Single HTML file (`vocab_vscode.html`) — ~3300 lines
 - Firebase Auth (Google + email) via CDN
 - Firestore for cloud sync (single merged doc per user)
-- localStorage as primary store (works offline)
-- Fonts: Playfair Display, DM Sans, DM Mono
+- localStorage as primary store (works offline); namespaced by userId
+- **Font**: Plus Jakarta Sans (replacing Playfair Display, DM Mono, DM Sans)
+- **Design System**: Material Design 3 (M3) — warm palette, pill buttons, rounded corners, color-coded accents
+- **Colors**:
+  - Warm background: #FFF7ED
+  - Primary (emerald): #10B981
+  - Learning (amber): #F59E0B
+  - New (red): #EF4444
+  - Sidebar gradient: white → #F0FDF4
 - No build step, no framework
 
 ---
 
-## 7. Roadmap
+## 7. Guest Mode & Sample Decks
 
-1. **AI Generation Backend** — Wire Generate → button to actual AI (Gemini/Claude) for auto-creating notes, flashcards, quiz questions from pasted text
-2. **Quiz Card Type** — Add `lexicon_quiz_cards` data model; display in Library and generate via AI
-3. **Mobile / PWA** — Responsive layout, service worker, iOS/Android
-4. **Branding & Deployment** — App name, hosting, app stores
-5. **Cross-device sync** — Already functional via Firestore; needs edge-case testing
+- **Guest Users**: See 4 pre-seeded example decks on first visit:
+  1. Atomic Habits
+  2. How to Avoid a Climate Disaster (Bill Gates)
+  3. The Alchemist
+  4. Class 10 Science
+- Each deck contains 6–7 notes, 7 flashcards, and 6–7 vocabulary items for immediate exploration.
+- Guest data is un-namespaced in localStorage and cleared on sign-out.
+- **Logged-In Users**: See the same example decks on first login (merged via `mergeDemoDataForUser()` after `pullFromCloud` resolves); skips seeding if user already has custom data. The General deck is always preserved.
 
 ---
-*Last Updated: April 20, 2026*
+
+## 8. Roadmap
+
+1. **AI Generation Backend** — Wire Generate → button to actual AI (Gemini/Claude) for auto-creating notes, flashcards, quiz questions from pasted text or uploaded images
+2. **Quiz Card Type** — Add `lexicon_quiz_cards` data model; display in Library and generate via AI
+3. **Mobile / PWA** — Responsive layout, service worker, iOS/Android
+4. **Branding & Deployment** — Custom domain, app stores (iOS/Android), GitHub Pages
+5. **Cross-device sync** — Already functional via Firestore; needs edge-case testing
+6. **Advanced Stats** — Spaced repetition scheduling, learning curves, time-to-mastery estimates
+7. **Social Features** — Deck sharing, collaborative learning, leaderboards
+
+---
+*Last Updated: April 22, 2026*
