@@ -587,6 +587,91 @@
   .mode-btn:hover { border-color: var(--emerald); color: var(--emerald-700); }
   .mode-btn.active { background: var(--emerald); color: #fff; border-color: var(--emerald); box-shadow: 0 4px 10px -2px rgba(16,185,129,0.4), inset 0 -2px 0 rgba(0,0,0,0.08); }
 
+  /* ── FLASHCARD UTILITY PANEL ── */
+  .util-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .util-row { display: grid; gap: 8px; }
+  .util-btn {
+    padding: 9px 12px;
+    background: var(--paper);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.14s;
+  }
+  .util-btn:hover { border-color: var(--emerald); color: var(--emerald-700); }
+  .util-select-group { display: flex; flex-direction: column; gap: 4px; }
+  .util-select-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .util-select {
+    padding: 7px 8px;
+    background: var(--paper);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.82rem;
+    color: var(--ink);
+    cursor: pointer;
+    width: 100%;
+  }
+  .flash-star-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 10;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s, transform 0.15s;
+    line-height: 1;
+    padding: 4px;
+  }
+  .flash-star-btn.starred { color: var(--amber); }
+  .flash-star-btn:hover { transform: scale(1.2); }
+  .quiz-wrong-item {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: var(--paper);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
+    text-align: left;
+  }
+  .quiz-wrong-q {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+  .quiz-wrong-a {
+    font-size: 0.88rem;
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
   .flash-progress {
     display: flex;
     align-items: center;
@@ -1497,14 +1582,12 @@
   }
   .file-add-btn:hover { border-color: var(--gold); color: var(--ink); }
   .file-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
+    position: fixed;
     background: var(--card-bg);
     border: 1.5px solid var(--border);
     border-radius: 6px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    z-index: 200;
+    z-index: 9999;
     min-width: 130px;
     overflow: hidden;
   }
@@ -2317,25 +2400,13 @@
 
           <!-- Flashcard Practice Content (shown after deck selection) -->
           <div id="flashPracticeContent" style="display:none;">
-          <div class="flash-controls" style="display:flex; flex-direction:column; gap:12px; align-items:center;">
-            <div style="display:flex; gap:8px;">
-              <button class="mode-btn active" onclick="setFlashMode('word', this)">Word → Meaning</button>
-              <button class="mode-btn" onclick="setFlashMode('def', this)">Meaning → Word</button>
-              <button class="mode-btn" onclick="setFlashMode('usage', this)">Usage → Word</button>
-            </div>
-            <div style="display:flex; gap:12px; align-items:center;">
-              <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--muted); font-family:'Plus Jakarta Sans',system-ui,sans-serif;">
-                <input type="checkbox" id="includeCustomToggle" onchange="initFlash()" checked style="cursor:pointer;">
-                <label for="includeCustomToggle" style="cursor:pointer;">Include Custom Cards</label>
-              </div>
-              <button onclick="openCustomCardModal()" style="padding:6px 12px; background:var(--card-bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; cursor:pointer; font-family:'Plus Jakarta Sans',system-ui,sans-serif; font-size:0.8rem; display:flex; align-items:center; gap:6px;">+ Create Custom Card</button>
-            </div>
-          </div>
           <div class="flash-progress">
             <span id="flashCounter">1 / 16</span>
             <div class="progress-bar"><div class="progress-fill" id="flashProgress" style="width:6%"></div></div>
             <span id="flashScore">✓ 0 &nbsp; ✗ 0</span>
           </div>
+          <div style="position:relative;">
+            <button id="flashStarBtn" class="flash-star-btn" onclick="toggleFlashStar(event)" title="Bookmark this card">☆</button>
           <div class="flip-scene">
             <div class="flip-card" id="flipCard" onclick="flipCard()">
               <div class="flip-front">
@@ -2352,12 +2423,49 @@
               </div>
             </div>
           </div>
+          </div>
           <div class="flip-actions" id="flipActions" style="display:none;">
             <button class="action-btn wrong" onclick="rateCard(false)">✗ Need Practice</button>
             <button class="action-btn correct" onclick="rateCard(true)">✓ Got It</button>
           </div>
           <div class="flip-actions" id="flipNext" style="display:none;">
             <button class="action-btn next" onclick="nextFlashCard()">Next Word →</button>
+          </div>
+          <!-- Utility Controls Panel -->
+          <div class="util-panel" id="flashUtilPanel">
+            <div class="util-row" style="grid-template-columns:1fr 1fr;">
+              <button class="util-btn" onclick="flashShuffle()">↺ Shuffle</button>
+              <button class="util-btn" onclick="flashStartOver()">↩ Start Over</button>
+            </div>
+            <div class="util-row" style="grid-template-columns:1fr 1fr 1fr;">
+              <div class="util-select-group">
+                <div class="util-select-label">Cards</div>
+                <select class="util-select" id="flashCountSel" onchange="applyFlashCount()">
+                  <option value="10">10 cards</option>
+                  <option value="20">20 cards</option>
+                  <option value="50">50 cards</option>
+                  <option value="all" selected>All</option>
+                </select>
+              </div>
+              <div class="util-select-group">
+                <div class="util-select-label">Focus</div>
+                <select class="util-select" id="flashFilterSel" onchange="applyFlashFilter()">
+                  <option value="all">All</option>
+                  <option value="hard">Hard Only</option>
+                  <option value="unseen">Unseen</option>
+                  <option value="marked">Marked ★</option>
+                </select>
+              </div>
+              <div class="util-select-group">
+                <div class="util-select-label">Auto-flip</div>
+                <select class="util-select" id="flashAutoFlipSel" onchange="applyFlashAutoFlip()">
+                  <option value="0">Off</option>
+                  <option value="3">3s</option>
+                  <option value="5">5s</option>
+                  <option value="10">10s</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div id="flashDone" style="display:none;" class="session-done">
             <h2>Session Complete</h2>
@@ -2374,19 +2482,24 @@
         <!-- VOCAB (Quiz renamed) -->
         <div class="view" id="view-quiz">
 
-          <!-- Vocab Practice Landing (default) -->
+          <!-- Practice Quiz Landing (default) -->
           <div id="vocabPracticeLanding">
             <div style="margin-bottom:24px;">
-              <h2 style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.8rem;font-weight:400;margin-bottom:6px;">Vocab Practice</h2>
-              <p style="color:var(--muted);font-size:0.85rem;">Choose how to practice your vocabulary</p>
+              <h2 style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.8rem;font-weight:400;margin-bottom:6px;">Practice Quiz</h2>
+              <p style="color:var(--muted);font-size:0.85rem;">Test your knowledge across your deck</p>
             </div>
-            <div class="vocab-practice-option" onclick="startVocabFlashcards()">
-              <h3>🃏 Vocab Flashcards</h3>
-              <p>Flip-card mode — word on the front, definition on the back. Perfect for memorization.</p>
+            <div class="vocab-practice-option" onclick="startNotesQuiz()">
+              <h3>📝 Notes &amp; Flashcards Quiz</h3>
+              <p>Questions generated from your notes and flashcards. 4 options per question.</p>
             </div>
-            <div class="vocab-practice-option" onclick="startVocabQuiz()">
-              <h3>📝 Vocab Quiz</h3>
-              <p>Multiple choice — 4 options per question, generated from your deck vocab.</p>
+            <div class="vocab-practice-option" onclick="startVocabQuizDirect()">
+              <h3>📖 Vocabulary Quiz</h3>
+              <p>4-option word meaning quiz from your deck vocabulary.</p>
+            </div>
+            <div style="margin-top:20px; padding:14px 16px; background:var(--card-bg); border:1px solid var(--border-2); border-radius:12px;">
+              <div style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:8px;">Claude API Key (for AI-generated distractors)</div>
+              <input type="password" id="anthropicApiKey" placeholder="sk-ant-..." style="width:100%; padding:8px 12px; border:1px solid var(--border-2); border-radius:8px; font-family:'Plus Jakarta Sans',system-ui,sans-serif; font-size:0.85rem; box-sizing:border-box; background:var(--paper);">
+              <div style="font-size:0.7rem; color:var(--muted); margin-top:5px;">Stored locally, never sent to our servers. Without a key, distractors are drawn from your vocabulary list.</div>
             </div>
           </div>
 
@@ -2464,9 +2577,13 @@
             <h2>Quiz Complete!</h2>
             <div class="score-display" id="quizFinalScore">—</div>
             <p id="quizFinalMsg">—</p>
-            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-              <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
-              <button class="restart-btn" style="background:var(--paper);color:var(--ink);border:1.5px solid var(--border);" onclick="changeLevelQuiz()">Change Level</button>
+            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;">
+              <button class="restart-btn" onclick="restartCurrentQuiz()">Try Again</button>
+              <button class="restart-btn" style="background:var(--paper);color:var(--ink);border:1.5px solid var(--border);" onclick="showVocabLanding()">Back to Deck</button>
+            </div>
+            <div id="quizWrongReview" style="display:none; text-align:left; margin-top:8px;">
+              <div style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:12px; font-family:'Plus Jakarta Sans',system-ui,sans-serif;">Review — Questions You Got Wrong</div>
+              <div id="quizWrongList"></div>
             </div>
           </div>
         </div>
@@ -2671,9 +2788,73 @@
     <div id="aiLoadingIndicator" style="display:none; text-align:center; padding: 20px 0;">
       <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif; color:var(--gold); font-size:0.9rem; animation: pulse 1.5s infinite;">Processing image...</div>
     </div>
+
+    <div id="aiReviewSection" style="display:none;">
+      <div id="aiReviewUnderlined" class="ai-review-group"></div>
+      <div id="aiReviewSuggested" class="ai-review-group"></div>
+      <button class="ai-review-add-btn" onclick="confirmWordSelection()">Add Selected Words</button>
+      <div style="text-align:center; margin-top:10px;">
+        <a href="#" class="ai-review-reset-link" onclick="resetAiModal(event)">← Scan Another Image</a>
+      </div>
+    </div>
   </div>
 </div>
-<style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
+<style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  .ai-review-group { margin-top: 18px; }
+  .ai-review-group-title {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .ai-review-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ai-word-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1.5px solid var(--emerald-700);
+    background: rgba(16,185,129,0.08);
+    color: var(--emerald-700);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.18s;
+  }
+  .ai-word-chip.deselected {
+    border-color: var(--border);
+    background: transparent;
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .ai-word-chip .chip-check { font-size: 0.7rem; }
+  .ai-review-add-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: var(--emerald-700);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .ai-review-add-btn:hover { opacity: 0.88; }
+  .ai-review-reset-link {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .ai-review-reset-link:hover { color: var(--ink); }
+</style>
 <!-- Hidden legacy inputs used by addWords() and AI scan flow -->
 <input type="hidden" id="addWordInput">
 <input type="hidden" id="addWordBtn">
@@ -3777,7 +3958,10 @@ async function processImage(inputSelector) {
       reader.readAsDataURL(file);
     });
 
-    const promptText = `You are an expert OCR assistant. Look at the provided image of a book page. Identify every single word that has a pen or pencil underline beneath it. Return a JSON object containing exactly one key: 'words', which should be an array of strings representing the lowercase underlined words. Do not include punctuation attached to the words. If no words are underlined, return {"words": []}. Do not return Markdown blocks, just the raw JSON.`;
+    const promptText = `You are an expert OCR and vocabulary assistant. Look at the provided image of a book page and return a JSON object with exactly two keys:
+- "underlined_words": an array of lowercase words that have a pen or pencil underline beneath them in the image. Do not include punctuation attached to words. If none found, use [].
+- "suggested_words": an array of up to 8 of the most advanced, rare, or difficult vocabulary words visible anywhere in the image text that are NOT underlined. Choose words a learner would benefit from studying. Lowercase, no punctuation. If none found, use [].
+Return only raw JSON with no markdown code fences.`;
 
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
@@ -3798,31 +3982,72 @@ async function processImage(inputSelector) {
     }
 
     const data = await res.json();
-    let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '{"words":[]}';
-    textOutput = textOutput.replace(/```json\n?|\n?```/g, '').trim(); 
-    
-    let wordsObj = { words: [] };
-    try { wordsObj = JSON.parse(textOutput); } 
-    catch(e) { throw new Error("Could not parse AI response as JSON."); }
+    let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '{"underlined_words":[],"suggested_words":[]}';
+    textOutput = textOutput.replace(/```json\n?|\n?```/g, '').trim();
 
-    if (!wordsObj.words || wordsObj.words.length === 0) {
-      alert("No underlined words found in the image.");
+    let wordsObj = { underlined_words: [], suggested_words: [] };
+    try {
+      const parsed = JSON.parse(textOutput);
+      wordsObj.underlined_words = parsed.underlined_words || parsed.words || [];
+      wordsObj.suggested_words = parsed.suggested_words || [];
+    } catch(e) { throw new Error("Could not parse AI response as JSON."); }
+
+    if (wordsObj.underlined_words.length === 0 && wordsObj.suggested_words.length === 0) {
+      alert("No words found in the image.");
     } else {
-      const confirmAdd = confirm(`The AI found ${wordsObj.words.length} underlined words:\n\n${wordsObj.words.join(', ')}\n\nDo you want to add these to your Lexicon?`);
-      if (confirmAdd) {
-        document.getElementById('addWordInput').value = wordsObj.words.join(', ');
-        closeAiModalBtn();
-        addWords(); // Triggers the existing pipeline
-      }
+      showWordReview(wordsObj.underlined_words, wordsObj.suggested_words);
     }
   } catch (err) {
     alert("Error processing image: " + err.message);
-  } finally {
     document.querySelector('.ai-upload-area').style.display = 'block';
+  } finally {
     document.getElementById('aiLoadingIndicator').style.display = 'none';
     inputSelector.value = '';
-    closeAiModalBtn();
   }
+}
+
+function showWordReview(underlined, suggested) {
+  document.querySelector('.ai-upload-area').style.display = 'none';
+  document.getElementById('aiLoadingIndicator').style.display = 'none';
+
+  function buildChips(words) {
+    return words.map(w =>
+      `<span class="ai-word-chip" data-word="${w}" onclick="this.classList.toggle('deselected')">
+        <span class="chip-check">✓</span> ${w}
+       </span>`
+    ).join('');
+  }
+
+  const ulSection = document.getElementById('aiReviewUnderlined');
+  const sgSection = document.getElementById('aiReviewSuggested');
+
+  ulSection.innerHTML = underlined.length
+    ? `<div class="ai-review-group-title">📖 Underlined Words (${underlined.length})</div><div class="ai-review-chips">${buildChips(underlined)}</div>`
+    : '';
+
+  sgSection.innerHTML = suggested.length
+    ? `<div class="ai-review-group-title" style="margin-top:${underlined.length ? '18px' : '0'}">✨ AI-Suggested Hard Words (${suggested.length})</div><div class="ai-review-chips">${buildChips(suggested)}</div>`
+    : '';
+
+  document.getElementById('aiReviewSection').style.display = 'block';
+}
+
+function confirmWordSelection() {
+  const chips = document.querySelectorAll('#aiReviewSection .ai-word-chip:not(.deselected)');
+  const selected = Array.from(chips).map(c => c.dataset.word).filter(Boolean);
+  if (selected.length === 0) { alert('Please select at least one word.'); return; }
+  document.getElementById('addWordInput').value = selected.join(', ');
+  closeAiModalBtn();
+  addWords();
+}
+
+function resetAiModal(e) {
+  if (e) e.preventDefault();
+  document.getElementById('aiReviewSection').style.display = 'none';
+  document.getElementById('aiReviewUnderlined').innerHTML = '';
+  document.getElementById('aiReviewSuggested').innerHTML = '';
+  document.getElementById('aiUploadPlaceholder').textContent = 'Click to take photo or upload';
+  document.querySelector('.ai-upload-area').style.display = '';
 }
 
 // ── CUSTOM FLASHCARDS ──
@@ -3875,6 +4100,110 @@ function deleteCustomCard(id) {
 
 // ── FLASHCARDS ──
 let flashQueue = [], flashIdx = 0, flashCorrect = 0, flashWrong = 0, flashMode = 'word', isFlipped = false;
+let flashBaseQueue = [];
+let _flashAutoFlipTimer = null;
+let _flashAutoFlipSec = 0;
+let _flashStarred = new Set();
+
+function _loadFlashStarred() {
+  _flashStarred = new Set(lsGet('lexicon_flash_starred', []));
+}
+
+function toggleFlashStar(e) {
+  e.stopPropagation();
+  const w = flashQueue[flashIdx];
+  if (!w) return;
+  if (_flashStarred.has(w.id)) { _flashStarred.delete(w.id); }
+  else { _flashStarred.add(w.id); }
+  lsSet('lexicon_flash_starred', [..._flashStarred]);
+  _updateStarBtn();
+}
+
+function _updateStarBtn() {
+  const w = flashQueue[flashIdx];
+  const btn = document.getElementById('flashStarBtn');
+  if (!btn) return;
+  const starred = w && _flashStarred.has(w.id);
+  btn.textContent = starred ? '★' : '☆';
+  btn.classList.toggle('starred', !!starred);
+}
+
+function flashShuffle() {
+  const done = flashQueue.slice(0, flashIdx);
+  const remaining = shuffle(flashQueue.slice(flashIdx));
+  flashQueue = [...done, ...remaining];
+  showFlashCard();
+}
+
+function flashStartOver() {
+  const el = document.getElementById('flashFilterSel');
+  if (el) el.value = 'all';
+  const cel = document.getElementById('flashCountSel');
+  if (cel) cel.value = 'all';
+  flashQueue = shuffle([...flashBaseQueue]);
+  flashIdx = 0; flashCorrect = 0; flashWrong = 0;
+  document.getElementById('flashDone').style.display = 'none';
+  document.getElementById('flipCard').style.display = '';
+  document.getElementById('flipActions').style.display = 'none';
+  document.getElementById('flipNext').style.display = 'none';
+  showFlashCard();
+}
+
+function _getFilteredBase() {
+  const filterEl = document.getElementById('flashFilterSel');
+  const filter = filterEl ? filterEl.value : 'all';
+  if (filter === 'hard') {
+    const h = flashBaseQueue.filter(w => (perf[w.id] && perf[w.id].flash && perf[w.id].flash.w > 0));
+    return h.length ? h : [...flashBaseQueue];
+  } else if (filter === 'unseen') {
+    const u = flashBaseQueue.filter(w => !(perf[w.id] && (perf[w.id].flash.c || perf[w.id].flash.w)));
+    return u.length ? u : [...flashBaseQueue];
+  } else if (filter === 'marked') {
+    const m = flashBaseQueue.filter(w => _flashStarred.has(w.id));
+    return m.length ? m : [...flashBaseQueue];
+  }
+  return [...flashBaseQueue];
+}
+
+function applyFlashCount() {
+  const val = document.getElementById('flashCountSel').value;
+  let base = _getFilteredBase();
+  if (val !== 'all') {
+    const n = parseInt(val);
+    base = shuffle(base).slice(0, n);
+  } else {
+    base = shuffle(base);
+  }
+  flashQueue = base;
+  flashIdx = 0; flashCorrect = 0; flashWrong = 0;
+  document.getElementById('flashDone').style.display = 'none';
+  document.getElementById('flipCard').style.display = '';
+  showFlashCard();
+}
+
+function applyFlashFilter() {
+  const cel = document.getElementById('flashCountSel');
+  if (cel) cel.value = 'all';
+  applyFlashCount();
+}
+
+function applyFlashAutoFlip() {
+  const sel = document.getElementById('flashAutoFlipSel');
+  _flashAutoFlipSec = sel ? parseInt(sel.value) || 0 : 0;
+  _clearAutoFlipTimer();
+  if (_flashAutoFlipSec > 0 && !isFlipped) _startAutoFlipTimer();
+}
+
+function _startAutoFlipTimer() {
+  _clearAutoFlipTimer();
+  if (_flashAutoFlipSec > 0) {
+    _flashAutoFlipTimer = setTimeout(() => { flipCard(); }, _flashAutoFlipSec * 1000);
+  }
+}
+
+function _clearAutoFlipTimer() {
+  if (_flashAutoFlipTimer) { clearTimeout(_flashAutoFlipTimer); _flashAutoFlipTimer = null; }
+}
 
 function setFlashMode(mode, btn) {
   flashMode = mode;
@@ -3965,11 +4294,15 @@ function showFlashCard() {
   document.getElementById('flashScore').textContent = `✓ ${flashCorrect}   ✗ ${flashWrong}`;
   document.getElementById('flipActions').style.display = 'none';
   document.getElementById('flipNext').style.display = 'none';
+  _updateStarBtn();
+  _clearAutoFlipTimer();
+  if (_flashAutoFlipSec > 0) _startAutoFlipTimer();
 }
 
 function flipCard() {
   if (isFlipped) return;
   isFlipped = true;
+  _clearAutoFlipTimer();
   document.getElementById('flipCard').classList.add('flipped');
   setTimeout(() => {
     document.getElementById('flipActions').style.display = 'flex';
@@ -3977,9 +4310,10 @@ function flipCard() {
 }
 
 function rateCard(correct) {
+  _clearAutoFlipTimer();
   const w = flashQueue[flashIdx];
   if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0} };
-  
+
   if (correct) { perf[w.id].flash.c++; flashCorrect++; }
   else { perf[w.id].flash.w++; flashWrong++; }
   savePerf();
@@ -4339,8 +4673,11 @@ function startFlashWithSelectedDecks() {
     baseQueue = baseQueue.filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; });
   }
 
+  flashBaseQueue = [...baseQueue];
+  _loadFlashStarred();
   flashQueue = shuffle(baseQueue);
   flashIdx = 0; flashCorrect = 0; flashWrong = 0;
+  _flashAutoFlipSec = 0;
 
   document.getElementById('flashDeckSelect').style.display = 'none';
   document.getElementById('flashPracticeContent').style.display = 'block';
@@ -4348,6 +4685,14 @@ function startFlashWithSelectedDecks() {
   document.getElementById('flipCard').style.display = '';
   document.getElementById('flipActions').style.display = 'none';
   document.getElementById('flipNext').style.display = 'none';
+  const utilPanel = document.getElementById('flashUtilPanel');
+  if (utilPanel) utilPanel.style.display = 'flex';
+  const autoSel = document.getElementById('flashAutoFlipSel');
+  if (autoSel) autoSel.value = '0';
+  const filterSel = document.getElementById('flashFilterSel');
+  if (filterSel) filterSel.value = 'all';
+  const countSel = document.getElementById('flashCountSel');
+  if (countSel) countSel.value = 'all';
   showFlashCard();
 }
 
@@ -4718,9 +5063,12 @@ function toggleTypePill(btn) {
 function toggleFileDropdown(e) {
   e.stopPropagation();
   const menu = document.getElementById('fileDropdownMenu');
-  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-  if (menu.style.display === 'block') {
-    // Close on outside click
+  const isHidden = menu.style.display === 'none' || menu.style.display === '';
+  menu.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 6) + 'px';
+    menu.style.left = rect.left + 'px';
     setTimeout(() => document.addEventListener('click', closeFileDropdown, { once: true }), 0);
   }
 }
