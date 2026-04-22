@@ -1,5 +1,12 @@
 # Project Evolution Log
 
+## 2026-04-23 - Dictionary Waterfall + AI Gap-Fill + Web Speech Audio Fallback
+
+- **What**: Replaced single-tier Free Dictionary API call in `addWords()` with a 4-tier waterfall: (1) Free Dictionary API, (2) Wordnik fallback (optional key), (3) Claude Haiku 4.5 gap-fill for missing IPA/definition/usage, (4) Web Speech API audio fallback at playback time. Audio button in word modal now uses `speechSynthesis` when no audio URL is stored.
+- **Why**: Core vocabulary entries and obscure words often returned incomplete data (missing IPA, no audio, vague definition). The waterfall progressively enriches each word at near-zero cost.
+- **Impact**: Words added via the vocab input now receive IPA phonetics, audio, and usage examples from the best available source. All existing words gain Web Speech API pronunciation via the modal audio button even without a stored URL.
+- **Technical Detail**: `addWords()` refactored with three new helpers: `_parseFreeDictEntry()` (extracts structured data from Free Dict response), `_fetchWordnik()` (definitions + examples + related words via Wordnik API; key in `localStorage('wordnik_key')`), `_haikuEnrichWord()` (targeted Haiku 4.5 call — only requests fields that are still missing; reuses `anthropic_key` pattern). Audio button handler updated: `new Audio(url)` if URL present, else `speechSynthesis.speak()` if available, else hidden.
+
 ## 2026-04-23 - Dropdown Clipping Fix & AI Image Word Review UI
 
 - **What**: Fixed the `+` file-attach button dropdown being clipped by parent containers. Upgraded the AI "Scan Page" image flow from a crude `window.confirm()` dialog to a full in-modal word review UI with two toggleable chip sections.

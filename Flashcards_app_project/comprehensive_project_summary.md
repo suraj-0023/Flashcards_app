@@ -84,9 +84,13 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 ## 5. AI & Word Acquisition
 
 - **Google Gemini 1.5 Flash Vision**: Extracts vocabulary from book page photos via the "Scan Page" modal. Returns two lists: `underlined_words` (words visually underlined in the image) and `suggested_words` (up to 8 AI-picked hard/advanced words not underlined). Both lists are presented as toggleable chips — user accepts or rejects each word individually before they enter the Lexicon pipeline.
-- **Free Dictionary API**: Auto-fetches definition, phonetics, audio, usage for typed words (Vocab type in Add Section)
+- **Dictionary Waterfall** (4-tier, in `addWords()`):
+  1. **Free Dictionary API** — no key, covers ~80% of common words; fetches definition, IPA, audio URL, usage, synonyms, antonyms
+  2. **Wordnik** — optional free key (`localStorage('wordnik_key')`); fires when Free Dict fails or returns no definition; multi-source definitions + examples
+  3. **Claude Haiku 4.5 gap-fill** — uses `anthropic_key`; fires only when IPA, definition, or usage is still missing after Tiers 1–2; targeted prompt requesting only the missing fields
+  4. **Web Speech API audio fallback** — zero cost, zero key, built-in; used at playback time when no audio URL is stored
 - **Add Section Generate flow**: Preview-before-save for all content types (layout complete; full AI backend is next roadmap item)
-- **Word Review UI**: After image scan, `#aiReviewSection` inside `#aiModal` shows two chip groups ("Underlined Words" / "AI-Suggested Hard Words"). Chips toggle selected/deselected on click. "Add Selected Words" feeds accepted words to the existing `addWords()` → Dictionary API → Firestore pipeline. "← Scan Another Image" resets the modal.
+- **Word Review UI**: After image scan, `#aiReviewSection` inside `#aiModal` shows two chip groups ("Underlined Words" / "AI-Suggested Hard Words"). Chips toggle selected/deselected on click. "Add Selected Words" feeds accepted words to the existing `addWords()` → Dictionary Waterfall → Firestore pipeline. "← Scan Another Image" resets the modal.
 
 ---
 

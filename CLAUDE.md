@@ -4,6 +4,20 @@
 
 **Every time the user says "push to GitHub" or "push the updates", follow ALL steps below without being asked.**
 
+### Step 0 — Update Documentation
+
+Before committing, update these two files following the rules in `Flashcards_app_project/skills/app_project_manager.md`:
+
+1. **`Flashcards_app_project/evolution.md`** — Prepend a new entry at the top (reverse-chronological) with today's date covering:
+   - **What**: Technical and UI/UX changes made
+   - **Why**: The problem solved or user request
+   - **Impact**: Functional or aesthetic outcome
+   - **Technical Detail**: Key functions, files, or data structures changed
+
+2. **`Flashcards_app_project/comprehensive_project_summary.md`** — Update any sections that are now outdated due to the changes (features list, architecture, roadmap, "Last Updated" date).
+
+Include both files in the same commit as the code changes.
+
 ### Step 1 — Commit & Push
 
 ```bash
