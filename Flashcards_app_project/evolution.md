@@ -1,5 +1,18 @@
 # Project Evolution Log
 
+## 2026-04-23 - User Onboarding Journey, Profile Setup, Welcome Tour, and Help Panel
+
+- **What**: Added full user onboarding journey — 2-step profile setup screen (`#profileSetupScreen`), 4-card welcome tour modal (`#welcomeTourModal`), contextual hint tooltip system (4 hints for Flashcards, Quiz, deck switch), and Help & Guide sidebar panel (`#helpPanel`) with 4 tabs (Getting Started quickstart, Features accordion, Tips & Shortcuts with keyboard shortcuts, Replay Tour).
+- **Why**: New users had no guidance after login; no in-app help or reference. Onboarding dropoff was high due to blank-slate app with zero orientation.
+- **Impact**: First-time users now receive a personalized 2-step setup flow (name from Google, goal selection, optional daily target/age/city/mobile) and a 4-card feature walkthrough. All users can access comprehensive help at any time via the sidebar. Contextual hints guide users through core workflows on first use.
+- **Technical Detail**:
+  - **Profile Setup** (`showProfileSetup()`, `finishProfileSetup()`): Step 1 shows Google name + goal chips (Daily Goal, Test Prep, Casual Learning, Passionate Interest, etc.); Step 2 collects optional daily target, age, city, mobile. Data saved to `localStorage('lexicon_profile')` and synced to Firestore at `users/{uid}.profile`. Controlled by `lexicon_profile_complete` flag.
+  - **Welcome Tour** (`startWelcomeTour()`, `closeTour()`, `tourNav()`): 4 paginated cards (Decks, Flashcards, Quiz, Notes) with animated progress dots, Back/Skip/"Let's go!" nav. Stored state: `lexicon_tour_complete` flag. Accessed via `handleAuthState` after login (unless flag set) or `skipLogin` for guests.
+  - **Contextual Hints** (`showHint()`, `dismissHint()`): Non-blocking tooltips shown once per session per context (flashcards, quiz, deck selection, notes). Auto-dismiss after 6s or on manual close. Flags: `lexicon_hint_flashcards`, `lexicon_hint_quiz`, `lexicon_hint_deck`, `lexicon_hint_notes`.
+  - **Help Panel** (`openHelpPanel()`, `closeHelpPanel()`, `switchHelpTab()`): Right-sliding panel with tabs: Getting Started (3-step quickstart), Features (accordion per feature), Tips & Shortcuts (keyboard shortcuts + pro tips), Replay Tour (resets and restarts welcome tour).
+  - **Sidebar item**: "? Help & Guide" added at bottom of sidebar above profile section.
+  - All integrated into `handleAuthState` and `skipLogin` flows.
+
 ## 2026-04-23 - Bug Fixes: Third Pass — Wordnik Usage Undefined, opposites Null, Timer Leak, Quiz Race Condition (Issues #26–#29)
 
 - **What**: Fixed 4 MAJOR bugs found in a third Haiku 4.5 review: undefined values in Wordnik usage array, `w.opposites` null crash in modal, stale autoflip timer on new flashcard session, and `_renderNqCard()` race condition storing distractors at wrong index

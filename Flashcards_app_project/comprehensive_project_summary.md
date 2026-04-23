@@ -78,6 +78,11 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
   1. Vocab Flashcards — flip-card review of all vocab in selected decks
   2. Quiz — 3-tier difficulty (Easy/Medium/Hard), intelligent distractor selection, multi-level progression
 - **Stats**: Per-word accuracy breakdown across quiz and flashcard modes; visual accuracy indicators on library cards
+- **Onboarding & Help System** (Apr 2026):
+  - **Profile Setup Screen**: 2-step flow (Google-prefilled name + goal selection → daily target/age/city/mobile). Shown once after first login.
+  - **Welcome Tour Modal**: 4 paginated cards (Decks, Flashcards, Quiz, Notes) with progress dots and navigation controls.
+  - **Contextual Hints**: Non-blocking tooltips on first use of Flashcards, Quiz, deck switching, and Notes. Auto-dismiss after 6s.
+  - **Help & Guide Sidebar Panel**: 4 tabs (Getting Started quickstart, Features accordion, Tips & Shortcuts with keyboard shortcuts, Replay Tour to reset and restart tour).
 
 ---
 
@@ -136,4 +141,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 23, 2026*
+*Last Updated: April 23, 2026* (Onboarding & Help System)

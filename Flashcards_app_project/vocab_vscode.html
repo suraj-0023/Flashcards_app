@@ -1288,6 +1288,305 @@
   }
   .skip-login-btn:hover { color: var(--text); }
 
+  /* ── PROFILE SETUP SCREEN ── */
+  #profileSetupScreen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+  .profile-setup-card {
+    background: #fff;
+    border: 1px solid var(--border-2);
+    border-radius: 22px;
+    padding: 44px 38px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 16px 48px rgba(17,24,39,0.1);
+    position: relative;
+  }
+  .profile-setup-logo {
+    font-size: 1.5rem; font-weight: 800; letter-spacing: -0.025em;
+    color: var(--text); margin-bottom: 4px; text-align: center;
+  }
+  .profile-setup-logo span { color: var(--emerald); }
+  .profile-setup-subtitle {
+    text-align: center; color: var(--muted); font-size: 13px;
+    font-weight: 500; margin-bottom: 28px;
+  }
+  .profile-step-dots {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 28px;
+  }
+  .profile-step-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border-2); transition: background 0.2s;
+  }
+  .profile-step-dot.active { background: var(--emerald); }
+  .profile-step { display: none; }
+  .profile-step.active { display: block; }
+  .profile-step-title {
+    font-size: 1.1rem; font-weight: 700; color: var(--text);
+    margin-bottom: 20px;
+  }
+  .profile-field-label {
+    font-size: 12px; font-weight: 700; color: var(--muted);
+    letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .profile-input {
+    width: 100%; padding: 12px 14px;
+    border: 1.5px solid var(--border-2); border-radius: 12px;
+    font-size: 14px; font-family: inherit; background: var(--bg);
+    color: var(--text); outline: none; box-sizing: border-box;
+    margin-bottom: 18px; transition: border-color 0.2s;
+  }
+  .profile-input:focus { border-color: var(--emerald); }
+  .profile-goal-chips {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+  }
+  .profile-chip {
+    padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    border: 1.5px solid var(--border-2); background: var(--bg); color: var(--muted);
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .profile-chip.selected {
+    border-color: var(--emerald); background: var(--emerald-50);
+    color: var(--emerald);
+  }
+  .profile-target-chips {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .profile-optional-label {
+    font-size: 11px; color: var(--muted); text-align: right;
+    margin-top: -14px; margin-bottom: 10px;
+  }
+  .profile-two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .profile-skip-all {
+    position: absolute; top: 20px; right: 24px;
+    font-size: 12px; color: var(--muted); cursor: pointer;
+    text-decoration: underline; font-weight: 600;
+    background: none; border: none; font-family: inherit;
+  }
+  .profile-skip-all:hover { color: var(--text); }
+  .profile-btn {
+    width: 100%; padding: 13px; border-radius: 12px;
+    font-size: 14px; font-weight: 700; font-family: inherit;
+    cursor: pointer; border: none; margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+  .profile-btn-primary {
+    background: var(--emerald); color: #fff;
+  }
+  .profile-btn-primary:hover { opacity: 0.88; }
+  .profile-btn-back {
+    background: none; border: 1.5px solid var(--border-2);
+    color: var(--muted); margin-top: 10px;
+  }
+  .profile-btn-back:hover { border-color: var(--text); color: var(--text); }
+  .profile-custom-input-wrap { display: none; margin-top: 8px; }
+  .profile-custom-input-wrap.show { display: block; }
+
+  /* ── WELCOME TOUR MODAL ── */
+  #welcomeTourModal {
+    position: fixed; inset: 0;
+    background: rgba(17,24,39,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9997; font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+  .tour-card {
+    background: #fff; border-radius: 24px;
+    padding: 40px 36px 32px;
+    max-width: 420px; width: 90%;
+    box-shadow: 0 24px 64px rgba(17,24,39,0.15);
+    position: relative; text-align: center;
+  }
+  .tour-skip-btn {
+    position: absolute; top: 16px; right: 20px;
+    font-size: 12px; color: var(--muted); cursor: pointer;
+    text-decoration: underline; font-weight: 600;
+    background: none; border: none; font-family: inherit;
+  }
+  .tour-skip-btn:hover { color: var(--text); }
+  .tour-dots {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 28px;
+  }
+  .tour-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border-2); transition: background 0.2s, width 0.2s;
+  }
+  .tour-dot.active { background: var(--emerald); width: 24px; border-radius: 4px; }
+  .tour-icon { font-size: 3.5rem; margin-bottom: 16px; }
+  .tour-title {
+    font-size: 1.4rem; font-weight: 800; color: var(--text);
+    margin-bottom: 10px; letter-spacing: -0.02em;
+  }
+  .tour-desc {
+    font-size: 14px; color: var(--muted); line-height: 1.65;
+    margin-bottom: 28px;
+  }
+  .tour-nav {
+    display: flex; gap: 10px; justify-content: center;
+  }
+  .tour-btn {
+    padding: 11px 24px; border-radius: 12px;
+    font-size: 14px; font-weight: 700; font-family: inherit;
+    cursor: pointer; border: none; transition: opacity 0.2s;
+  }
+  .tour-btn-primary { background: var(--emerald); color: #fff; }
+  .tour-btn-primary:hover { opacity: 0.88; }
+  .tour-btn-secondary {
+    background: none; border: 1.5px solid var(--border-2); color: var(--muted);
+  }
+  .tour-btn-secondary:hover { border-color: var(--text); color: var(--text); }
+
+  /* ── CONTEXTUAL HINT TOOLTIPS ── */
+  .ctx-hint {
+    position: fixed;
+    background: var(--text);
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 10px 14px; border-radius: 12px;
+    max-width: 280px; line-height: 1.5;
+    z-index: 9995; pointer-events: auto;
+    box-shadow: 0 8px 24px rgba(17,24,39,0.2);
+    display: flex; align-items: flex-start; gap: 10px;
+    animation: hintFadeIn 0.25s ease;
+  }
+  @keyframes hintFadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+  .ctx-hint-text { flex: 1; }
+  .ctx-hint-close {
+    background: none; border: none; color: rgba(255,255,255,0.7);
+    font-size: 16px; cursor: pointer; padding: 0; line-height: 1;
+    flex-shrink: 0; margin-top: -1px;
+  }
+  .ctx-hint-close:hover { color: #fff; }
+  .ctx-hint::before {
+    content: ''; position: absolute; top: -7px; left: 20px;
+    border: 7px solid transparent;
+    border-bottom-color: var(--text); border-top: none;
+  }
+
+  /* ── HELP & GUIDE PANEL ── */
+  #helpSidebarItem {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px; border-radius: 10px; cursor: pointer;
+    color: var(--muted); font-size: 13px; font-weight: 600;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    transition: background 0.15s, color 0.15s;
+    margin: 4px 0; border: none; background: none; width: 100%;
+    text-align: left;
+  }
+  #helpSidebarItem:hover { background: var(--sidebar-hover); color: var(--text); }
+  .help-sidebar-divider {
+    height: 1px; background: var(--border); margin: 8px 0 6px;
+  }
+  #helpPanel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(480px, 90vw);
+    background: #fff; border-left: 1px solid var(--border-2);
+    box-shadow: -8px 0 32px rgba(17,24,39,0.1);
+    z-index: 9990; display: flex; flex-direction: column;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    transform: translateX(100%); transition: transform 0.3s ease;
+  }
+  #helpPanel.open { transform: translateX(0); }
+  .help-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-bottom: 1px solid var(--border-2);
+    flex-shrink: 0;
+  }
+  .help-panel-title {
+    font-size: 1.1rem; font-weight: 800; color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .help-close-btn {
+    background: none; border: none; font-size: 22px; cursor: pointer;
+    color: var(--muted); padding: 4px; line-height: 1;
+  }
+  .help-close-btn:hover { color: var(--text); }
+  .help-tabs {
+    display: flex; border-bottom: 1px solid var(--border-2);
+    overflow-x: auto; flex-shrink: 0;
+  }
+  .help-tab {
+    padding: 12px 18px; font-size: 13px; font-weight: 700;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    background: none; border-top: none; border-left: none; border-right: none;
+    font-family: inherit; transition: color 0.15s;
+  }
+  .help-tab.active { color: var(--emerald); border-bottom-color: var(--emerald); }
+  .help-tab:hover:not(.active) { color: var(--text); }
+  .help-content { flex: 1; overflow-y: auto; padding: 24px; }
+  .help-section { margin-bottom: 28px; }
+  .help-section-title {
+    font-size: 0.85rem; font-weight: 800; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+  }
+  .help-accordion {
+    border: 1px solid var(--border-2); border-radius: 12px; overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .help-accordion-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 16px; cursor: pointer; font-size: 13.5px; font-weight: 700;
+    color: var(--text); background: none; border: none; width: 100%;
+    text-align: left; font-family: inherit; transition: background 0.15s;
+  }
+  .help-accordion-header:hover { background: var(--bg); }
+  .help-accordion-chevron {
+    font-size: 11px; color: var(--muted); transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .help-accordion.open .help-accordion-chevron { transform: rotate(180deg); }
+  .help-accordion-body {
+    display: none; padding: 0 16px 14px;
+    font-size: 13px; color: var(--muted); line-height: 1.7;
+  }
+  .help-accordion.open .help-accordion-body { display: block; }
+  .help-step {
+    display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px;
+  }
+  .help-step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--emerald); color: #fff;
+    font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .help-step-text { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+  .help-step-text strong { color: var(--text); font-weight: 700; }
+  .help-step-text span { color: var(--muted); font-size: 12.5px; display: block; }
+  .help-tip {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--emerald-50); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 10px; font-size: 13px;
+    color: var(--text); line-height: 1.6;
+  }
+  .help-tip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .help-shortcut {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .help-shortcut:last-child { border-bottom: none; }
+  .help-shortcut-key {
+    background: var(--bg); border: 1px solid var(--border-2);
+    border-radius: 6px; padding: 3px 10px; font-size: 12px;
+    font-weight: 700; color: var(--text); font-family: monospace;
+  }
+  .help-replay-btn {
+    width: 100%; padding: 13px; border-radius: 12px;
+    background: var(--emerald); color: #fff;
+    font-size: 14px; font-weight: 700; font-family: inherit;
+    cursor: pointer; border: none; transition: opacity 0.2s;
+  }
+  .help-replay-btn:hover { opacity: 0.88; }
+
   /* ── SIDEBAR PROFILE ── M3 */
   .sidebar-profile {
     margin-top: auto;
@@ -2332,6 +2631,101 @@
   </div>
 </div>
 
+<!-- ── PROFILE SETUP SCREEN ── -->
+<div id="profileSetupScreen" style="display:none;">
+  <div class="profile-setup-card">
+    <div class="profile-setup-logo">Lexi<span>con</span></div>
+    <div class="profile-setup-subtitle">Let's personalise your experience</div>
+    <div class="profile-step-dots">
+      <div class="profile-step-dot active" id="profileDot0"></div>
+      <div class="profile-step-dot" id="profileDot1"></div>
+    </div>
+
+    <!-- Step 1: Identity & Goal -->
+    <div class="profile-step active" id="profileStep0">
+      <div class="profile-step-title">Tell us about you</div>
+      <div class="profile-field-label">Your name</div>
+      <input class="profile-input" type="text" id="profileName" placeholder="Display name" autocomplete="name"/>
+      <div class="profile-field-label">Primary goal</div>
+      <div class="profile-goal-chips">
+        <button class="profile-chip" onclick="selectGoal(this,'exams')">📚 Study for exams</button>
+        <button class="profile-chip" onclick="selectGoal(this,'vocabulary')">🔤 Build vocabulary</button>
+        <button class="profile-chip" onclick="selectGoal(this,'professional')">💼 Professional reading</button>
+        <button class="profile-chip" onclick="selectGoal(this,'language')">🌍 Language learning</button>
+        <button class="profile-chip" onclick="selectGoal(this,'other')">✨ Other</button>
+      </div>
+      <button class="profile-btn profile-btn-primary" onclick="profileNextStep()">Next →</button>
+    </div>
+
+    <!-- Step 2: Optional details -->
+    <div class="profile-step" id="profileStep1">
+      <button class="profile-skip-all" onclick="finishProfileSetup(true)">Skip all</button>
+      <div class="profile-step-title">A few more details <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(optional)</span></div>
+      <div class="profile-field-label">Daily study target</div>
+      <div class="profile-target-chips">
+        <button class="profile-chip" onclick="selectTarget(this,10)">10 words</button>
+        <button class="profile-chip" onclick="selectTarget(this,20)">20 words</button>
+        <button class="profile-chip" onclick="selectTarget(this,50)">50 words</button>
+        <button class="profile-chip" onclick="selectTarget(this,'custom')">Custom</button>
+      </div>
+      <div class="profile-custom-input-wrap" id="profileCustomTargetWrap">
+        <input class="profile-input" type="number" id="profileCustomTarget" placeholder="Words per day" min="1" max="500"/>
+      </div>
+      <div class="profile-two-col">
+        <div>
+          <div class="profile-field-label">Age</div>
+          <input class="profile-input" type="number" id="profileAge" placeholder="e.g. 22" min="10" max="99"/>
+        </div>
+        <div>
+          <div class="profile-field-label">City</div>
+          <input class="profile-input" type="text" id="profileCity" placeholder="e.g. Mumbai"/>
+        </div>
+      </div>
+      <div class="profile-field-label">Mobile (optional)</div>
+      <input class="profile-input" type="tel" id="profileMobile" placeholder="+91 00000 00000"/>
+      <button class="profile-btn profile-btn-primary" onclick="finishProfileSetup(false)">Finish & Start →</button>
+      <button class="profile-btn profile-btn-back" onclick="profilePrevStep()">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── WELCOME TOUR MODAL ── -->
+<div id="welcomeTourModal" style="display:none;">
+  <div class="tour-card">
+    <button class="tour-skip-btn" onclick="closeTour()">Skip tour</button>
+    <div class="tour-dots" id="tourDots">
+      <div class="tour-dot active"></div>
+      <div class="tour-dot"></div>
+      <div class="tour-dot"></div>
+      <div class="tour-dot"></div>
+    </div>
+    <div class="tour-icon" id="tourIcon">📚</div>
+    <div class="tour-title" id="tourTitle">Your Decks</div>
+    <div class="tour-desc" id="tourDesc">Organise vocabulary into decks — one per book, subject, or topic. Demo decks are already loaded to get you started.</div>
+    <div class="tour-nav">
+      <button class="tour-btn tour-btn-secondary" id="tourBackBtn" onclick="tourNav(-1)" style="display:none;">← Back</button>
+      <button class="tour-btn tour-btn-primary" id="tourNextBtn" onclick="tourNav(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HELP PANEL ── -->
+<div id="helpPanel">
+  <div class="help-panel-header">
+    <div class="help-panel-title">Help &amp; Guide</div>
+    <button class="help-close-btn" onclick="closeHelpPanel()">×</button>
+  </div>
+  <div class="help-tabs" id="helpTabs">
+    <button class="help-tab active" onclick="switchHelpTab(0)">Getting Started</button>
+    <button class="help-tab" onclick="switchHelpTab(1)">Features</button>
+    <button class="help-tab" onclick="switchHelpTab(2)">Tips &amp; Shortcuts</button>
+    <button class="help-tab" onclick="switchHelpTab(3)">Replay Tour</button>
+  </div>
+  <div class="help-content" id="helpContent">
+    <!-- Content injected by JS -->
+  </div>
+</div>
+
 <div id="loadingScreen" style="display:none;align-items:center;justify-content:center;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.2rem;color:#8a7f72;letter-spacing:0.05em;">Loading vocabulary...</div>
 <div id="app" style="display:none;">
   <aside>
@@ -2366,6 +2760,12 @@
         Stats
       </div>
     </div>
+
+    <div class="help-sidebar-divider"></div>
+    <button id="helpSidebarItem" onclick="openHelpPanel()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+      Help &amp; Guide
+    </button>
 
     <div class="sidebar-profile" id="sidebarProfile">
       <button class="profile-signin-btn" onclick="openLoginScreen()" id="sidebarSigninBtn">
@@ -3067,6 +3467,271 @@ function updateSyncBadge(state) {
   else { el.textContent = '⚠ offline'; el.classList.remove('syncing'); el.style.color = '#c9a84c'; }
 }
 
+// ── ONBOARDING: PROFILE SETUP ──
+
+let _profileGoal = '';
+let _profileTarget = null;
+
+function showProfileSetup(user) {
+  const screen = document.getElementById('profileSetupScreen');
+  if (!screen) return;
+  // Pre-fill name from Google
+  const nameInput = document.getElementById('profileName');
+  if (nameInput && user && user.displayName) nameInput.value = user.displayName;
+  screen.style.display = 'flex';
+}
+
+function selectGoal(btn, goal) {
+  document.querySelectorAll('.profile-chip[onclick^="selectGoal"]').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _profileGoal = goal;
+}
+
+function selectTarget(btn, val) {
+  document.querySelectorAll('.profile-chip[onclick^="selectTarget"]').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const wrap = document.getElementById('profileCustomTargetWrap');
+  if (val === 'custom') {
+    wrap.classList.add('show');
+    _profileTarget = null;
+  } else {
+    wrap.classList.remove('show');
+    _profileTarget = val;
+  }
+}
+
+function profileNextStep() {
+  document.getElementById('profileStep0').classList.remove('active');
+  document.getElementById('profileStep1').classList.add('active');
+  document.getElementById('profileDot0').classList.remove('active');
+  document.getElementById('profileDot1').classList.add('active');
+}
+
+function profilePrevStep() {
+  document.getElementById('profileStep1').classList.remove('active');
+  document.getElementById('profileStep0').classList.add('active');
+  document.getElementById('profileDot1').classList.remove('active');
+  document.getElementById('profileDot0').classList.add('active');
+}
+
+function finishProfileSetup(skipped) {
+  let profile = { goal: _profileGoal, dailyTarget: _profileTarget };
+  if (!skipped) {
+    const name = document.getElementById('profileName')?.value.trim();
+    const age = document.getElementById('profileAge')?.value.trim();
+    const city = document.getElementById('profileCity')?.value.trim();
+    const mobile = document.getElementById('profileMobile')?.value.trim();
+    const customTarget = document.getElementById('profileCustomTarget')?.value;
+    if (name) profile.displayName = name;
+    if (age) profile.age = parseInt(age);
+    if (city) profile.city = city;
+    if (mobile) profile.mobile = mobile;
+    if (customTarget) profile.dailyTarget = parseInt(customTarget);
+  }
+  lsSet('lexicon_profile', profile);
+  lsSet('lexicon_profile_complete', true);
+  // Persist to Firestore if logged in
+  if (currentUser && window._fbSetDoc && window._fbDb) {
+    const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
+    window._fbUpdateDoc(ref, { profile }).catch(() => {});
+  }
+  document.getElementById('profileSetupScreen').style.display = 'none';
+  startWelcomeTour();
+}
+
+// ── ONBOARDING: WELCOME TOUR ──
+
+const TOUR_SLIDES = [
+  { icon: '📚', title: 'Your Decks', desc: 'Organise vocabulary into decks — one per book, subject, or topic. Demo decks are already loaded to get you started.' },
+  { icon: '🃏', title: 'Flashcards', desc: 'Flip cards to study definitions. Mark words correct or wrong to track your progress over time.' },
+  { icon: '🎯', title: 'Quiz Mode', desc: 'Test yourself with 4-option quizzes. Choose Easy, Medium, or Hard difficulty to match your level.' },
+  { icon: '📝', title: 'Notes & Custom Cards', desc: 'Write study notes per deck and create your own flashcards for any topic. Notes can even be turned into a quiz with AI.' },
+];
+let _tourIdx = 0;
+
+function startWelcomeTour() {
+  if (lsGet('lexicon_tour_complete', false)) return;
+  _tourIdx = 0;
+  renderTourSlide(0);
+  document.getElementById('welcomeTourModal').style.display = 'flex';
+}
+
+function renderTourSlide(idx) {
+  const slide = TOUR_SLIDES[idx];
+  document.getElementById('tourIcon').textContent = slide.icon;
+  document.getElementById('tourTitle').textContent = slide.title;
+  document.getElementById('tourDesc').textContent = slide.desc;
+  // Dots
+  document.querySelectorAll('.tour-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+  // Nav buttons
+  const backBtn = document.getElementById('tourBackBtn');
+  const nextBtn = document.getElementById('tourNextBtn');
+  backBtn.style.display = idx === 0 ? 'none' : 'inline-block';
+  const isLast = idx === TOUR_SLIDES.length - 1;
+  nextBtn.textContent = isLast ? "Let's go! 🎉" : 'Next →';
+}
+
+function tourNav(dir) {
+  const next = _tourIdx + dir;
+  if (next >= TOUR_SLIDES.length) { closeTour(); return; }
+  if (next < 0) return;
+  _tourIdx = next;
+  renderTourSlide(_tourIdx);
+}
+
+function closeTour() {
+  lsSet('lexicon_tour_complete', true);
+  document.getElementById('welcomeTourModal').style.display = 'none';
+}
+
+// ── ONBOARDING: CONTEXTUAL HINTS ──
+
+function showHint(anchorSelector, text, storageKey) {
+  if (lsGet(storageKey, false)) return;
+  const anchor = document.querySelector(anchorSelector);
+  const hint = document.createElement('div');
+  hint.className = 'ctx-hint';
+  hint.innerHTML = `<span class="ctx-hint-text">${text}</span><button class="ctx-hint-close" onclick="dismissHint(this,'${storageKey}')">×</button>`;
+  document.body.appendChild(hint);
+
+  // Position below anchor or bottom-left of viewport as fallback
+  if (anchor) {
+    const r = anchor.getBoundingClientRect();
+    hint.style.top = (r.bottom + 12) + 'px';
+    hint.style.left = Math.max(12, Math.min(r.left, window.innerWidth - 300)) + 'px';
+  } else {
+    hint.style.bottom = '80px'; hint.style.left = '24px';
+    hint.style.removeProperty('top');
+  }
+
+  const timer = setTimeout(() => dismissHint(hint.querySelector('.ctx-hint-close'), storageKey), 6000);
+  hint._timer = timer;
+}
+
+function dismissHint(closeBtn, storageKey) {
+  lsSet(storageKey, true);
+  const hint = closeBtn.closest('.ctx-hint');
+  if (hint) { clearTimeout(hint._timer); hint.remove(); }
+}
+
+// ── HELP PANEL ──
+
+const HELP_TABS_CONTENT = [
+  // Tab 0: Getting Started
+  () => `
+    <div class="help-section">
+      <div class="help-section-title">Welcome to Lexicon</div>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:20px;">
+        Lexicon is your personal vocabulary library. Build decks, study with flashcards, quiz yourself, and track your progress — all in one place.
+      </p>
+      <div class="help-section-title">Quick Start</div>
+      <div class="help-step">
+        <div class="help-step-num">1</div>
+        <div class="help-step-text"><strong>Pick a deck</strong><span>Tap any deck in the Library sidebar, or create a new one with "+ New Deck".</span></div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">2</div>
+        <div class="help-step-text"><strong>Add words or notes</strong><span>Use the + button to add vocabulary, custom flashcards, or study notes to your deck.</span></div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">3</div>
+        <div class="help-step-text"><strong>Practice</strong><span>Open Flashcards or Quiz from the Practice section in the sidebar. Stats tracks your performance.</span></div>
+      </div>
+    </div>`,
+  // Tab 1: Features
+  () => `
+    <div class="help-section">
+      <div class="help-section-title">Features Guide</div>
+      ${[
+        ['📚 Decks', 'Create decks for any book, topic, or class. Tap "+ New Deck" in the sidebar. Long-press or use the menu to rename or delete. You can practice across multiple decks at once.'],
+        ['🃏 Flashcards', 'Tap the card to flip and see the definition. Mark ✓ (correct) or ✗ (wrong) after each flip. The progress bar tracks your session. Bookmark cards with ☆ to revisit them.'],
+        ['🎯 Quiz Mode', 'Choose Easy (definitions), Medium (contextual), or Hard (distractors from the same part of speech). Your score is saved to Stats. The Notes Quiz uses AI to generate questions from your own notes.'],
+        ['✏️ Custom Cards', 'Create front/back flashcard pairs on any topic — not just vocabulary. Tap the + button and choose "Custom Card". These appear in Flashcards practice.'],
+        ['📝 Notes', 'Write rich study notes inside any deck. Notes are searchable and can be turned into a quiz using the AI Notes Quiz feature (requires an API key).'],
+        ['📊 Stats', 'See per-word performance: how many times you answered correctly or wrongly in both Quiz and Flashcards. Use this to focus on weak areas.'],
+        ['☁ Cloud Sync', 'Sign in with Google or email to sync your data across devices via Firebase. Guest mode stores everything locally only. Your data is never deleted when you sign in — it merges with any local data.'],
+      ].map(([title, body]) => `
+        <div class="help-accordion">
+          <button class="help-accordion-header" onclick="toggleAccordion(this)">
+            ${title} <span class="help-accordion-chevron">▼</span>
+          </button>
+          <div class="help-accordion-body">${body}</div>
+        </div>`).join('')}
+    </div>`,
+  // Tab 2: Tips & Shortcuts
+  () => `
+    <div class="help-section">
+      <div class="help-section-title">Keyboard Shortcuts</div>
+      ${[
+        ['Space / Enter', 'Flip card'],
+        ['→ / ↓', 'Next card'],
+        ['← / ↑', 'Previous card'],
+        ['1–4', 'Select quiz answer'],
+        ['Esc', 'Close modal / go back'],
+      ].map(([key, action]) => `
+        <div class="help-shortcut">
+          <span>${action}</span>
+          <span class="help-shortcut-key">${key}</span>
+        </div>`).join('')}
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">Pro Tips</div>
+      ${[
+        ['🎯', 'Start with Easy mode, then move to Hard once you score above 80% consistently.'],
+        ['📅', 'Study a little every day — even 10 words — rather than long infrequent sessions.'],
+        ['⭐', 'Bookmark cards you keep getting wrong, then filter by bookmarks to drill them.'],
+        ['📝', 'Write notes in your own words — it forces you to understand, not just memorise.'],
+        ['🤖', 'The AI Notes Quiz is great for exam prep — it generates questions from your own notes.'],
+      ].map(([icon, tip]) => `
+        <div class="help-tip"><span class="help-tip-icon">${icon}</span><span>${tip}</span></div>`).join('')}
+    </div>`,
+  // Tab 3: Replay Tour
+  () => `
+    <div class="help-section" style="text-align:center;padding-top:20px;">
+      <div style="font-size:3rem;margin-bottom:16px;">🎓</div>
+      <div style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:10px;">Replay Welcome Tour</div>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:24px;">
+        Watch the 4-screen feature overview again to get a refresher on what Lexicon can do.
+      </p>
+      <button class="help-replay-btn" onclick="replayTour()">▶ Replay Tour</button>
+    </div>`,
+];
+
+let _helpTabIdx = 0;
+
+function openHelpPanel() {
+  document.getElementById('helpPanel').classList.add('open');
+  renderHelpTab(_helpTabIdx);
+}
+
+function closeHelpPanel() {
+  document.getElementById('helpPanel').classList.remove('open');
+}
+
+function switchHelpTab(idx) {
+  _helpTabIdx = idx;
+  document.querySelectorAll('.help-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  renderHelpTab(idx);
+}
+
+function renderHelpTab(idx) {
+  document.getElementById('helpContent').innerHTML = HELP_TABS_CONTENT[idx]();
+}
+
+function toggleAccordion(header) {
+  header.closest('.help-accordion').classList.toggle('open');
+}
+
+function replayTour() {
+  closeHelpPanel();
+  lsSet('lexicon_tour_complete', false);
+  _tourIdx = 0;
+  renderTourSlide(0);
+  document.getElementById('welcomeTourModal').style.display = 'flex';
+}
+
 // ── AUTH STATE HANDLER ──
 
 window.handleAuthState = async function(user) {
@@ -3082,6 +3747,13 @@ window.handleAuthState = async function(user) {
     // STEP 2: Load the app instantly using saved local data
     await loadVocab();
     renderSidebarProfile(user);
+
+    // STEP 2b: Show profile setup on first login, else show tour if pending
+    if (!lsGet('lexicon_profile_complete', false)) {
+      showProfileSetup(user);
+    } else if (!lsGet('lexicon_tour_complete', false)) {
+      startWelcomeTour();
+    }
 
     // STEP 3: NOW sync with cloud SILENTLY in the background
     // This does NOT block the app from showing
@@ -3172,7 +3844,11 @@ function skipLogin() {
   if (!document.getElementById('app') || document.getElementById('app').style.display === 'none') {
     // App not loaded yet, load it in guest mode
     document.getElementById('loadingScreen').style.display = 'flex';
-    loadVocab();
+    loadVocab().then(() => {
+      if (!lsGet('lexicon_tour_complete', false)) startWelcomeTour();
+    });
+  } else {
+    if (!lsGet('lexicon_tour_complete', false)) startWelcomeTour();
   }
 }
 
@@ -3542,6 +4218,7 @@ function switchProject(id) {
   closePracticeOverlay();
   updateProjectUI();
   applyProjectFilter();
+  setTimeout(() => showHint('.word-item, .vocab-card', 'Tap any word to see its full definition, usage, and related words.', 'lexicon_hint_library'), 600);
 }
 
 function applyProjectFilter() {
@@ -4840,10 +5517,12 @@ function openPracticeView(type) {
     const view = document.getElementById('view-flashcards');
     if (view) view.classList.add('active');
     renderDeckSelection();
+    setTimeout(() => showHint('#startPracticeBtn', 'Select decks above, then tap "Start Practice" to begin flipping cards. Mark ✓ or ✗ after each flip to track your score.', 'lexicon_hint_flash'), 800);
   } else if (type === 'vocab') {
     const view = document.getElementById('view-quiz');
     if (view) view.classList.add('active');
     showVocabLanding();
+    setTimeout(() => showHint('#view-quiz', 'Pick a difficulty — Easy uses simple definitions, Hard uses context clues. Your score is saved to Stats.', 'lexicon_hint_quiz'), 800);
   } else {
     const view = document.getElementById('view-' + type);
     if (view) view.classList.add('active');
