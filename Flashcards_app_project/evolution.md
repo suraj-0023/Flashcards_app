@@ -1,5 +1,17 @@
 # Project Evolution Log
 
+## 2026-04-23 - Bug Fixes: Second Pass — Timer Leak, Index Bounds, Stats Null Guard (Issues #20–#24)
+
+- **What**: Fixed 5 bugs found in a second Haiku 4.5 review pass: null array guard on `wordData.usage`, undefined guard on `wordData.types`, auto-flip timer leak on overlay close, quiz next-button index overflow, and missing perf null guard in `renderStats()`
+- **Why**: GitHub issues #20–#24 documented crashes in `addWords()` when Haiku enrichment returned null usage/types; a background timer firing after the practice overlay was closed; quiz index growing unbounded; and stats crashing on words loaded before perf tracking was initialised
+- **Impact**: Word addition no longer crashes on enrichment edge cases; closing practice stops all timers; quiz navigation is bounds-safe; stats render correctly for all words
+- **Technical Detail**:
+  - `addWords()` ~3745: `!wordData.usage.length` → `!Array.isArray(wordData.usage) || !wordData.usage.length`
+  - `addWords()` ~3750: `wordData.types.length` → `(wordData.types || []).length`
+  - `closePracticeOverlay()`: `_clearAutoFlipTimer()` added as first line
+  - `_showNewQuizArea()` ~4923–4924: next-arrow/btn onclick guards with `if (_nqIdx < _nqQueue.length)`
+  - `renderStats()` ~4681: `perf[w.id] = perf[w.id] || { quiz: {c:0,w:0}, flash: {c:0,w:0} }` before access
+
 ## 2026-04-23 - Bug Fixes: Null-Safety, Async/Await Race Conditions (Issues #16–#19)
 
 - **What**: Fixed 10 null-safety and async race condition bugs across dictionary waterfall, word modal, quiz navigation, and stats filter

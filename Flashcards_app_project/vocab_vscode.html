@@ -3742,12 +3742,12 @@ async function addWords() {
     }
 
     // Tier 4: audio — stored URL if present; Web Speech API used at playback if empty
-    if (!wordData.usage.length) wordData.usage = [`They used the word ${wordStr} in a sentence.`];
+    if (!Array.isArray(wordData.usage) || !wordData.usage.length) wordData.usage = [`They used the word ${wordStr} in a sentence.`];
 
     const newWordObj = {
       id: `c_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
       word: wordData.word,
-      type: wordData.types.length ? wordData.types : ['noun'],
+      type: (wordData.types || []).length ? wordData.types : ['noun'],
       definition: wordData.definition || 'Definition not found.',
       usage: [...new Set(wordData.usage)].slice(0, 2),
       opposites: wordData.antonyms,
@@ -4678,9 +4678,10 @@ function changeLevelQuiz() {
 // ── STATS ──
 function renderStats() {
   let totalC = 0, totalW = 0;
-  QUIZ_VOCAB.forEach(w => { 
-    totalC += perf[w.id].quiz.c + perf[w.id].flash.c; 
-    totalW += perf[w.id].quiz.w + perf[w.id].flash.w; 
+  QUIZ_VOCAB.forEach(w => {
+    if (!perf[w.id]) perf[w.id] = { quiz: {c:0, w:0}, flash: {c:0, w:0} };
+    totalC += perf[w.id].quiz.c + perf[w.id].flash.c;
+    totalW += perf[w.id].quiz.w + perf[w.id].flash.w;
   });
   const total = totalC + totalW;
   const acc = total ? Math.round((totalC / total) * 100) : 0;
@@ -4850,6 +4851,7 @@ function openPracticeView(type) {
 }
 
 function closePracticeOverlay() {
+  _clearAutoFlipTimer();
   document.getElementById('practiceOverlay').style.display = 'none';
   document.getElementById('mainPage').style.display = 'flex';
   document.querySelectorAll('.practice-link').forEach(el => el.classList.remove('active'));
@@ -4920,8 +4922,8 @@ function _showNewQuizArea() {
   document.getElementById('quizArea').style.display = 'block';
   document.getElementById('quizDone').style.display = 'none';
   document.getElementById('quizPrevArrow').onclick = async () => { if (_nqIdx > 0) { _nqIdx--; await _renderNqCard(); } };
-  document.getElementById('quizNextArrow').onclick = async () => { _nqIdx++; await _renderNqCard(); };
-  document.getElementById('quizNextBtn').onclick = async () => { _nqIdx++; await _renderNqCard(); };
+  document.getElementById('quizNextArrow').onclick = async () => { if (_nqIdx < _nqQueue.length) { _nqIdx++; await _renderNqCard(); } };
+  document.getElementById('quizNextBtn').onclick = async () => { if (_nqIdx < _nqQueue.length) { _nqIdx++; await _renderNqCard(); } };
 }
 
 async function startNotesQuiz() {
