@@ -1,5 +1,21 @@
 # Project Evolution Log
 
+## 2026-04-23 - Bug Fixes: Null-Safety, Async/Await Race Conditions (Issues #16–#19)
+
+- **What**: Fixed 10 null-safety and async race condition bugs across dictionary waterfall, word modal, quiz navigation, and stats filter
+- **Why**: GitHub issues #16–#19 documented crashes when API responses were empty, `mAudioBtn` was missing from DOM, quiz navigation fired before async options loaded, and stats accessed `.flash` on words added before perf tracking existed
+- **Impact**: Word addition, quiz flow, and stats view no longer crash under edge-case data; quiz options always fully loaded before display
+- **Technical Detail**:
+  - `addWords()`: guard `data[0]` with `if (!data || !data.length) throw`; guard `usage[0].startsWith` with existence check
+  - `_parseFreeDictEntry()`: `(m.definitions || []).forEach()`
+  - `_fetchWordnik()`: `if (Array.isArray(rel)) rel.forEach()`
+  - `_haikuEnrichWord()`: wrap `JSON.parse(text)` in try-catch
+  - `openModal()`: early-return guard after `getElementById('mAudioBtn')`
+  - `_showNewQuizArea()`: quiz nav onclick handlers made `async`, `await _renderNqCard()`
+  - `restartCurrentQuiz()`: made `async`, `await startNotesQuiz()` / `await startVocabQuizDirect()`
+  - `_getFilteredBase()`: add `perf[w.id].flash &&` before accessing `.flash.c`/`.flash.w` in unseen filter
+  - `selectNqOption()`: guard `if (!track || track.answered) return`
+
 ## 2026-04-23 - Dictionary Waterfall + AI Gap-Fill + Web Speech Audio Fallback
 
 - **What**: Replaced single-tier Free Dictionary API call in `addWords()` with a 4-tier waterfall: (1) Free Dictionary API, (2) Wordnik fallback (optional key), (3) Claude Haiku 4.5 gap-fill for missing IPA/definition/usage, (4) Web Speech API audio fallback at playback time. Audio button in word modal now uses `speechSynthesis` when no audio URL is stored.

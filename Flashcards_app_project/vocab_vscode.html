@@ -3705,6 +3705,7 @@ async function addWords() {
       const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(wordStr)}`);
       if (res.ok) {
         const data = await res.json();
+        if (!data || !data.length) throw new Error('empty response');
         wordData = _parseFreeDictEntry(data[0], wordStr);
       }
     } catch(e) { console.warn('Free Dict failed for', wordStr, e); }
@@ -3727,7 +3728,7 @@ async function addWords() {
     if (anthropicKey) {
       const needsIPA = !wordData.phonetic;
       const needsDef = !wordData.definition || wordData.definition === 'Definition not found.';
-      const needsUsage = !wordData.usage.length || wordData.usage[0].startsWith('They used');
+      const needsUsage = !wordData.usage.length || (wordData.usage[0] && wordData.usage[0].startsWith('They used'));
       if (needsIPA || needsDef || needsUsage) {
         try {
           const enriched = await _haikuEnrichWord(wordStr, wordData, anthropicKey, { needsIPA, needsDef, needsUsage });
@@ -3789,7 +3790,7 @@ function _parseFreeDictEntry(entry, wordStr) {
   meanings.forEach(m => {
     if (m.synonyms) synonyms.push(...m.synonyms);
     if (m.antonyms) antonyms.push(...m.antonyms);
-    m.definitions.forEach(d => {
+    (m.definitions || []).forEach(d => {
       if (!def) def = d.definition;
       if (d.example) usage.push(d.example);
       if (d.synonyms) synonyms.push(...d.synonyms);
@@ -3830,7 +3831,7 @@ async function _fetchWordnik(word, key) {
     const relRes = await fetch(`${base}/relatedWords?useCanonical=false&relationshipTypes=synonym%2Cantonym&limitPerRelationshipType=5&api_key=${key}`);
     if (relRes.ok) {
       const rel = await relRes.json();
-      rel.forEach(r => {
+      if (Array.isArray(rel)) rel.forEach(r => {
         if (r.relationshipType === 'synonym') synonyms.push(...r.words);
         if (r.relationshipType === 'antonym') antonyms.push(...r.words);
       });
@@ -3884,7 +3885,7 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
   if (!res.ok) return null;
   const data = await res.json();
   const text = (data.content?.[0]?.text || '').trim();
-  return JSON.parse(text);
+  try { return JSON.parse(text); } catch(e) { console.warn('Haiku JSON parse failed', e); return null; }
 }
 
 // ── NAV (used internally by practice overlay) ──
@@ -3948,6 +3949,7 @@ function openModal(id) {
 
   document.getElementById('mPhonetic').textContent = w.phonetic || '';
   const audioBtn = document.getElementById('mAudioBtn');
+  if (!audioBtn) return;
   if (w.audio) {
     audioBtn.style.display = 'inline-block';
     audioBtn.onclick = () => new Audio(w.audio).play();
@@ -4275,7 +4277,7 @@ function _getFilteredBase() {
     const h = flashBaseQueue.filter(w => (perf[w.id] && perf[w.id].flash && perf[w.id].flash.w > 0));
     return h.length ? h : [...flashBaseQueue];
   } else if (filter === 'unseen') {
-    const u = flashBaseQueue.filter(w => !(perf[w.id] && (perf[w.id].flash.c || perf[w.id].flash.w)));
+    const u = flashBaseQueue.filter(w => !(perf[w.id] && perf[w.id].flash && (perf[w.id].flash.c || perf[w.id].flash.w)));
     return u.length ? u : [...flashBaseQueue];
   } else if (filter === 'marked') {
     const m = flashBaseQueue.filter(w => _flashStarred.has(w.id));
@@ -4917,9 +4919,9 @@ function _showNewQuizArea() {
   document.getElementById('quizLevelSelect').style.display = 'none';
   document.getElementById('quizArea').style.display = 'block';
   document.getElementById('quizDone').style.display = 'none';
-  document.getElementById('quizPrevArrow').onclick = () => { if (_nqIdx > 0) { _nqIdx--; _renderNqCard(); } };
-  document.getElementById('quizNextArrow').onclick = () => { _nqIdx++; _renderNqCard(); };
-  document.getElementById('quizNextBtn').onclick = () => { _nqIdx++; _renderNqCard(); };
+  document.getElementById('quizPrevArrow').onclick = async () => { if (_nqIdx > 0) { _nqIdx--; await _renderNqCard(); } };
+  document.getElementById('quizNextArrow').onclick = async () => { _nqIdx++; await _renderNqCard(); };
+  document.getElementById('quizNextBtn').onclick = async () => { _nqIdx++; await _renderNqCard(); };
 }
 
 async function startNotesQuiz() {
@@ -5001,7 +5003,7 @@ async function _renderNqCard() {
 
 function selectNqOption(selectedId) {
   const track = _nqTrack[_nqIdx];
-  if (track.answered) return;
+  if (!track || track.answered) return;
   track.answered = true;
   track.selectedId = selectedId;
   const correctOpt = track.opts.find(o => o.isCorrect);
@@ -5062,9 +5064,9 @@ function _showNqDone() {
   }
 }
 
-function restartCurrentQuiz() {
-  if (_nqMode === 'notes') startNotesQuiz();
-  else if (_nqMode === 'vocab') startVocabQuizDirect();
+async function restartCurrentQuiz() {
+  if (_nqMode === 'notes') await startNotesQuiz();
+  else if (_nqMode === 'vocab') await startVocabQuizDirect();
   else showVocabLanding();
 }
 
