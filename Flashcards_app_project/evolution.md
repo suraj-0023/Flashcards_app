@@ -1,5 +1,15 @@
 # Project Evolution Log
 
+## 2026-04-23 - Bug Fixes: Onboarding — Firestore Upsert, Hint Onclick Safety, Z-Index Conflict
+
+- **What**: Fixed 3 bugs in onboarding code: Firestore upsert in `finishProfileSetup` (changed `_fbUpdateDoc` to `_fbSetDoc` with `{merge:true}`), unsafe inline onclick in `showHint` replaced with `addEventListener` for safe closure-based handling, z-index conflict on `.file-dropdown` resolved (9999→9996).
+- **Why**: Bug audit by two parallel agents after the onboarding feature was shipped; identified after feature review.
+- **Impact**: Profile data now reliably persists to Firestore on first login (no silent failure if doc doesn't exist); hint system is safe regardless of storageKey content (no quote escaping issues); dropdown stacking is deterministic.
+- **Technical Detail**: 
+  - `finishProfileSetup()` now uses `_fbSetDoc(userRef, profileData, {merge:true})` instead of `_fbUpdateDoc`, which safely upserts on first login when the Firestore document may not exist yet.
+  - `showHint()` uses closure-based `addEventListener('click', ...)` instead of inline `onclick="dismissHint(this,'${storageKey}')"`, preventing quote escaping vulnerabilities.
+  - `.file-dropdown` z-index lowered to 9996 to resolve stacking ambiguity with `#loginScreen` (both at 9999).
+
 ## 2026-04-23 - User Onboarding Journey, Profile Setup, Welcome Tour, and Help Panel
 
 - **What**: Added full user onboarding journey — 2-step profile setup screen (`#profileSetupScreen`), 4-card welcome tour modal (`#welcomeTourModal`), contextual hint tooltip system (4 hints for Flashcards, Quiz, deck switch), and Help & Guide sidebar panel (`#helpPanel`) with 4 tabs (Getting Started quickstart, Features accordion, Tips & Shortcuts with keyboard shortcuts, Replay Tour).

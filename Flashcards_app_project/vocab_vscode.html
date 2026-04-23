@@ -1886,7 +1886,7 @@
     border: 1.5px solid var(--border);
     border-radius: 6px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    z-index: 9999;
+    z-index: 9996;
     min-width: 130px;
     overflow: hidden;
   }
@@ -3530,10 +3530,10 @@ function finishProfileSetup(skipped) {
   }
   lsSet('lexicon_profile', profile);
   lsSet('lexicon_profile_complete', true);
-  // Persist to Firestore if logged in
+  // Persist to Firestore if logged in (setDoc+merge to safely upsert even on first login)
   if (currentUser && window._fbSetDoc && window._fbDb) {
     const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
-    window._fbUpdateDoc(ref, { profile }).catch(() => {});
+    window._fbSetDoc(ref, { profile }, { merge: true }).catch(() => {});
   }
   document.getElementById('profileSetupScreen').style.display = 'none';
   startWelcomeTour();
@@ -3593,7 +3593,8 @@ function showHint(anchorSelector, text, storageKey) {
   const anchor = document.querySelector(anchorSelector);
   const hint = document.createElement('div');
   hint.className = 'ctx-hint';
-  hint.innerHTML = `<span class="ctx-hint-text">${text}</span><button class="ctx-hint-close" onclick="dismissHint(this,'${storageKey}')">×</button>`;
+  hint.innerHTML = `<span class="ctx-hint-text">${text}</span><button class="ctx-hint-close">×</button>`;
+  hint.querySelector('.ctx-hint-close').addEventListener('click', () => dismissHint(hint.querySelector('.ctx-hint-close'), storageKey));
   document.body.appendChild(hint);
 
   // Position below anchor or bottom-left of viewport as fallback
