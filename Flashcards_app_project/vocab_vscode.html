@@ -3823,7 +3823,7 @@ async function _fetchWordnik(word, key) {
   let usage = [];
   try {
     const exRes = await fetch(`${base}/examples?includeDuplicates=false&limit=2&api_key=${key}`);
-    if (exRes.ok) { const ex = await exRes.json(); usage = (ex.examples || []).map(e => e.text).slice(0, 2); }
+    if (exRes.ok) { const ex = await exRes.json(); usage = (ex.examples || []).map(e => e.text).filter(Boolean).slice(0, 2); }
   } catch(e) {}
 
   let synonyms = [], antonyms = [];
@@ -3929,8 +3929,8 @@ function openModal(id) {
   document.getElementById('mUsage').innerHTML = w.usage.map(u => `<div class="usage-item">"${u}"</div>`).join('');
 
   const oppSec = document.getElementById('mOppSec');
-  if (w.opposites.length) {
-    document.getElementById('mOpp').innerHTML = w.opposites.map(o => `<span class="tag opposite">${o}</span>`).join('');
+  if ((w.opposites || []).length) {
+    document.getElementById('mOpp').innerHTML = (w.opposites || []).map(o => `<span class="tag opposite">${o}</span>`).join('');
     oppSec.style.display = '';
   } else { oppSec.style.display = 'none'; }
 
@@ -4795,6 +4795,7 @@ function startFlashWithSelectedDecks() {
     baseQueue = baseQueue.filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; });
   }
 
+  _clearAutoFlipTimer();
   flashBaseQueue = [...baseQueue];
   _loadFlashStarred();
   flashQueue = shuffle(baseQueue);
@@ -4961,16 +4962,17 @@ async function startVocabQuizDirect() {
 
 async function _renderNqCard() {
   if (_nqIdx >= _nqQueue.length) { _showNqDone(); return; }
-  const item = _nqQueue[_nqIdx];
+  const cardIdx = _nqIdx;
+  const item = _nqQueue[cardIdx];
   const total = _nqQueue.length;
 
-  document.getElementById('quizCounter').textContent = `${_nqIdx + 1} / ${total}`;
-  document.getElementById('quizProgress').style.width = `${((_nqIdx + 1) / total) * 100}%`;
+  document.getElementById('quizCounter').textContent = `${cardIdx + 1} / ${total}`;
+  document.getElementById('quizProgress').style.width = `${((cardIdx + 1) / total) * 100}%`;
   document.getElementById('quizScore').textContent = `✓ ${_nqCorrect}   ✗ ${_nqWrong}`;
   document.getElementById('quizFeedback').className = 'quiz-feedback';
   document.getElementById('quizFeedback').textContent = '';
   document.getElementById('quizNextBtn').style.display = 'none';
-  document.getElementById('quizPrevArrow').disabled = (_nqIdx === 0);
+  document.getElementById('quizPrevArrow').disabled = (cardIdx === 0);
 
   if (_nqMode === 'notes') {
     document.getElementById('quizInstruction').textContent = 'Choose the correct answer';
@@ -4980,7 +4982,7 @@ async function _renderNqCard() {
     document.getElementById('quizQuestion').textContent = `What does "${item.word}" mean?`;
   }
 
-  if (!_nqTrack[_nqIdx]) {
+  if (!_nqTrack[cardIdx]) {
     document.getElementById('quizOptions').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;font-family:\'Plus Jakarta Sans\',system-ui,sans-serif;">Generating options…</div>';
     const correctText = _nqMode === 'notes' ? item.a : item.definition;
     const contextText = _nqMode === 'notes' ? item.q : item.word;
@@ -4989,10 +4991,10 @@ async function _renderNqCard() {
       { id: 'correct', text: correctText, isCorrect: true },
       ...distractors.map((d, i) => ({ id: 'w' + i, text: d, isCorrect: false }))
     ]);
-    _nqTrack[_nqIdx] = { opts, answered: false, selectedId: null, correct: null };
+    _nqTrack[cardIdx] = { opts, answered: false, selectedId: null, correct: null };
   }
 
-  const track = _nqTrack[_nqIdx];
+  const track = _nqTrack[cardIdx];
   document.getElementById('quizOptions').innerHTML = track.opts.map(opt => `
     <button class="quiz-option" id="nqopt-${opt.id}"
       onclick="selectNqOption('${opt.id}')"

@@ -1,5 +1,16 @@
 # Project Evolution Log
 
+## 2026-04-23 - Bug Fixes: Third Pass — Wordnik Usage Undefined, opposites Null, Timer Leak, Quiz Race Condition (Issues #26–#29)
+
+- **What**: Fixed 4 MAJOR bugs found in a third Haiku 4.5 review: undefined values in Wordnik usage array, `w.opposites` null crash in modal, stale autoflip timer on new flashcard session, and `_renderNqCard()` race condition storing distractors at wrong index
+- **Why**: GitHub issues #26–#29 documented silent data corruption (undefined usage sentences), a modal crash for Haiku-enriched words, timer bleed between sessions, and wrong quiz options appearing when navigating rapidly
+- **Impact**: Wordnik usage sentences are always valid strings; word modal opens reliably for all word types; starting a new flashcard session always clears the previous timer; quiz distractors are always stored at the card that requested them
+- **Technical Detail**:
+  - `_fetchWordnik()` ~3826: `.map(e => e.text).filter(Boolean)` — drops undefined entries
+  - `openModal()` ~3932: `(w.opposites || []).length` and `(w.opposites || []).map(...)` — null guard
+  - `startFlashWithSelectedDecks()` ~4798: `_clearAutoFlipTimer()` added before resetting state
+  - `_renderNqCard()` ~4962: captured `const cardIdx = _nqIdx` at function entry; all `_nqTrack[_nqIdx]` inside async block replaced with `_nqTrack[cardIdx]`
+
 ## 2026-04-23 - Bug Fixes: Second Pass — Timer Leak, Index Bounds, Stats Null Guard (Issues #20–#24)
 
 - **What**: Fixed 5 bugs found in a second Haiku 4.5 review pass: null array guard on `wordData.usage`, undefined guard on `wordData.types`, auto-flip timer leak on overlay close, quiz next-button index overflow, and missing perf null guard in `renderStats()`
