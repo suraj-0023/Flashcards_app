@@ -101,7 +101,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 
 ## 6. Tech Stack
 
-- Single HTML file (`vocab_vscode.html`) — ~3300 lines
+- Single HTML file (`app.html`) — ~5800 lines
 - Firebase Auth (Google + email) via CDN
 - Firestore for cloud sync (single merged doc per user)
 - localStorage as primary store (works offline); namespaced by userId

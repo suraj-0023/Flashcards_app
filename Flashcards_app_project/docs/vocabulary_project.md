@@ -12,7 +12,7 @@ A personal vocabulary learning system built to store, study, and track progress 
 |---|---|
 | `vocabulary.json` | Master word directory — the single source of truth |
 | `vocab_claude.html` | Standalone app — works directly in Claude or any browser, no setup needed |
-| `vocab_vscode.html` | Fetch-based app — loads from `vocabulary.json`, for VS Code Live Server |
+| `app.html` | Fetch-based app — loads from `vocabulary.json`, Firebase Auth + Firestore cloud sync |
 
 ---
 
@@ -24,7 +24,7 @@ A personal vocabulary learning system built to store, study, and track progress 
 - Download and open `vocab_claude.html` in any browser — it just works
 
 ### Future Setup (VS Code / Local Server)cture the 
-- `vocab_vscode.html` fetches word data from `vocabulary.json` at runtime using `fetch()`
+- `app.html` fetches word data from `vocabulary.json` at runtime using `fetch()`
 - Both files must be in the same folder
 - Open with VS Code Live Server extension
 - To add new words: only update `vocabulary.json` — the app updates automatically on refresh

@@ -11,7 +11,7 @@ User Browser
 GitHub Pages (free CDN + HTTPS)
      │
      ▼
-/index.html  →  redirects to →  Flashcards_app_project/vocab_vscode.html
+/index.html  →  redirects to →  Flashcards_app_project/app.html
                                         │
                                         └── Firebase Auth + Firestore (untouched)
 ```
@@ -58,7 +58,7 @@ Every `git push` to `main` automatically updates the live site within ~60 second
 | File | Purpose |
 |---|---|
 | `/index.html` | Root redirect → sends users to the actual app |
-| `Flashcards_app_project/vocab_vscode.html` | The actual app (unchanged) |
+| `Flashcards_app_project/app.html` | The main app |
 
 ---
 

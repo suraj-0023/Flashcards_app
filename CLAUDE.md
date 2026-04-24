@@ -2,7 +2,17 @@
 
 ## GitHub Push Process
 
-**Every time the user says "push to GitHub" or "push the updates", follow ALL steps below without being asked.**
+**Every time the user says "push to GitHub" or "push the updates", delegate ALL steps below to a Haiku 4.5 subagent using the Agent tool with `model: "haiku"`.**
+
+Spawn the agent with a self-contained prompt that includes:
+- A summary of all changes made in this session (files changed, what and why)
+- Today's date
+- The repo details and credential instructions below
+- The full task list (Steps 0–3)
+
+The Haiku agent handles everything: updating docs, committing, pushing, and managing GitHub issues.
+
+---
 
 ### Step 0 — Update Documentation
 
@@ -125,6 +135,6 @@ chore:    tooling, config, deps
 
 ## Project Overview
 
-Single-file app (`Flashcards_app_project/vocab_vscode.html`) backed by Firebase Auth + Firestore.  
+Single-file app (`Flashcards_app_project/app.html`) backed by Firebase Auth + Firestore.  
 Vocabulary sourced from `vocabulary.json` and `quiz_words.json`.  
 User data (notes, custom cards, vocab, decks) stored in namespaced localStorage and synced to Firestore.
