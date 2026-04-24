@@ -10,6 +10,7 @@
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
   // ── FIREBASE CONFIG ──
   const firebaseConfig = {
@@ -25,6 +26,7 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const analytics = getAnalytics(app);
 
   // Expose to global scope for use in inline scripts
   window._fbAuth = auth;
@@ -40,6 +42,8 @@
   window._fbSetDoc = setDoc;
   window._fbUpdateDoc = updateDoc;
   window._fbOnAuthStateChanged = onAuthStateChanged;
+  window._fbAnalytics = analytics;
+  window._fbLogEvent = logEvent;
 
   // Auth state listener — called as soon as Firebase SDK is ready
   onAuthStateChanged(auth, (user) => {
@@ -85,6 +89,14 @@
     --sidebar-text: #1F2937;
     --sidebar-hover: #F0FDF4;
     --accent: #10B981;
+
+    /* Onboarding design tokens */
+    --tour-c-decks: #6366F1;
+    --tour-c-cards: #F59E0B;
+    --tour-c-quiz:  #EF4444;
+    --tour-c-notes: #10B981;
+    --onboard-shadow: 0 24px 64px rgba(17,24,39,0.18);
+    --tour-slide-dur: 0.28s;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1291,7 +1303,7 @@
   /* ── PROFILE SETUP SCREEN ── */
   #profileSetupScreen {
     position: fixed; inset: 0;
-    background: var(--bg);
+    background: rgba(17,24,39,0.45);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1300,13 +1312,13 @@
   }
   .profile-setup-card {
     background: #fff;
-    border: 1px solid var(--border-2);
-    border-radius: 22px;
-    padding: 44px 38px;
+    border-radius: 24px;
+    padding: 44px 40px;
     max-width: 460px;
-    width: 100%;
-    box-shadow: 0 16px 48px rgba(17,24,39,0.1);
+    width: 94%;
+    box-shadow: var(--onboard-shadow);
     position: relative;
+    animation: onboardSlideUp 0.38s cubic-bezier(0.4,0,0.2,1);
   }
   .profile-setup-logo {
     font-size: 1.5rem; font-weight: 800; letter-spacing: -0.025em;
@@ -1315,18 +1327,43 @@
   .profile-setup-logo span { color: var(--emerald); }
   .profile-setup-subtitle {
     text-align: center; color: var(--muted); font-size: 13px;
-    font-weight: 500; margin-bottom: 28px;
+    font-weight: 500; margin-bottom: 24px;
   }
-  .profile-step-dots {
-    display: flex; justify-content: center; gap: 8px; margin-bottom: 28px;
+  /* Progress bar replaces dots */
+  .profile-progress-wrap {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
   }
-  .profile-step-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--border-2); transition: background 0.2s;
+  .profile-progress-track {
+    flex: 1; height: 4px; background: var(--border-2);
+    border-radius: 99px; overflow: hidden;
   }
-  .profile-step-dot.active { background: var(--emerald); }
+  .profile-progress-fill {
+    height: 100%; background: var(--emerald); border-radius: 99px;
+    width: 50%; transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  .profile-progress-label {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    letter-spacing: 0.06em; white-space: nowrap;
+  }
+  /* Step icon blocks */
+  .profile-step-icon {
+    width: 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px; flex-shrink: 0;
+  }
+  .profile-step-icon svg { width: 26px; height: 26px; stroke: #fff; }
+  .profile-step-icon--identity { background: linear-gradient(135deg,#6366F1,#818CF8); }
+  .profile-step-icon--target   { background: linear-gradient(135deg,#10B981,#34D399); }
+  /* Step transition classes */
   .profile-step { display: none; }
   .profile-step.active { display: block; }
+  .profile-step.entering  { display: block; animation: onboardSlideLeft  0.28s cubic-bezier(0.4,0,0.2,1) both; }
+  .profile-step.returning { display: block; animation: onboardSlideRight 0.28s cubic-bezier(0.4,0,0.2,1) both; }
+  /* Trust micro-copy */
+  .profile-trust-note {
+    font-size: 11px; color: var(--muted-2); text-align: center;
+    margin-top: -10px; margin-bottom: 14px; letter-spacing: 0.01em;
+  }
   .profile-step-title {
     font-size: 1.1rem; font-weight: 700; color: var(--text);
     margin-bottom: 20px;
@@ -1389,6 +1426,18 @@
   .profile-btn-back:hover { border-color: var(--text); color: var(--text); }
   .profile-custom-input-wrap { display: none; margin-top: 8px; }
   .profile-custom-input-wrap.show { display: block; }
+  /* Goal chips shake on validation fail */
+  .profile-goal-chips.shake { animation: shake 0.35s ease; }
+  @media (max-width: 600px) {
+    #profileSetupScreen { align-items: flex-end; background: rgba(17,24,39,0.5); }
+    .profile-setup-card {
+      border-radius: 24px 24px 0 0; width: 100%; max-width: 100%;
+      padding: 36px 24px calc(28px + env(safe-area-inset-bottom));
+      animation: sheetRise 0.42s cubic-bezier(0.22,1,0.36,1);
+    }
+    .profile-goal-chips { display: grid; grid-template-columns: 1fr 1fr; }
+    .profile-chip { min-height: 44px; display: flex; align-items: center; justify-content: center; text-align: center; }
+  }
 
   /* ── WELCOME TOUR MODAL ── */
   #welcomeTourModal {
@@ -1399,10 +1448,11 @@
   }
   .tour-card {
     background: #fff; border-radius: 24px;
-    padding: 40px 36px 32px;
-    max-width: 420px; width: 90%;
-    box-shadow: 0 24px 64px rgba(17,24,39,0.15);
+    padding: 32px 32px 28px;
+    max-width: 420px; width: 92%;
+    box-shadow: var(--onboard-shadow);
     position: relative; text-align: center;
+    animation: onboardSlideUp 0.38s cubic-bezier(0.4,0,0.2,1);
   }
   .tour-skip-btn {
     position: absolute; top: 16px; right: 20px;
@@ -1411,22 +1461,111 @@
     background: none; border: none; font-family: inherit;
   }
   .tour-skip-btn:hover { color: var(--text); }
+  /* Header row: progress text + dots */
+  .tour-header-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .tour-progress-text {
+    font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.06em;
+  }
   .tour-dots {
-    display: flex; justify-content: center; gap: 8px; margin-bottom: 28px;
+    display: flex; gap: 6px;
   }
   .tour-dot {
     width: 8px; height: 8px; border-radius: 50%;
-    background: var(--border-2); transition: background 0.2s, width 0.2s;
+    background: var(--border-2); transition: background 0.25s, width 0.25s;
   }
   .tour-dot.active { background: var(--emerald); width: 24px; border-radius: 4px; }
-  .tour-icon { font-size: 3.5rem; margin-bottom: 16px; }
+  /* Hero illustration area */
+  .tour-hero {
+    width: 100%; height: 180px; border-radius: 20px;
+    overflow: hidden; margin-bottom: 18px; position: relative;
+    transition: background 0.3s ease;
+  }
+  /* Decks hero — 3 stacked floating cards */
+  .tour-hero-decks {
+    background: radial-gradient(circle at 30% 40%, #C7D2FE, #818CF8);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tour-hero-decks .deck-stack { position: relative; width: 100px; height: 80px; }
+  .tour-hero-decks .deck-card {
+    position: absolute; width: 90px; height: 60px; border-radius: 10px;
+    background: rgba(255,255,255,0.35); border: 1.5px solid rgba(255,255,255,0.5);
+  }
+  .tour-hero-decks .deck-card:nth-child(1) { top:16px; left:0; transform: rotate(-8deg); animation: deckFloat 3.2s ease-in-out infinite; }
+  .tour-hero-decks .deck-card:nth-child(2) { top:8px; left:5px; transform: rotate(-3deg); animation: deckFloat 3.2s ease-in-out 0.4s infinite; }
+  .tour-hero-decks .deck-card:nth-child(3) { top:0; left:10px; transform: rotate(2deg); animation: deckFloat 3.2s ease-in-out 0.8s infinite; }
+  /* Flashcards hero — single flipping card */
+  .tour-hero-cards {
+    background: radial-gradient(circle at 70% 30%, #FDE68A, #F59E0B);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tour-hero-cards .flip-card {
+    width: 120px; height: 80px; border-radius: 12px;
+    background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 800; color: #92400E; letter-spacing: -0.01em;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .tour-hero-cards .flip-card.do-flip { animation: cardFlip 0.9s cubic-bezier(0.4,0,0.2,1) both; }
+  /* Quiz hero — 4 answer bars */
+  .tour-hero-quiz {
+    background: radial-gradient(circle at 30% 60%, #FCA5A5, #EF4444);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0 28px;
+  }
+  .tour-quiz-bar {
+    height: 12px; border-radius: 6px; background: rgba(255,255,255,0.35);
+    width: 0; opacity: 0;
+  }
+  .tour-quiz-bar.animate {
+    opacity: 1;
+    animation: barGrow 0.5s cubic-bezier(0.4,0,0.2,1) both;
+  }
+  .tour-quiz-bar.correct { background: rgba(255,255,255,0.95); --bar-w: 78%; }
+  .tour-quiz-bar:nth-child(1) { --bar-w: 55%; animation-delay: 0.0s; }
+  .tour-quiz-bar:nth-child(2) { --bar-w: 78%; animation-delay: 0.08s; }
+  .tour-quiz-bar:nth-child(3) { --bar-w: 40%; animation-delay: 0.16s; }
+  .tour-quiz-bar:nth-child(4) { --bar-w: 65%; animation-delay: 0.24s; }
+  /* Notes hero — typewriter on notepad */
+  .tour-hero-notes {
+    background: radial-gradient(circle at 60% 30%, #A7F3D0, #10B981);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tour-notepad {
+    width: 120px; background: rgba(255,255,255,0.9); border-radius: 10px;
+    padding: 12px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+  .tour-notepad-line {
+    height: 8px; border-radius: 4px; background: var(--border-2); margin-bottom: 8px;
+  }
+  .tour-notepad-line:last-child { margin-bottom: 0; }
+  .tour-notepad-cursor {
+    display: inline-block; width: 2px; height: 12px;
+    background: #10B981; margin-left: 2px; vertical-align: middle;
+    animation: cursorBlink 1s step-end infinite;
+  }
+  .tour-notepad-typed {
+    font-size: 9px; font-weight: 600; color: var(--text); white-space: nowrap;
+    overflow: hidden; display: inline-block;
+    max-width: 0; animation: wordType 1.2s steps(12) 0.3s both;
+  }
+  /* Slide content fade */
+  .tour-slide-content { transition: opacity var(--tour-slide-dur) ease; }
+  .tour-slide-content.fading { opacity: 0; pointer-events: none; }
+  /* Feature badge */
+  .tour-feature-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+    margin-bottom: 10px; transition: background 0.3s, color 0.3s;
+  }
   .tour-title {
-    font-size: 1.4rem; font-weight: 800; color: var(--text);
-    margin-bottom: 10px; letter-spacing: -0.02em;
+    font-size: 1.35rem; font-weight: 800; color: var(--text);
+    margin-bottom: 8px; letter-spacing: -0.02em;
   }
   .tour-desc {
-    font-size: 14px; color: var(--muted); line-height: 1.65;
-    margin-bottom: 28px;
+    font-size: 13.5px; color: var(--muted); line-height: 1.65;
+    margin-bottom: 24px;
   }
   .tour-nav {
     display: flex; gap: 10px; justify-content: center;
@@ -1442,6 +1581,77 @@
     background: none; border: 1.5px solid var(--border-2); color: var(--muted);
   }
   .tour-btn-secondary:hover { border-color: var(--text); color: var(--text); }
+  @media (max-width: 600px) {
+    #welcomeTourModal { align-items: flex-end; }
+    .tour-card {
+      border-radius: 24px 24px 0 0; width: 100%; max-width: 100%;
+      padding: 28px 20px calc(24px + env(safe-area-inset-bottom));
+      animation: sheetRise 0.42s cubic-bezier(0.22,1,0.36,1);
+    }
+    .tour-hero { height: 140px; }
+    .tour-btn-primary { flex: 1; }
+  }
+
+  /* ── ONBOARDING COMPLETE OVERLAY ── */
+  #onboardCompleteOverlay {
+    position: fixed; inset: 0;
+    background: rgba(255,247,237,0.96);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000; font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+  .onboard-complete-card {
+    background: #fff; border-radius: 24px;
+    padding: 48px 40px; max-width: 380px; width: 90%;
+    text-align: center; box-shadow: var(--onboard-shadow);
+    animation: onboardSlideUp 0.42s cubic-bezier(0.4,0,0.2,1);
+  }
+  .onboard-word-display {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 2.8rem; font-weight: 400; color: var(--text);
+    letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.15;
+    position: relative; display: inline-block;
+  }
+  .onboard-word-glow {
+    position: absolute; inset: -16px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(16,185,129,0.12), transparent 70%);
+    pointer-events: none;
+  }
+  .onboard-word-type-label {
+    font-size: 11px; font-weight: 700; color: var(--emerald);
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px;
+  }
+  .onboard-word-def {
+    font-size: 14px; color: var(--muted); line-height: 1.7;
+    margin-bottom: 28px; min-height: 48px;
+  }
+  .onboard-word-def .def-word {
+    display: inline-block; opacity: 0;
+    animation: wordFadeUp 0.4s ease both;
+  }
+  .onboard-streak-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--emerald-50); color: var(--emerald);
+    font-size: 12px; font-weight: 800; padding: 6px 14px;
+    border-radius: 20px; margin-bottom: 24px; letter-spacing: 0.02em;
+  }
+  .onboard-complete-btn {
+    width: 100%; padding: 14px; border-radius: 12px;
+    background: var(--emerald); color: #fff;
+    font-size: 14px; font-weight: 700; font-family: inherit;
+    cursor: pointer; border: none; margin-bottom: 10px;
+    transition: opacity 0.2s;
+  }
+  .onboard-complete-btn:hover { opacity: 0.88; }
+  .onboard-help-link {
+    background: none; border: none; font-size: 13px; color: var(--muted);
+    text-decoration: underline; cursor: pointer;
+    font-family: inherit; font-weight: 600;
+  }
+  .onboard-help-link:hover { color: var(--text); }
+  @media (max-width: 600px) {
+    .onboard-complete-card { padding: 36px 24px calc(32px + env(safe-area-inset-bottom)); }
+    .onboard-word-display { font-size: 2.2rem; }
+  }
 
   /* ── CONTEXTUAL HINT TOOLTIPS ── */
   .ctx-hint {
@@ -1458,6 +1668,17 @@
     animation: hintFadeIn 0.25s ease;
   }
   @keyframes hintFadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes onboardSlideUp { from { opacity:0; transform: translateY(24px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+  @keyframes onboardSlideLeft { from { opacity:0; transform: translateX(28px); } to { opacity:1; transform: translateX(0); } }
+  @keyframes onboardSlideRight { from { opacity:0; transform: translateX(-28px); } to { opacity:1; transform: translateX(0); } }
+  @keyframes shake { 0%,100% { transform:translateX(0); } 20% { transform:translateX(-6px); } 60% { transform:translateX(6px); } 80% { transform:translateX(-3px); } }
+  @keyframes deckFloat { 0%,100% { transform:translateY(0px) rotate(-6deg); } 50% { transform:translateY(-6px) rotate(-6deg); } }
+  @keyframes cardFlip { from { transform: perspective(800px) rotateY(-180deg) scale(0.9); opacity:0; } to { transform: perspective(800px) rotateY(0deg) scale(1); opacity:1; } }
+  @keyframes barGrow { from { width:0; } to { width:var(--bar-w,70%); } }
+  @keyframes cursorBlink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+  @keyframes wordType { from { width:0; } to { width:100%; } }
+  @keyframes wordFadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes sheetRise { from { transform:translateY(100%); } to { transform:translateY(0); } }
   .ctx-hint-text { flex: 1; }
   .ctx-hint-close {
     background: none; border: none; color: rgba(255,255,255,0.7);
@@ -1469,6 +1690,10 @@
     content: ''; position: absolute; top: -7px; left: 20px;
     border: 7px solid transparent;
     border-bottom-color: var(--text); border-top: none;
+  }
+  .ctx-hint.hint-above::before {
+    top: auto; bottom: -7px;
+    border-bottom: none; border-top: 7px solid var(--text);
   }
 
   /* ── HELP & GUIDE PANEL ── */
@@ -2636,18 +2861,25 @@
   <div class="profile-setup-card">
     <div class="profile-setup-logo">Lexi<span>con</span></div>
     <div class="profile-setup-subtitle">Let's personalise your experience</div>
-    <div class="profile-step-dots">
-      <div class="profile-step-dot active" id="profileDot0"></div>
-      <div class="profile-step-dot" id="profileDot1"></div>
+    <!-- Progress bar -->
+    <div class="profile-progress-wrap">
+      <div class="profile-progress-track">
+        <div class="profile-progress-fill" id="profileProgressFill"></div>
+      </div>
+      <div class="profile-progress-label" id="profileProgressLabel">Step 1 of 2 · ~30s</div>
     </div>
 
     <!-- Step 1: Identity & Goal -->
     <div class="profile-step active" id="profileStep0">
+      <div class="profile-step-icon profile-step-icon--identity">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
       <div class="profile-step-title">Tell us about you</div>
       <div class="profile-field-label">Your name</div>
       <input class="profile-input" type="text" id="profileName" placeholder="Display name" autocomplete="name"/>
-      <div class="profile-field-label">Primary goal</div>
-      <div class="profile-goal-chips">
+      <div class="profile-trust-note">We never share your info.</div>
+      <div class="profile-field-label">Primary goal <span style="color:var(--red);font-size:11px;">*</span></div>
+      <div class="profile-goal-chips" id="profileGoalChips">
         <button class="profile-chip" onclick="selectGoal(this,'exams')">📚 Study for exams</button>
         <button class="profile-chip" onclick="selectGoal(this,'vocabulary')">🔤 Build vocabulary</button>
         <button class="profile-chip" onclick="selectGoal(this,'professional')">💼 Professional reading</button>
@@ -2660,6 +2892,9 @@
     <!-- Step 2: Optional details -->
     <div class="profile-step" id="profileStep1">
       <button class="profile-skip-all" onclick="finishProfileSetup(true)">Skip all</button>
+      <div class="profile-step-icon profile-step-icon--target">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="white" stroke="none"/></svg>
+      </div>
       <div class="profile-step-title">A few more details <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(optional)</span></div>
       <div class="profile-field-label">Daily study target</div>
       <div class="profile-target-chips">
@@ -2681,7 +2916,7 @@
           <input class="profile-input" type="text" id="profileCity" placeholder="e.g. Mumbai"/>
         </div>
       </div>
-      <div class="profile-field-label">Mobile (optional)</div>
+      <div class="profile-field-label">Mobile <span style="font-weight:400;color:var(--muted-2);font-size:11px;">(optional, for study reminders)</span></div>
       <input class="profile-input" type="tel" id="profileMobile" placeholder="+91 00000 00000"/>
       <button class="profile-btn profile-btn-primary" onclick="finishProfileSetup(false)">Finish & Start →</button>
       <button class="profile-btn profile-btn-back" onclick="profilePrevStep()">← Back</button>
@@ -2693,19 +2928,46 @@
 <div id="welcomeTourModal" style="display:none;">
   <div class="tour-card">
     <button class="tour-skip-btn" onclick="closeTour()">Skip tour</button>
-    <div class="tour-dots" id="tourDots">
-      <div class="tour-dot active"></div>
-      <div class="tour-dot"></div>
-      <div class="tour-dot"></div>
-      <div class="tour-dot"></div>
+    <!-- Header: progress text + dots -->
+    <div class="tour-header-row">
+      <div class="tour-progress-text" id="tourProgressText">Step 1 of 4</div>
+      <div class="tour-dots" id="tourDots">
+        <div class="tour-dot active"></div>
+        <div class="tour-dot"></div>
+        <div class="tour-dot"></div>
+        <div class="tour-dot"></div>
+      </div>
     </div>
-    <div class="tour-icon" id="tourIcon">📚</div>
-    <div class="tour-title" id="tourTitle">Your Decks</div>
-    <div class="tour-desc" id="tourDesc">Organise vocabulary into decks — one per book, subject, or topic. Demo decks are already loaded to get you started.</div>
+    <!-- CSS-animated hero illustration -->
+    <div class="tour-hero tour-hero-decks" id="tourHero">
+      <div class="deck-stack">
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+      </div>
+    </div>
+    <!-- Feature badge + title + desc (all have tour-slide-content for fade) -->
+    <div class="tour-feature-badge tour-slide-content" id="tourFeatureBadge">Decks</div>
+    <div class="tour-title tour-slide-content" id="tourTitle">Your Decks</div>
+    <div class="tour-desc tour-slide-content" id="tourDesc">Organise vocabulary into decks — one per book, subject, or topic. Demo decks are already loaded to get you started.</div>
     <div class="tour-nav">
       <button class="tour-btn tour-btn-secondary" id="tourBackBtn" onclick="tourNav(-1)" style="display:none;">← Back</button>
       <button class="tour-btn tour-btn-primary" id="tourNextBtn" onclick="tourNav(1)">Next →</button>
     </div>
+  </div>
+</div>
+
+<!-- ── ONBOARDING COMPLETE OVERLAY ── -->
+<div id="onboardCompleteOverlay" style="display:none;">
+  <div class="onboard-complete-card">
+    <div class="onboard-word-display" id="onboardWord">
+      <div class="onboard-word-glow"></div>
+    </div>
+    <div class="onboard-word-type-label" id="onboardWordTypeLabel"></div>
+    <div class="onboard-word-def" id="onboardWordDef"></div>
+    <div class="onboard-streak-badge">Day 1 ✓</div>
+    <button class="onboard-complete-btn" onclick="dismissOnboardComplete()">Start Learning →</button>
+    <button class="onboard-help-link" onclick="onboardOpenHelp()">Open Help Guide first</button>
   </div>
 </div>
 
@@ -3369,6 +3631,17 @@ function savePerf() {
 }
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
+// ── ANALYTICS ──
+
+function trackEvent(name, params = {}) {
+  if (window._fbLogEvent && window._fbAnalytics) {
+    window._fbLogEvent(window._fbAnalytics, name, {
+      ...params,
+      uid: currentUser?.uid ?? 'guest'
+    });
+  }
+}
+
 // ── STORAGE LAYER (localStorage + optional Firestore) ──
 
 function getUserDataKey(key) {
@@ -3443,6 +3716,7 @@ async function pullFromCloud() {
       return false; // existing user
     }
     updateSyncBadge('synced');
+    trackEvent('user_signup', { method: currentUser?.providerData?.[0]?.providerId ?? 'unknown' });
     return true; // brand-new user, no doc in Firestore
   } catch(e) {
     console.warn('Cloud pull error:', e.message);
@@ -3500,18 +3774,35 @@ function selectTarget(btn, val) {
   }
 }
 
+function _setProfileStep(from, to, animClass) {
+  const stepFrom = document.getElementById('profileStep' + from);
+  const stepTo   = document.getElementById('profileStep' + to);
+  stepFrom.classList.remove('active');
+  stepTo.classList.add(animClass);
+  stepTo.addEventListener('animationend', () => stepTo.classList.remove(animClass), { once: true });
+  const fill  = document.getElementById('profileProgressFill');
+  const label = document.getElementById('profileProgressLabel');
+  const pct   = to === 0 ? 50 : 100;
+  if (fill)  fill.style.width = pct + '%';
+  if (label) label.textContent = 'Step ' + (to + 1) + ' of 2';
+}
+
 function profileNextStep() {
-  document.getElementById('profileStep0').classList.remove('active');
-  document.getElementById('profileStep1').classList.add('active');
-  document.getElementById('profileDot0').classList.remove('active');
-  document.getElementById('profileDot1').classList.add('active');
+  if (!_profileGoal) {
+    const chips = document.getElementById('profileGoalChips');
+    if (chips) {
+      chips.classList.remove('shake');
+      void chips.offsetWidth;
+      chips.classList.add('shake');
+      chips.addEventListener('animationend', () => chips.classList.remove('shake'), { once: true });
+    }
+    return;
+  }
+  _setProfileStep(0, 1, 'entering');
 }
 
 function profilePrevStep() {
-  document.getElementById('profileStep1').classList.remove('active');
-  document.getElementById('profileStep0').classList.add('active');
-  document.getElementById('profileDot1').classList.remove('active');
-  document.getElementById('profileDot0').classList.add('active');
+  _setProfileStep(1, 0, 'returning');
 }
 
 function finishProfileSetup(skipped) {
@@ -3535,17 +3826,52 @@ function finishProfileSetup(skipped) {
     const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
     window._fbSetDoc(ref, { profile }, { merge: true }).catch(() => {});
   }
-  document.getElementById('profileSetupScreen').style.display = 'none';
-  startWelcomeTour();
+  trackEvent('onboarding_profile_complete', { goal: profile.goal, skipped: !!skipped });
+  const fill = document.getElementById('profileProgressFill');
+  if (fill) fill.style.width = '100%';
+  setTimeout(() => {
+    document.getElementById('profileSetupScreen').style.display = 'none';
+    startWelcomeTour();
+  }, 300);
 }
 
 // ── ONBOARDING: WELCOME TOUR ──
 
 const TOUR_SLIDES = [
-  { icon: '📚', title: 'Your Decks', desc: 'Organise vocabulary into decks — one per book, subject, or topic. Demo decks are already loaded to get you started.' },
-  { icon: '🃏', title: 'Flashcards', desc: 'Flip cards to study definitions. Mark words correct or wrong to track your progress over time.' },
-  { icon: '🎯', title: 'Quiz Mode', desc: 'Test yourself with 4-option quizzes. Choose Easy, Medium, or Hard difficulty to match your level.' },
-  { icon: '📝', title: 'Notes & Custom Cards', desc: 'Write study notes per deck and create your own flashcards for any topic. Notes can even be turned into a quiz with AI.' },
+  {
+    heroClass: 'tour-hero-decks',
+    heroHTML: '<div class="deck-stack"><div class="deck-card"></div><div class="deck-card"></div><div class="deck-card"></div></div>',
+    label: 'Decks', accentColor: 'var(--tour-c-decks)',
+    title: 'Your Decks',
+    desc: 'Organise vocabulary into decks — one per book, subject, or topic. Demo decks are already loaded to get you started.',
+    goalDesc: {
+      exams: 'Stack decks by exam section — stack one per subject or test category.',
+      vocabulary: 'Group words by theme — a deck per source, genre, or word family.',
+      professional: 'Build a deck per book or report. Keep domain vocab at your fingertips.',
+      language: 'Organise by grammar topic, lesson, or frequency tier.',
+    },
+  },
+  {
+    heroClass: 'tour-hero-cards',
+    heroHTML: '<div class="flip-card do-flip">WORD</div>',
+    label: 'Flashcards', accentColor: 'var(--tour-c-cards)',
+    title: 'Flashcards',
+    desc: 'Flip cards to study definitions. Mark words correct or wrong to track your progress over time.',
+  },
+  {
+    heroClass: 'tour-hero-quiz',
+    heroHTML: '<div class="tour-quiz-bar animate"></div><div class="tour-quiz-bar animate correct"></div><div class="tour-quiz-bar animate"></div><div class="tour-quiz-bar animate"></div>',
+    label: 'Quiz', accentColor: 'var(--tour-c-quiz)',
+    title: 'Quiz Mode',
+    desc: 'Test yourself with 4-option quizzes. Choose Easy, Medium, or Hard difficulty to match your level.',
+  },
+  {
+    heroClass: 'tour-hero-notes',
+    heroHTML: '<div class="tour-notepad"><div class="tour-notepad-line"></div><div style="margin-bottom:8px"><span class="tour-notepad-typed">perspicacious</span><span class="tour-notepad-cursor"></span></div><div class="tour-notepad-line" style="width:60%"></div></div>',
+    label: 'Notes', accentColor: 'var(--tour-c-notes)',
+    title: 'Notes & Custom Cards',
+    desc: 'Write study notes per deck and create your own flashcards. Notes can even be turned into a quiz with AI.',
+  },
 ];
 let _tourIdx = 0;
 
@@ -3556,24 +3882,52 @@ function startWelcomeTour() {
   document.getElementById('welcomeTourModal').style.display = 'flex';
 }
 
-function renderTourSlide(idx) {
+let _tourNavLocked = false;
+
+function renderTourSlide(idx, instant) {
   const slide = TOUR_SLIDES[idx];
-  document.getElementById('tourIcon').textContent = slide.icon;
-  document.getElementById('tourTitle').textContent = slide.title;
-  document.getElementById('tourDesc').textContent = slide.desc;
-  // Dots
-  document.querySelectorAll('.tour-dot').forEach((d, i) => {
-    d.classList.toggle('active', i === idx);
-  });
-  // Nav buttons
-  const backBtn = document.getElementById('tourBackBtn');
-  const nextBtn = document.getElementById('tourNextBtn');
-  backBtn.style.display = idx === 0 ? 'none' : 'inline-block';
-  const isLast = idx === TOUR_SLIDES.length - 1;
-  nextBtn.textContent = isLast ? "Let's go! 🎉" : 'Next →';
+  const hero = document.getElementById('tourHero');
+  const fadeEls = document.querySelectorAll('.tour-slide-content');
+
+  function _applySlide() {
+    // Hero
+    if (hero) {
+      hero.className = 'tour-hero ' + slide.heroClass;
+      hero.innerHTML = slide.heroHTML || '';
+    }
+    // Badge
+    const badge = document.getElementById('tourFeatureBadge');
+    if (badge) {
+      badge.textContent = slide.label;
+      badge.style.background = slide.accentColor + '22';
+      badge.style.color = slide.accentColor;
+    }
+    // Goal-aware desc
+    const goalDesc = slide.goalDesc && _profileGoal ? slide.goalDesc[_profileGoal] : null;
+    document.getElementById('tourTitle').textContent = slide.title;
+    document.getElementById('tourDesc').textContent = goalDesc || slide.desc;
+    document.getElementById('tourProgressText').textContent = 'Step ' + (idx + 1) + ' of ' + TOUR_SLIDES.length;
+    // Dots
+    document.querySelectorAll('.tour-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+    // Nav
+    const backBtn = document.getElementById('tourBackBtn');
+    const nextBtn = document.getElementById('tourNextBtn');
+    backBtn.style.display = idx === 0 ? 'none' : 'inline-block';
+    nextBtn.textContent = idx === TOUR_SLIDES.length - 1 ? "Let's go! 🎉" : 'Next →';
+    // Fade back in
+    fadeEls.forEach(el => el.classList.remove('fading'));
+    _tourNavLocked = false;
+  }
+
+  if (instant) { _applySlide(); return; }
+  // Fade out → swap → fade in
+  _tourNavLocked = true;
+  fadeEls.forEach(el => el.classList.add('fading'));
+  setTimeout(_applySlide, 200);
 }
 
 function tourNav(dir) {
+  if (_tourNavLocked) return;
   const next = _tourIdx + dir;
   if (next >= TOUR_SLIDES.length) { closeTour(); return; }
   if (next < 0) return;
@@ -3581,9 +3935,95 @@ function tourNav(dir) {
   renderTourSlide(_tourIdx);
 }
 
+// Swipe support on the tour card
+(function() {
+  let _tx = 0;
+  document.addEventListener('touchstart', e => {
+    const card = e.target.closest('.tour-card');
+    if (card) _tx = e.touches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const card = e.target.closest('.tour-card');
+    if (!card) return;
+    const dx = e.changedTouches[0].clientX - _tx;
+    if (Math.abs(dx) > 50) tourNav(dx < 0 ? 1 : -1);
+  }, { passive: true });
+})();
+
 function closeTour() {
   lsSet('lexicon_tour_complete', true);
+  trackEvent('onboarding_tour_complete', { slides_seen: _tourIdx + 1 });
   document.getElementById('welcomeTourModal').style.display = 'none';
+  const profile = lsGet('lexicon_profile', {});
+  showOnboardComplete(profile);
+}
+
+// ── ONBOARDING: COMPLETION CEREMONY ──
+
+const GOAL_FIRST_WORDS = {
+  exams:        { word: 'perspicacious', type: 'adjective', def: 'having a ready insight into things; shrewd and discerning.' },
+  vocabulary:   { word: 'mellifluous',  type: 'adjective', def: 'sweet or musical; pleasant to hear.' },
+  professional: { word: 'salient',      type: 'adjective', def: 'most noticeable or important; prominent.' },
+  language:     { word: 'loquacious',   type: 'adjective', def: 'tending to talk a great deal; talkative.' },
+  other:        { word: 'serendipity',  type: 'noun',      def: 'the occurrence of events by chance in a happy or beneficial way.' },
+};
+
+function showOnboardComplete(profile) {
+  const overlay = document.getElementById('onboardCompleteOverlay');
+  if (!overlay) return;
+  const entry = GOAL_FIRST_WORDS[profile?.goal] || GOAL_FIRST_WORDS['other'];
+  // Typewriter on word
+  const wordEl = document.getElementById('onboardWord');
+  if (wordEl) {
+    wordEl.innerHTML = '<div class="onboard-word-glow"></div>';
+    const span = document.createElement('span');
+    span.textContent = '';
+    wordEl.appendChild(span);
+    let i = 0;
+    const type = () => {
+      if (i <= entry.word.length) {
+        span.textContent = entry.word.slice(0, i);
+        i++;
+        setTimeout(type, 70);
+      }
+    };
+    setTimeout(type, 300);
+  }
+  // Type label
+  const typeLabel = document.getElementById('onboardWordTypeLabel');
+  if (typeLabel) typeLabel.textContent = entry.type;
+  // Staggered definition words
+  const defEl = document.getElementById('onboardWordDef');
+  if (defEl) {
+    defEl.innerHTML = entry.def.split(' ').map((w, i) =>
+      `<span class="def-word" style="animation-delay:${0.8 + i * 0.07}s">${w}&nbsp;</span>`
+    ).join('');
+  }
+  overlay.style.display = 'flex';
+}
+
+function dismissOnboardComplete() {
+  const overlay = document.getElementById('onboardCompleteOverlay');
+  if (overlay) overlay.style.display = 'none';
+  applyProfileToUI();
+}
+
+function onboardOpenHelp() {
+  dismissOnboardComplete();
+  setTimeout(() => { switchHelpTab(0); openHelpPanel(); }, 200);
+}
+
+// ── PROFILE: APPLY TO UI ──
+
+function applyProfileToUI() {
+  const profile = lsGet('lexicon_profile', {});
+  // Sidebar display name
+  const nameEl = document.getElementById('sidebarProfileName');
+  if (nameEl && profile.displayName) nameEl.textContent = profile.displayName;
+  // Goal badge in sidebar (if present)
+  const GOAL_LABELS = { exams:'Exam Prep', vocabulary:'Vocabulary', professional:'Professional', language:'Language', other:'General' };
+  const goalEl = document.getElementById('sidebarProfileGoal');
+  if (goalEl && profile.goal) goalEl.textContent = GOAL_LABELS[profile.goal] || profile.goal;
 }
 
 // ── ONBOARDING: CONTEXTUAL HINTS ──
@@ -3600,8 +4040,17 @@ function showHint(anchorSelector, text, storageKey) {
   // Position below anchor or bottom-left of viewport as fallback
   if (anchor) {
     const r = anchor.getBoundingClientRect();
-    hint.style.top = (r.bottom + 12) + 'px';
-    hint.style.left = Math.max(12, Math.min(r.left, window.innerWidth - 300)) + 'px';
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const hintW = Math.min(280, vw - 24);
+    hint.style.maxWidth = hintW + 'px';
+    let top  = r.bottom + 12;
+    let left = Math.max(12, Math.min(r.left, vw - hintW - 12));
+    if (top + 80 > vh) {
+      top = Math.max(12, r.top - 90);
+      hint.classList.add('hint-above');
+    }
+    hint.style.top  = top + 'px';
+    hint.style.left = left + 'px';
   } else {
     hint.style.bottom = '80px'; hint.style.left = '24px';
     hint.style.removeProperty('top');
@@ -3613,6 +4062,7 @@ function showHint(anchorSelector, text, storageKey) {
 
 function dismissHint(closeBtn, storageKey) {
   lsSet(storageKey, true);
+  trackEvent('hint_dismissed', { hint_key: storageKey });
   const hint = closeBtn.closest('.ctx-hint');
   if (hint) { clearTimeout(hint._timer); hint.remove(); }
 }
@@ -3703,6 +4153,7 @@ const HELP_TABS_CONTENT = [
 let _helpTabIdx = 0;
 
 function openHelpPanel() {
+  trackEvent('help_panel_open');
   document.getElementById('helpPanel').classList.add('open');
   renderHelpTab(_helpTabIdx);
 }
@@ -3748,6 +4199,7 @@ window.handleAuthState = async function(user) {
     // STEP 2: Load the app instantly using saved local data
     await loadVocab();
     renderSidebarProfile(user);
+    applyProfileToUI();
 
     // STEP 2b: Show profile setup on first login, else show tour if pending
     if (!lsGet('lexicon_profile_complete', false)) {
@@ -3948,6 +4400,7 @@ async function handleForgotPassword() {
 }
 
 async function handleSignOut() {
+  trackEvent('sign_out');
   if (window._fbAuth && currentUser) {
     await window._fbSignOut(window._fbAuth);
   }
@@ -5169,6 +5622,7 @@ function updateLevelBtnLabels() {
 }
 
 function startQuiz(level) {
+  trackEvent('quiz_session_start', { level, project_id: currentProjectId });
   quizLevel = level;
   quizInProgress = true;
 
@@ -5333,6 +5787,14 @@ function nextQuiz() {
 function showQuizDone() {
   quizInProgress = false;
   quizStates[quizLevel] = null; // Clear saved state for this level when completed
+  const _total = quizCorrect + quizWrong;
+  trackEvent('quiz_session_complete', {
+    level: quizLevel,
+    project_id: currentProjectId,
+    score: quizCorrect,
+    total: _total,
+    pct: _total ? Math.round((quizCorrect / _total) * 100) : 0
+  });
   document.getElementById('quizArea').style.display = 'none';
   document.getElementById('quizDone').style.display = 'block';
   const total = quizCorrect + quizWrong;
@@ -5457,6 +5919,7 @@ function _updateStartPracticeBtn() {
 
 function startFlashWithSelectedDecks() {
   if (selectedDeckIds.size === 0) return;
+  trackEvent('flashcard_session_start', { deck_ids: [...selectedDeckIds].join(','), project_id: currentProjectId });
 
   let baseQueue = [];
   if (selectedDeckIds.has('all')) {

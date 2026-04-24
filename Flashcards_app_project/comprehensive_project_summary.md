@@ -79,9 +79,10 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
   2. Quiz — 3-tier difficulty (Easy/Medium/Hard), intelligent distractor selection, multi-level progression
 - **Stats**: Per-word accuracy breakdown across quiz and flashcard modes; visual accuracy indicators on library cards
 - **Onboarding & Help System** (Apr 2026):
-  - **Profile Setup Screen**: 2-step flow (Google-prefilled name + goal selection → daily target/age/city/mobile). Shown once after first login.
-  - **Welcome Tour Modal**: 4 paginated cards (Decks, Flashcards, Quiz, Notes) with progress dots and navigation controls.
-  - **Contextual Hints**: Non-blocking tooltips on first use of Flashcards, Quiz, deck switching, and Notes. Auto-dismiss after 6s.
+  - **Profile Setup Screen**: 2-step flow (Google-prefilled name + goal selection → daily target/age/city/mobile). Redesigned Apr 24 with animated progress bar, gradient step icons, goal validation with shake animation, directional slide transitions, and mobile bottom-sheet layout. Shown once after first login.
+  - **Welcome Tour Modal**: 4 paginated cards (Decks, Flashcards, Quiz, Notes) redesigned Apr 24 with CSS-animated hero illustrations per slide (floating deck cards, 3D flip card, cascading quiz bars, typewriter notepad), per-slide accent badges, swipe gestures, and goal-aware copy. Navigation with progress dots and controls.
+  - **Onboarding Completion**: New first-word ceremony overlay (Apr 24) with serif typewriter effect, word-by-word definition stagger animation, and Day 1 streak badge celebration.
+  - **Contextual Hints**: Non-blocking tooltips on first use of Flashcards, Quiz, deck switching, and Notes. Auto-dismiss after 6s. Apr 24 fix: hint viewport clamp prevents overflow.
   - **Help & Guide Sidebar Panel**: 4 tabs (Getting Started quickstart, Features accordion, Tips & Shortcuts with keyboard shortcuts, Replay Tour to reset and restart tour).
 
 ---
@@ -141,4 +142,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 23, 2026* (Onboarding & Help System)
+*Last Updated: April 24, 2026* (Onboarding UX Redesign with CSS Animations)

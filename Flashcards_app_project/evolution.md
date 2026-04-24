@@ -1,5 +1,15 @@
 # Project Evolution Log
 
+## 2026-04-24 — feat: redesign user onboarding experience
+
+**What:** Overhauled all onboarding screens — Profile Setup (animated progress bar replacing step dots, gradient step icons, goal validation with shake animation, directional slide transitions, trust micro-copy, mobile bottom-sheet), Welcome Tour (4 CSS-animated hero illustrations per slide: floating deck cards, 3D flip card, cascading quiz bars, typewriter notepad; per-slide accent badge, swipe gestures, goal-aware copy), and Onboarding Completion (first-word ceremony overlay: serif typewriter, word-by-word definition stagger, Day 1 streak badge).
+
+**Why:** User requested a premium, design-elevated onboarding flow. Existing onboarding used basic emoji icons and step dots with no animation or visual hierarchy. Opus 4.7 and Sonnet 4.6 collaborated to design the approach.
+
+**Impact:** First-time users now experience a warm, premium onboarding that matches the app's literate aesthetic. Mobile users get bottom-sheet layouts. Goal selection data now surfaces in the UI via applyProfileToUI(). Hints no longer overflow viewport.
+
+**Technical Detail:** New CSS keyframes (onboardSlideUp, cardFlip, deckFloat, barGrow, cursorBlink, wordType, wordFadeUp, sheetRise, shake); CSS tokens --tour-c-decks/cards/quiz/notes, --onboard-shadow; JS: _setProfileStep(), renderTourSlide() rewrite with fade+hero swap, showOnboardComplete() with GOAL_FIRST_WORDS map, applyProfileToUI(), hint viewport clamp; new HTML: #onboardCompleteOverlay, .tour-hero with 4 CSS illustration variants. All in Flashcards_app_project/app.html.
+
 ## 2026-04-23 - Bug Fixes: Onboarding — Firestore Upsert, Hint Onclick Safety, Z-Index Conflict
 
 - **What**: Fixed 3 bugs in onboarding code: Firestore upsert in `finishProfileSetup` (changed `_fbUpdateDoc` to `_fbSetDoc` with `{merge:true}`), unsafe inline onclick in `showHint` replaced with `addEventListener` for safe closure-based handling, z-index conflict on `.file-dropdown` resolved (9999→9996).
