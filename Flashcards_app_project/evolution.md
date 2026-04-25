@@ -1,5 +1,22 @@
 # Project Evolution Log
 
+## 2026-04-25 — fix: upgrade Gemini model from gemini-1.5-flash to gemini-2.0-flash
+
+### What
+- Updated all 4 Gemini API endpoint URLs in `app.html` from deprecated `gemini-1.5-flash` model to `gemini-2.0-flash`
+- Affected 4 fetch calls: word enrichment, distractor generation, image scanning, image vocab modal enrichment
+
+### Why
+`gemini-1.5-flash` model was retired and returning "model not found" errors when users tried to upload/scan images or generate enrichment data. The newer `gemini-2.0-flash` model provides the same vision and text capabilities with improved stability.
+
+### Impact
+Image scanning/upload feature is now fully functional again. All AI-powered features (word enrichment, image vocab extraction, quiz distractor generation) working without errors.
+
+### Technical Detail
+- Updated URL strings in fetch calls at lines ~6851, ~7051, ~7183, ~7988 in `app.html`
+- Changed `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent` to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
+- No function signatures or API request/response formats changed; direct model ID substitution only
+
 ## 2026-04-25 — refactor: replace Anthropic with Gemini Flash, hardcode API key
 
 ### What
