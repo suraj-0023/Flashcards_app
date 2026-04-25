@@ -31,6 +31,7 @@ Include both files in the same commit as the code changes.
 ### Step 1 — Commit & Push
 
 ```bash
+git pull --rebase origin main    # always sync with remote before committing
 git add <changed files>          # stage specific files, never git add -A blindly
 git commit -m "type: message"    # follow Conventional Commits (feat/fix/docs/refactor)
 git push origin main

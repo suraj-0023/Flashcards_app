@@ -1,5 +1,35 @@
 # Project Evolution Log
 
+## 2026-04-25 — refactor: replace Anthropic with Gemini Flash, hardcode API key
+
+### What
+- Replaced all Anthropic/Claude Haiku API calls with Gemini 1.5 Flash (4 fetch sites: word enrichment, distractor generation, image scanning, image vocab modal enrichment)
+- Added `GEMINI_API_KEY` constant at top of `<script>` block — single source of truth for all Gemini calls
+- Word enrichment (IPA, definition, usage) now always runs via Gemini 1.5 Flash; no longer requires user to provide an Anthropic key
+- Quiz distractor generation switched from Anthropic to Gemini Flash
+- Removed Gemini and Anthropic API key input fields from UI (Gemini input removed from Scan Page AI modal; Anthropic input removed from Quiz section)
+- Removed all localStorage reads/writes for `gemini_key` and `anthropic_key`; verified zero remaining refs
+- Code quality fixes: `_previewVocabWord` moved from `window` to module-level; stale event handler cleanup in `editImageWord` and `showImageVocabModal`; `.catch()` added to `acceptImageWord`
+
+### Why
+User requested the app work out-of-the-box without manual API key entry. Temporary solution: developer's Gemini API key hardcoded as a constant (TODO: migrate to Cloudflare Workers for true security). Unified all AI calls under a single provider (Gemini) to simplify maintenance and improve reliability.
+
+### Impact
+App now fully functional without users entering any API keys. Word enrichment, image scanning, and quiz distractors all powered by Gemini Flash automatically. Reduced cognitive load and improved first-time user experience.
+
+### Technical Detail
+- `const GEMINI_API_KEY` declared at top of `<script>` block; used in 4 fetch URLs: `_haikuEnrichWord()`, `_callAnthropicDistractors()`, `processImage()`, `generateVocabFromImage()`
+- `_haikuEnrichWord()`: Anthropic fetch replaced with Gemini fetch; function signature and output unchanged (`{phonetic, definition, usage}`)
+- `_callAnthropicDistractors()`: Anthropic fetch replaced with Gemini fetch; fallback to `_fallbackDistractors()` preserved
+- `addWords()`: removed `if (anthropicKey)` gate that blocked Tier 3 enrichment; now enrichment always runs
+- `processImage()`: removed `localStorage.getItem('gemini_key')` and `localStorage.setItem('gemini_key', ...)` calls; uses `GEMINI_API_KEY` constant
+- `generateVocabFromImage()`: removed `localStorage.getItem('gemini_key')` and "no key found" alert; uses `GEMINI_API_KEY` constant
+- Deleted `#geminiApiKey` input from AI modal (Scan Page)
+- Deleted `#anthropicApiKey` input from Quiz section
+- `_previewVocabWord` moved from `window._previewVocabWord` to module-level `let`; prevents namespace pollution
+- Event handler cleanup: `editImageWord()` removes old click listener before adding new one; `showImageVocabModal()` cleanup before modal display
+- File changed: `Flashcards_app_project/app.html`
+
 ## 2026-04-25 — feat: word preview before saving and image vocab review modal
 
 ### What
