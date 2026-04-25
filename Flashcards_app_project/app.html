@@ -3779,12 +3779,12 @@ function _setProfileStep(from, to, animClass) {
   const stepTo   = document.getElementById('profileStep' + to);
   stepFrom.classList.remove('active');
   stepTo.classList.add(animClass);
-  stepTo.addEventListener('animationend', () => stepTo.classList.remove(animClass), { once: true });
+  stepTo.addEventListener('animationend', () => { stepTo.classList.remove(animClass); stepTo.classList.add('active'); }, { once: true });
   const fill  = document.getElementById('profileProgressFill');
   const label = document.getElementById('profileProgressLabel');
   const pct   = to === 0 ? 50 : 100;
   if (fill)  fill.style.width = pct + '%';
-  if (label) label.textContent = 'Step ' + (to + 1) + ' of 2';
+  if (label) label.textContent = 'Step ' + Math.min(to + 1, 2) + ' of 2';
 }
 
 function profileNextStep() {
@@ -3937,16 +3937,17 @@ function tourNav(dir) {
 
 // Swipe support on the tour card
 (function() {
-  let _tx = 0;
+  let _tx = 0, _ty = 0;
   document.addEventListener('touchstart', e => {
     const card = e.target.closest('.tour-card');
-    if (card) _tx = e.touches[0].clientX;
+    if (card) { _tx = e.touches[0].clientX; _ty = e.touches[0].clientY; }
   }, { passive: true });
   document.addEventListener('touchend', e => {
     const card = e.target.closest('.tour-card');
     if (!card) return;
     const dx = e.changedTouches[0].clientX - _tx;
-    if (Math.abs(dx) > 50) tourNav(dx < 0 ? 1 : -1);
+    const dy = e.changedTouches[0].clientY - _ty;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) tourNav(dx < 0 ? 1 : -1);
   }, { passive: true });
 })();
 
@@ -4023,7 +4024,10 @@ function applyProfileToUI() {
   // Goal badge in sidebar (if present)
   const GOAL_LABELS = { exams:'Exam Prep', vocabulary:'Vocabulary', professional:'Professional', language:'Language', other:'General' };
   const goalEl = document.getElementById('sidebarProfileGoal');
-  if (goalEl && profile.goal) goalEl.textContent = GOAL_LABELS[profile.goal] || profile.goal;
+  if (goalEl && profile.goal) {
+    goalEl.textContent = GOAL_LABELS[profile.goal] || profile.goal;
+    goalEl.style.display = '';
+  }
 }
 
 // ── ONBOARDING: CONTEXTUAL HINTS ──
@@ -4043,10 +4047,11 @@ function showHint(anchorSelector, text, storageKey) {
     const vw = window.innerWidth, vh = window.innerHeight;
     const hintW = Math.min(280, vw - 24);
     hint.style.maxWidth = hintW + 'px';
+    const hintH = hint.getBoundingClientRect().height || 90;
     let top  = r.bottom + 12;
     let left = Math.max(12, Math.min(r.left, vw - hintW - 12));
-    if (top + 80 > vh) {
-      top = Math.max(12, r.top - 90);
+    if (top + hintH + 4 > vh) {
+      top = Math.max(12, r.top - hintH - 8);
       hint.classList.add('hint-above');
     }
     hint.style.top  = top + 'px';
@@ -4267,7 +4272,8 @@ function renderSidebarProfile(user) {
       <div class="profile-user">
         ${avatarHtml}
         <div class="profile-info">
-          <div class="profile-name">${user.displayName || user.email}</div>
+          <div class="profile-name"><span id="sidebarProfileName">${user.displayName || user.email}</span></div>
+          <div id="sidebarProfileGoal" class="profile-goal-badge" style="display:none;font-size:0.72rem;color:var(--muted);margin-top:2px;"></div>
           <div class="profile-status synced" id="sidebarSyncStatus">
             <span class="cloud-badge" id="sidebarSyncBadge">☁ synced</span>
           </div>
@@ -4276,6 +4282,7 @@ function renderSidebarProfile(user) {
       <button class="profile-signout-btn" onclick="handleSignOut()">Sign out</button>
       <div class="version-label">Lexicon v2.0</div>
     `;
+    applyProfileToUI();
   } else {
     profile.innerHTML = `
       <button class="profile-signin-btn" onclick="openLoginScreen()">

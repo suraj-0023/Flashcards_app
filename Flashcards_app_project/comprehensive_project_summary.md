@@ -142,4 +142,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 24, 2026* (Onboarding UX Redesign with CSS Animations)
+*Last Updated: April 25, 2026* (Onboarding Funnel Bug Fixes)

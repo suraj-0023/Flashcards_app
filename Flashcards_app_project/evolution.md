@@ -1,5 +1,20 @@
 # Project Evolution Log
 
+## 2026-04-25 — Fix: Onboarding funnel bug fixes (5 issues)
+
+**What**: Fixed five bugs in the onboarding funnel:
+1. Step 2 disappeared after slide-in animation (missing `active` class post-`animationend`)
+2. `applyProfileToUI()` silently no-oped — `#sidebarProfileName`/`#sidebarProfileGoal` never existed in HTML; injected both into `renderSidebarProfile()` template and call `applyProfileToUI()` after render
+3. Swipe gesture on tour fired on diagonal scrolls — added vertical-drift guard (`|dx| > |dy|`)
+4. `showHint()` flip used hardcoded 80px height — replaced with measured `getBoundingClientRect().height`
+5. Progress label `Step X of 2` had no clamp — added `Math.min(to + 1, 2)`
+
+**Why**: Haiku audit surfaced 2 critical and 3 medium/low bugs that broke step navigation and silently swallowed profile data.
+
+**Impact**: Step 2 of profile setup now stays visible; sidebar correctly shows the user's name and goal after onboarding; tour no longer skips slides on scroll; hints position correctly near viewport edges.
+
+**Technical Detail**: `_setProfileStep()` in app.html line 3782; `renderSidebarProfile()` / `applyProfileToUI()` lines 4262–4287 / 4018–4027; swipe handler lines 3939–3951; `showHint()` lines 4031–4057; progress label line 3787.
+
 ## 2026-04-24 — feat: redesign user onboarding experience
 
 **What:** Overhauled all onboarding screens — Profile Setup (animated progress bar replacing step dots, gradient step icons, goal validation with shake animation, directional slide transitions, trust micro-copy, mobile bottom-sheet), Welcome Tour (4 CSS-animated hero illustrations per slide: floating deck cards, 3D flip card, cascading quiz bars, typewriter notepad; per-slide accent badge, swipe gestures, goal-aware copy), and Onboarding Completion (first-word ceremony overlay: serif typewriter, word-by-word definition stagger, Day 1 streak badge).
