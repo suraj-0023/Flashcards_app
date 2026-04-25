@@ -148,4 +148,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 25, 2026* (Upgrade Gemini model from gemini-1.5-flash to gemini-2.0-flash)
+*Last Updated: April 25, 2026* (Replace expired Gemini API key with new AI Studio key)

@@ -1,5 +1,22 @@
 # Project Evolution Log
 
+## 2026-04-25 — fix: replace expired Gemini API key with new AI Studio key
+
+### What
+- Replaced the expired Gemini API key (`AIzaSyDxRsKIMYM10TGIix7IXkNY25DR9skH6tw`) with a new key from Google AI Studio (`AIzaSyC8BMwruBk1ybFSk3p2P6xW_ew_0wWsOdA`)
+- Updated `GEMINI_API_KEY` constant at line 5447 in `app.html`
+
+### Why
+The previous API key had exhausted its free tier quota (limit: 0 error), causing image scanning and all Gemini-powered features (word enrichment, distractor generation, image vocab extraction) to fail with "quota exceeded" errors. A new key was generated from Google AI Studio to restore service.
+
+### Impact
+Image upload/scan feature and all AI-powered functionality restored. Users can now scan images, enrich words, and generate quiz distractors without errors.
+
+### Technical Detail
+- File: `Flashcards_app_project/app.html` line 5447
+- Changed `const GEMINI_API_KEY = 'AIzaSyDxRsKIMYM10TGIix7IXkNY25DR9skH6tw'` to `const GEMINI_API_KEY = 'AIzaSyC8BMwruBk1ybFSk3p2P6xW_ew_0wWsOdA'`
+- All 4 Gemini fetch calls automatically use the updated key: word enrichment, distractor generation, image scanning, image vocab modal enrichment
+
 ## 2026-04-25 — fix: upgrade Gemini model from gemini-1.5-flash to gemini-2.0-flash
 
 ### What
