@@ -1,5 +1,26 @@
 # Project Evolution Log
 
+## 2026-04-25 — feat: word preview before saving and image vocab review modal
+
+### What
+- Generate flow: text word + Vocab now shows AI Preview card with fetched definition before saving
+- Generate flow: image + Vocab now opens a popup modal listing all extracted words (underlined + AI-suggested) with per-word Accept / Edit / Decline buttons
+- Removed shortcircuit that was bypassing the preview and adding words directly
+
+### Why
+User reported that (1) typing a word and clicking Generate added it immediately without showing the definition, and (2) attaching an image and clicking Generate showed a generic placeholder card instead of the actual extracted words
+
+### Impact
+Users can now review word definitions before accepting them into their library; image scans via the main Generate flow are fully functional with a clean review modal
+
+### Technical Detail
+- `handleGenerate()`: removed vocab+text shortcircuit; added image+vocab branch calling `generateVocabFromImage()`
+- New `_loadVocabPreview(word, deckId)`: fetches from Free Dictionary API, updates preview card content in-place
+- `acceptPreview('vocab', deckId)`: now async, shows Saving… state, calls `_addWordsFromText()` on Accept
+- New `generateVocabFromImage(file, deckId)`: Gemini 1.5 Flash API call, parses underlined_words + suggested_words, opens modal
+- New modal: `#imageVocabModalOverlay` with `.img-vocab-row` / `.img-vocab-word` CSS; functions `showImageVocabModal`, `acceptImageWord`, `editImageWord`, `declineImageWord`
+- File changed: `Flashcards_app_project/app.html`
+
 ## 2026-04-25 — Fix: Onboarding funnel bug fixes (5 issues)
 
 **What**: Fixed five bugs in the onboarding funnel:

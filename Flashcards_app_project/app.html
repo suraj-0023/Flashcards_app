@@ -3461,7 +3461,30 @@
     </div>
   </div>
 </div>
+<!-- IMAGE VOCAB MODAL -->
+<div id="imageVocabModalOverlay" class="modal-overlay" onclick="if(event.target===this)closeImageVocabModal()">
+  <div class="modal" style="max-width:520px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <h3 style="margin:0;font-size:1.05rem;font-weight:700;font-family:'Plus Jakarta Sans',system-ui,sans-serif;">Words found in image</h3>
+      <button onclick="closeImageVocabModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;line-height:1;color:var(--muted);">✕</button>
+    </div>
+    <div id="imageVocabList"></div>
+    <p id="imageVocabEmpty" style="display:none;color:var(--muted);text-align:center;padding:20px 0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;">No words detected.</p>
+  </div>
+</div>
+
 <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  .img-vocab-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border-1); gap: 8px;
+  }
+  .img-vocab-row:last-child { border-bottom: none; }
+  .img-vocab-word {
+    flex: 1; font-size: 1rem; font-weight: 500;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    padding: 2px 4px; border-radius: 4px; outline: none;
+  }
+  .img-vocab-word[contenteditable="true"] { outline: 2px solid var(--gold); background: var(--paper); }
   .ai-review-group { margin-top: 18px; }
   .ai-review-group-title {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -5309,6 +5332,134 @@ function resetAiModal(e) {
   document.querySelector('.ai-upload-area').style.display = '';
 }
 
+// ── VOCAB PREVIEW (Generate → text word) ──
+async function _loadVocabPreview(word, deckId) {
+  window._previewVocabWord = word;
+  const card = document.getElementById('preview-vocab');
+  if (!card) return;
+  const contentEl = card.querySelector('.ai-preview-card-content');
+  contentEl.innerHTML = '<em style="color:var(--muted);">Fetching definition…</em>';
+  try {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+    if (!data || !data.length) throw new Error('empty');
+    const entry = _parseFreeDictEntry(data[0], word);
+    contentEl.innerHTML = `
+      <strong>${entry.word}</strong>${entry.phonetic ? ` <span style="color:var(--muted);font-size:0.85em;">${entry.phonetic}</span>` : ''}<br>
+      <em>${entry.definition || 'No definition found.'}</em>
+      ${entry.usage && entry.usage[0] ? `<p style="margin:6px 0 0;font-size:0.82rem;color:var(--muted);">"${entry.usage[0]}"</p>` : ''}
+    `;
+  } catch {
+    contentEl.innerHTML = `<strong>${word}</strong><br><em style="color:var(--muted);">Definition not found — will save as-is if accepted.</em>`;
+  }
+}
+
+// ── IMAGE VOCAB MODAL (Generate → image) ──
+let _imageVocabDeckId = '';
+
+async function generateVocabFromImage(file, deckId) {
+  const apiKey = localStorage.getItem('gemini_key');
+  if (!apiKey) {
+    alert('No Gemini API key found. Please use the Scan Page feature first to save your key.');
+    return;
+  }
+  _imageVocabDeckId = deckId;
+  const btn = document.querySelector('.generate-btn');
+  const origLabel = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Scanning…'; btn.disabled = true; }
+
+  try {
+    const base64Str = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const promptText = `You are an expert OCR and vocabulary assistant. Look at the provided image of a book page and return a JSON object with exactly two keys:
+- "underlined_words": an array of lowercase words that have a pen or pencil underline beneath them in the image. Do not include punctuation attached to words. If none found, use [].
+- "suggested_words": an array of up to 8 of the most advanced, rare, or difficult vocabulary words visible anywhere in the image text that are NOT underlined. Choose words a learner would benefit from studying. Lowercase, no punctuation. If none found, use [].
+Return only raw JSON with no markdown code fences.`;
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [
+          { text: promptText },
+          { inline_data: { mime_type: file.type, data: base64Str } }
+        ]}]
+      })
+    });
+
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || 'API request failed'); }
+
+    const data = await res.json();
+    let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '{"underlined_words":[],"suggested_words":[]}';
+    textOutput = textOutput.replace(/```json\n?|\n?```/g, '').trim();
+
+    let parsed = { underlined_words: [], suggested_words: [] };
+    try {
+      const p = JSON.parse(textOutput);
+      parsed.underlined_words = p.underlined_words || [];
+      parsed.suggested_words = p.suggested_words || [];
+    } catch { throw new Error('Could not parse AI response as JSON.'); }
+
+    const all = [...new Set([...parsed.underlined_words, ...parsed.suggested_words])];
+    if (!all.length) { alert('No vocabulary words detected in this image.'); return; }
+    showImageVocabModal(all);
+  } catch (err) {
+    alert('Error scanning image: ' + err.message);
+  } finally {
+    if (btn) { btn.textContent = origLabel; btn.disabled = false; }
+  }
+}
+
+function showImageVocabModal(words) {
+  const list = document.getElementById('imageVocabList');
+  list.innerHTML = words.map((w, i) => `
+    <div class="img-vocab-row" id="vocab-row-${i}">
+      <span class="img-vocab-word" id="vocab-word-${i}" contenteditable="false">${w}</span>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="ai-preview-btn accept"  onclick="acceptImageWord(${i})">✓ Accept</button>
+        <button class="ai-preview-btn edit"    onclick="editImageWord(${i})">Edit</button>
+        <button class="ai-preview-btn discard" onclick="declineImageWord(${i})">✕ Decline</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('imageVocabEmpty').style.display = words.length ? 'none' : 'block';
+  document.getElementById('imageVocabModalOverlay').classList.add('open');
+}
+
+function closeImageVocabModal() {
+  document.getElementById('imageVocabModalOverlay').classList.remove('open');
+}
+
+function acceptImageWord(i) {
+  const span = document.getElementById(`vocab-word-${i}`);
+  if (!span) return;
+  const word = span.textContent.trim();
+  const row = document.getElementById(`vocab-row-${i}`);
+  row.querySelector('.ai-preview-btn.accept').textContent = 'Saving…';
+  row.querySelectorAll('button').forEach(b => b.disabled = true);
+  _addWordsFromText(word, _imageVocabDeckId).then(() => row.remove());
+}
+
+function editImageWord(i) {
+  const span = document.getElementById(`vocab-word-${i}`);
+  if (!span) return;
+  span.contentEditable = 'true';
+  span.focus();
+  const finish = () => { span.contentEditable = 'false'; span.onblur = null; span.onkeydown = null; };
+  span.onblur = finish;
+  span.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); span.blur(); } };
+}
+
+function declineImageWord(i) {
+  const row = document.getElementById(`vocab-row-${i}`);
+  if (row) row.remove();
+}
+
 // ── CUSTOM FLASHCARDS ──
 function openCustomCardModal() {
   document.getElementById('customCardModalOverlay').classList.add('open');
@@ -6605,13 +6756,10 @@ function handleGenerate() {
   const types = getSelectedTypes();
   const deckId = document.getElementById('addDeckSelect').value || (currentProjectId === 'all' ? 'general' : currentProjectId);
 
-  // If vocab type selected and text provided — use existing addWords flow
-  if (types.includes('vocab') && text) {
-    document.getElementById('addWordInput') && (document.getElementById('addWordInput').value = text);
-    // Inline call: set addWordInput value and trigger
-    const fakeInput = { value: text };
-    _addWordsFromText(text, deckId);
-    document.getElementById('addContentTextarea').value = '';
+  // Image + Vocab: open word review modal via Gemini
+  const imageFile = attachedFiles.find(f => f.type === 'image');
+  if (imageFile && types.includes('vocab')) {
+    generateVocabFromImage(imageFile.file, deckId);
     return;
   }
 
@@ -6646,6 +6794,8 @@ function handleGenerate() {
 
   previewSection.style.display = 'block';
   previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  if (activeTypes.includes('vocab') && text) _loadVocabPreview(text, deckId);
 }
 
 function acceptPreview(type, deckId) {
@@ -6653,7 +6803,18 @@ function acceptPreview(type, deckId) {
   if (!card) return;
   const text = document.getElementById('addContentTextarea').value.trim();
 
-  if (type === 'notes') {
+  if (type === 'vocab') {
+    const word = window._previewVocabWord || text;
+    if (word) {
+      card.querySelector('.ai-preview-card-actions').innerHTML = '<span style="font-size:12px;font-weight:700;color:var(--muted);">Saving…</span>';
+      _addWordsFromText(word, deckId).then(() => {
+        card.classList.add('accepted');
+        card.querySelector('.ai-preview-card-actions').innerHTML = '<span style="font-size:12px;font-weight:700;color:var(--emerald-700);">✓ Saved</span>';
+        window._previewVocabWord = null;
+      });
+    }
+    return;
+  } else if (type === 'notes') {
     const note = {
       id: 'n_' + Date.now(),
       deckId: deckId || (currentProjectId === 'all' ? 'general' : currentProjectId),
