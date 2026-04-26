@@ -1,5 +1,15 @@
 # Project Evolution Log
 
+## 2026-04-26 — fix: show real API error instead of silent "no words found" on image scan
+
+**What:** Fixed error handling in both image processing functions in app.html. Previously when the Cloudflare Worker forwarded a Gemini API 429/error response with HTTP 200, the app silently fell back to empty arrays and displayed "No words found in image."
+
+**Why:** User reported image upload always returned "no words" despite the prompt working correctly in Gemini web. Root cause was the API key hitting its free-tier quota; secondary cause was the app not checking `data.error` in the response.
+
+**Impact:** Image scanning now shows the actual API error (e.g. "quota exceeded") instead of silently failing. Users get actionable feedback.
+
+**Technical Detail:** Both `processImage()` (~line 7062) and `generateVocabFromImage()` (~line 7194) in app.html now check `!res.ok || data.error` after parsing the response JSON, and throw if `candidates` is absent.
+
 ## 2026-04-26 — feat: secure Gemini API key via Cloudflare Worker proxy
 
 ### What

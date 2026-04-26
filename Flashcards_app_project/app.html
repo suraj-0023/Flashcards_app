@@ -7059,13 +7059,11 @@ Return only raw JSON with no markdown code fences.`;
             })
           });
 
-          if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error?.message || "API Request Failed");
-          }
-
           const data = await res.json();
-          let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '{"underlined_words":[],"suggested_words":[]}';
+          if (!res.ok || data.error) throw new Error(data.error?.message || "API Request Failed");
+
+          let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (!textOutput) throw new Error("No response from AI. The API key may be rate-limited or quota-exhausted.");
           textOutput = textOutput.replace(/```json\n?|\n?```/g, '').trim();
 
           let wordsObj = { underlined_words: [], suggested_words: [] };
@@ -7191,10 +7189,11 @@ Return only raw JSON with no markdown code fences.`;
             })
           });
 
-          if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || 'API request failed'); }
-
           const data = await res.json();
-          let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '{"underlined_words":[],"suggested_words":[]}';
+          if (!res.ok || data.error) throw new Error(data.error?.message || 'API request failed');
+
+          let textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (!textOutput) throw new Error("No response from AI. The API key may be rate-limited or quota-exhausted.");
           textOutput = textOutput.replace(/```json\n?|\n?```/g, '').trim();
 
           let parsed = { underlined_words: [], suggested_words: [] };
