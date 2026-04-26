@@ -1,5 +1,26 @@
 # Project Evolution Log
 
+## 2026-04-26 — feat: secure Gemini API key via Cloudflare Worker proxy
+
+### What
+- Removed hardcoded `GEMINI_API_KEY` constant from client-side HTML (`app.html`)
+- Replaced all 4 direct Gemini API fetch calls (word enrichment, distractor generation, image scanning, image vocab modal enrichment) with calls to a Cloudflare Worker proxy endpoint (`https://gemini-proxy.suraj-kunuku23.workers.dev`)
+- API key now stored securely as a Cloudflare Worker secret, never exposed to the browser
+- Constant renamed from `GEMINI_API_KEY` to `GEMINI_PROXY_URL`
+
+### Why
+Hardcoded API key in client-side HTML was being detected and restricted by Google. The key was discoverable in browser DevTools, causing Google to flag the account for quota abuse and disable the API. Moving the key to a Cloudflare Worker secret ensures it never reaches the client and eliminates the security risk.
+
+### Impact
+API key is now secured behind a server-side proxy. Image scanning, word enrichment, distractor generation, and all Gemini-powered features work reliably without quota abuse risk. Users experience no change to functionality.
+
+### Technical Detail
+- File: `Flashcards_app_project/app.html`
+- Replaced `const GEMINI_API_KEY = 'AIzaSy...'` with `const GEMINI_PROXY_URL = 'https://gemini-proxy.suraj-kunuku23.workers.dev'`
+- Updated 4 fetch calls (word enrichment ~line 6851, distractor generation ~line 7051, image scanning ~line 7183, image vocab modal enrichment ~line 7988) to route through proxy
+- Fetch requests now POST to proxy endpoint instead of directly to `generativelanguage.googleapis.com`
+- Proxy authenticates with Google API using server-stored key, then returns response to client
+
 ## 2026-04-25 — fix: replace expired Gemini API key with new AI Studio key
 
 ### What

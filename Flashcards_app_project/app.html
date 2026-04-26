@@ -5444,7 +5444,7 @@
     </div>
 
     <script>
-      const GEMINI_API_KEY = 'AIzaSyC8BMwruBk1ybFSk3p2P6xW_ew_0wWsOdA'; // TODO: move to Cloudflare Worker
+      const GEMINI_PROXY_URL = 'https://gemini-proxy.suraj-kunuku23.workers.dev';
 
       // ── STATE ──
       let VOCAB = [];
@@ -6847,9 +6847,7 @@
 Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.`;
 
         try {
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
+          const res = await fetch(GEMINI_PROXY_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -7048,7 +7046,7 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
 - "suggested_words": an array of up to 8 of the most advanced, rare, or difficult vocabulary words visible anywhere in the image text that are NOT underlined. Choose words a learner would benefit from studying. Lowercase, no punctuation. If none found, use [].
 Return only raw JSON with no markdown code fences.`;
 
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          const res = await fetch(GEMINI_PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -7180,7 +7178,7 @@ Return only raw JSON with no markdown code fences.`;
 - "suggested_words": an array of up to 8 of the most advanced, rare, or difficult vocabulary words visible anywhere in the image text that are NOT underlined. Choose words a learner would benefit from studying. Lowercase, no punctuation. If none found, use [].
 Return only raw JSON with no markdown code fences.`;
 
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          const res = await fetch(GEMINI_PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -7984,9 +7982,7 @@ Return only raw JSON with no markdown code fences.`;
           : `You are a quiz generator. Given a correct answer and its context, generate exactly 3 wrong answer options that are plausible, in the same domain, medium-to-hard difficulty, and varied. Return ONLY a JSON array of 3 strings. No explanation, no markdown. Correct answer: ${correctAnswer}. Context: ${context}`;
 
         try {
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
+          const res = await fetch(GEMINI_PROXY_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })

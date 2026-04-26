@@ -95,7 +95,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 - **Dictionary Waterfall** (4-tier, in `addWords()`):
   1. **Free Dictionary API** — no key, covers ~80% of common words; fetches definition, IPA, audio URL, usage, synonyms, antonyms
   2. **Wordnik** — optional free key (`localStorage('wordnik_key')`); fires when Free Dict fails or returns no definition; multi-source definitions + examples
-  3. **Gemini 2.0 Flash gap-fill** — hardcoded API key; fires automatically when IPA, definition, or usage is still missing after Tiers 1–2; targeted prompt requesting only the missing fields
+  3. **Gemini 2.0 Flash gap-fill** — routed through Cloudflare Worker proxy for security; fires automatically when IPA, definition, or usage is still missing after Tiers 1–2; targeted prompt requesting only the missing fields
   4. **Web Speech API audio fallback** — zero cost, zero key, built-in; used at playback time when no audio URL is stored
 - **Add Section Generate flow**: Preview-before-save for all content types:
   - Text + Vocab: Shows AI Preview card with fetched definition from Free Dictionary API before saving
@@ -121,6 +121,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
   - New (red): #EF4444
   - Sidebar gradient: white → #F0FDF4
 - No build step, no framework
+- **Gemini API Security**: API key stored securely as a Cloudflare Worker secret; all fetch calls routed through proxy endpoint (`https://gemini-proxy.suraj-kunuku23.workers.dev`) to prevent client-side exposure
 
 ---
 
@@ -148,4 +149,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 25, 2026* (Replace expired Gemini API key with new AI Studio key)
+*Last Updated: April 26, 2026* (Secure Gemini API key via Cloudflare Worker proxy)
