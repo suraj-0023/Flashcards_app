@@ -1,5 +1,27 @@
 # Project Evolution Log
 
+## 2026-04-27 — feat: rich image-scan popup with tiles, definitions, and difficulty system
+
+**What:** Redesigned the image vocabulary scan popup to display extracted words as styled tiles with async-fetched dictionary definitions. Added a difficulty scoring system (Easy/Medium/Hard/Very Hard) computed from API data richness. Introduced visual difficulty indicators: coloured difficulty badges in word tiles and word detail modals; small coloured difficulty dots on library cards. Two labelled sections ("📖 Underlined Words" / "✨ AI-Suggested Words") separated by a divider for clarity. All definitions stored and grouped by part of speech in word detail modals.
+
+**Why:** Previous image scan popup listed words as plain text with no enrichment. Users couldn't see word definitions before accepting them, and there was no difficulty metadata to help prioritize learning. The feature request was to preview definitions inline and visually indicate word difficulty at a glance.
+
+**Impact:** Image scanning now shows full dictionary definitions (phonetic, parts of speech, usage examples) for each word before the user accepts them. Difficulty badges provide quick visual cues for study planning. Synonyms section renamed to "Synonyms" from "Related Words" for accuracy.
+
+**Technical Detail:**
+- **CSS additions**: `.img-vocab-tile`, `.img-vocab-section-label`, `.img-vocab-section-divider`, `.difficulty-badge` (4 variants: easy/medium/hard/vhard), `.dict-diff-dot` (coloured dot on library cards)
+- **`showImageVocabModal(underlined, suggested)`**: Rewritten to accept separate arrays; renders two labelled sections with divider; each word as a tile that async-fetches definition on modal open
+- **`_buildVocabTile(word, idx)`**: New helper builds tile HTML with placeholder definition state
+- **`_fetchTileDefinition(word, idx)`**: New async helper fetches Free Dict API and fills part-of-speech, phonetic, definition; calls `_scoreDifficulty()` to compute badge
+- **`_parseFreeDictEntry(data)`**: Enhanced to capture `allDefs` array (all definitions across all parts of speech, up to 8)
+- **`_scoreDifficulty(wordData)`**: New helper scores 1–4 (Easy→Very Hard) based on audio presence, synonym count, and word length; used in `addWords()` instead of hardcoded difficulty
+- **`addWords()`**: Now calls `_scoreDifficulty(wordData)` and stores `allDefinitions: wordData.allDefs || []`
+- **`openModal()`**: Renders difficulty badge (coloured pill next to word); "All Definitions" section (grouped by part of speech, hidden if only 1 def)
+- **Library cards (dict-card)**: Small coloured dot bottom-right indicating difficulty (green=easy, blue=medium, orange=hard, red=very hard)
+- **Word detail modal HTML**: Added `id="mDiffBadge"` span, `id="mAllDefsSec"` / `id="mAllDefs"` section, renamed "Related Words" → "Synonyms"
+- **`generateVocabFromImage()`**: Changed `showImageVocabModal(all)` to `showImageVocabModal(parsed.underlined_words, parsed.suggested_words)` to pass separate arrays
+- File changed: `Flashcards_app_project/app.html` (~7000+ lines)
+
 ## 2026-04-27 — docs: add PRD and reformat PRD analysis with proper markdown
 
 **What:** Added `PRD.md` (new product requirements document) and reformatted `PRD_analysis.md` with proper markdown structure (headers, tables, lists).

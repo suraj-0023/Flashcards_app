@@ -93,15 +93,31 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
   1. **Scan Page Modal** (dedicated UI): Returns underlined_words and suggested_words as toggleable chips; user accepts/rejects each before adding to Lexicon
   2. **Generate Flow** (main Add Section): Attaching an image + selecting Vocab opens a popup word review modal with all extracted words (underlined + AI-suggested); per-word Accept / Edit / Decline buttons allow fine-grained control before saving to library
 - **Dictionary Waterfall** (4-tier, in `addWords()`):
-  1. **Free Dictionary API** — no key, covers ~80% of common words; fetches definition, IPA, audio URL, usage, synonyms, antonyms
+  1. **Free Dictionary API** — no key, covers ~80% of common words; fetches definition, IPA, audio URL, usage, synonyms, antonyms, all definitions grouped by part of speech
   2. **Wordnik** — optional free key (`localStorage('wordnik_key')`); fires when Free Dict fails or returns no definition; multi-source definitions + examples
   3. **Gemini 2.0 Flash gap-fill** — routed through Cloudflare Worker proxy for security; fires automatically when IPA, definition, or usage is still missing after Tiers 1–2; targeted prompt requesting only the missing fields
   4. **Web Speech API audio fallback** — zero cost, zero key, built-in; used at playback time when no audio URL is stored
+- **Difficulty Scoring System** (Apr 27, 2026):
+  - `_scoreDifficulty(wordData)` computes 1–4 score (Easy→Very Hard) based on audio presence, synonym count, and word length
+  - Used in `addWords()` for all words; stored in `word.difficulty` field
+  - Difficulty badges shown in word tiles (image scan popup), word detail modals (as coloured pill), and library cards (as small coloured dot bottom-right)
+  - Colour scheme: green=easy, blue=medium, orange=hard, red=very hard
 - **Add Section Generate flow**: Preview-before-save for all content types:
   - Text + Vocab: Shows AI Preview card with fetched definition from Free Dictionary API before saving
-  - Image + Vocab: Opens popup modal listing all extracted words (underlined + AI-suggested) with per-word Accept / Edit / Decline buttons
+  - Image + Vocab: Opens popup modal with two labelled sections ("📖 Underlined Words" / "✨ AI-Suggested Words") displaying extracted words as styled tiles with async-fetched definitions; per-word Accept / Edit / Decline buttons
   - Other types (Notes/Flashcards): Generic inline preview with Accept / Edit / Discard
-- **Word Review UI**: After image scan, `#aiReviewSection` inside `#aiModal` shows two chip groups ("Underlined Words" / "AI-Suggested Hard Words"). Chips toggle selected/deselected on click. "Add Selected Words" feeds accepted words to the existing `addWords()` → Dictionary Waterfall → Firestore pipeline. "← Scan Another Image" resets the modal.
+- **Image Scan Popup UI** (Apr 27, 2026 redesign):
+  - `showImageVocabModal(underlined, suggested)` renders two distinct sections separated by a visual divider
+  - Each word displayed as a styled `.img-vocab-tile` with phonetic, part-of-speech, and definition fetched async from Free Dictionary API on modal open
+  - Difficulty badge (coloured pill) displayed next to word; computed by `_scoreDifficulty(wordData)`
+  - Per-word Accept / Edit / Decline buttons for fine-grained control before saving
+- **Word Detail Modal Enhancement** (Apr 27, 2026):
+  - Difficulty badge (coloured pill) now shown next to word name
+  - "All Definitions" section displays all definitions grouped by part of speech; visible only if more than 1 definition
+  - "Synonyms" section (renamed from "Related Words") shows related words from API
+- **Library Cards Difficulty Indicator** (Apr 27, 2026):
+  - Small coloured dot (4px) positioned bottom-right on each vocab card
+  - Colour indicates difficulty: green=easy, blue=medium, orange=hard, red=very hard
 - **Quiz Distractor Generation**: Powered by Gemini 2.0 Flash (hardcoded API key); automatically generates 3 plausible wrong answers for each quiz question; no user API key input required.
 
 ---
@@ -149,4 +165,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 27, 2026* (Added PRD and reformatted PRD analysis with proper markdown structure)
+*Last Updated: April 27, 2026* (Rich image-scan popup with difficulty system, tile layouts, async definitions)
