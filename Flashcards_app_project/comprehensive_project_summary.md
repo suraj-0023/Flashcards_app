@@ -149,4 +149,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 26, 2026* (Fixed silent image scan failure on API quota errors; API error now displayed instead of "no words found")
+*Last Updated: April 27, 2026* (Added PRD and reformatted PRD analysis with proper markdown structure)

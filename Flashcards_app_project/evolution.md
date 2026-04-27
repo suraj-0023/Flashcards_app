@@ -1,5 +1,15 @@
 # Project Evolution Log
 
+## 2026-04-27 — docs: add PRD and reformat PRD analysis with proper markdown
+
+**What:** Added `PRD.md` (new product requirements document) and reformatted `PRD_analysis.md` with proper markdown structure (headers, tables, lists).
+
+**Why:** `PRD_analysis.md` had plain text tables and lists that didn't render correctly in markdown viewers; `PRD.md` was missing entirely.
+
+**Impact:** Project documentation is now complete and readable in any markdown viewer. Clear PRD establishes product vision, features, and roadmap. Analysis document provides critical feature gaps and recommendations.
+
+**Technical Detail:** `PRD.md` created fresh covering product vision, features, user flows, tech stack, and roadmap. `PRD_analysis.md` rewritten with proper `##`/`###` headers, `| table |` syntax, and `- list` formatting for all content previously in plain text blocks. Both files now follow consistent markdown conventions.
+
 ## 2026-04-26 — fix: show real API error instead of silent "no words found" on image scan
 
 **What:** Fixed error handling in both image processing functions in app.html. Previously when the Cloudflare Worker forwarded a Gemini API 429/error response with HTTP 200, the app silently fell back to empty arrays and displayed "No words found in image."
