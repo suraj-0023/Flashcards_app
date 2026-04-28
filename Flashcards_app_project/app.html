@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smritikosha — Your Treasury of Memory</title>
+  <title>Nexora — From Information to Intelligence</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
   <!-- Firebase -->
@@ -54,51 +54,142 @@
       else window._pendingAuthUser = user; // store until app is ready
     });
   </script>
+  <script>
+    /* Theme init — runs synchronously before CSS renders to prevent flash */
+    (function () {
+      var saved = localStorage.getItem('nexora_theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
+    })();
+  </script>
   <style>
     :root {
-      /* M3 warm palette */
-      --bg: #FFF7ED;
-      --bg-2: #FFF1DC;
-      --sidebar: #FFFFFF;
-      --sidebar-tint: #F0FDF4;
-      --card: #FFFFFF;
-      --emerald: #10B981;
-      --emerald-50: #ECFDF5;
+      /* Backgrounds */
+      --bg:        #FDFAF6;
+      --bg-2:      #F5F0E8;
+      --surface:   #FFFFFF;
+      --surface-2: #F9F6F1;
+
+      /* Sidebar */
+      --sidebar-bg:     #FFFFFF;
+      --sidebar-border: #EDE8E0;
+      --sidebar-tint:   #ECFDF5;
+
+      /* Text */
+      --text:    #1A1612;
+      --muted:   #6E6660;
+      --muted-2: #A09890;
+
+      /* Borders */
+      --border:   #EDE8E0;
+      --border-2: #E0D8CE;
+
+      /* Brand accents */
+      --emerald:     #10B981;
+      --emerald-50:  #ECFDF5;
       --emerald-100: #D1FAE5;
       --emerald-700: #047857;
-      --amber: #F59E0B;
-      --amber-50: #FFFBEB;
-      --amber-100: #FEF3C7;
-      --red: #EF4444;
-      --red-50: #FEF2F2;
-      --red-100: #FEE2E2;
-      --text: #1F2937;
-      --muted: #6B7280;
-      --muted-2: #9CA3AF;
-      --border: #F3F4F6;
-      --border-2: #E5E7EB;
+      --amber:       #F59E0B;
+      --amber-50:    #FFFBEB;
+      --amber-100:   #FEF3C7;
+      --red:         #EF4444;
+      --red-50:      #FEF2F2;
+      --red-100:     #FEE2E2;
+      --purple:      #8B5CF6;
+      --purple-50:   #F5F3FF;
 
-      /* Legacy aliases kept so old JS-inline styles still resolve */
-      --ink: #1F2937;
-      --paper: #FFF7ED;
-      --cream: #FFF1DC;
-      --gold: #10B981;
-      --gold-light: #D1FAE5;
-      --rust: #EF4444;
-      --sage: #10B981;
-      --card-bg: #FFFFFF;
-      --sidebar-bg: #FFFFFF;
-      --sidebar-text: #1F2937;
-      --sidebar-hover: #F0FDF4;
-      --accent: #10B981;
+      /* SM-2 state colors */
+      --state-new:      #EF4444;
+      --state-learning: #F59E0B;
+      --state-review:   #10B981;
+      --state-lapsed:   #8B5CF6;
 
-      /* Onboarding design tokens */
+      /* Typography */
+      --font-sans:  'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-serif: Georgia, 'Times New Roman', serif;
+
+      /* Shadows */
+      --shadow-card:  0 2px 8px rgba(26, 22, 18, 0.07);
+      --shadow-modal: 0 20px 48px rgba(26, 22, 18, 0.14);
+      --shadow-float: 0 8px 24px rgba(26, 22, 18, 0.12);
+
+      /* Legacy aliases — keep so existing CSS rules continue to resolve */
+      --ink:          #1A1612;
+      --paper:        #FDFAF6;
+      --cream:        #F5F0E8;
+      --gold:         #10B981;
+      --gold-light:   #D1FAE5;
+      --rust:         #EF4444;
+      --sage:         #10B981;
+      --card:         #FFFFFF;
+      --card-bg:      #FFFFFF;
+      --sidebar:      #FFFFFF;
+      --sidebar-text: #1A1612;
+      --sidebar-hover:#ECFDF5;
+      --accent:       #10B981;
+
+      /* Onboarding tokens (unchanged) */
       --tour-c-decks: #6366F1;
       --tour-c-cards: #F59E0B;
-      --tour-c-quiz: #EF4444;
+      --tour-c-quiz:  #EF4444;
       --tour-c-notes: #10B981;
       --onboard-shadow: 0 24px 64px rgba(17, 24, 39, 0.18);
       --tour-slide-dur: 0.28s;
+    }
+
+    [data-theme="dark"] {
+      --bg:        #141210;
+      --bg-2:      #1C1A17;
+      --surface:   #221F1A;
+      --surface-2: #2A2620;
+
+      --sidebar-bg:     #1C1A17;
+      --sidebar-border: #2E2A26;
+      --sidebar-tint:   #1C1A17;
+
+      --text:    #F0EBE3;
+      --muted:   #9E9489;
+      --muted-2: #6B6460;
+
+      --border:   #2E2A26;
+      --border-2: #383330;
+
+      --emerald:     #34D399;
+      --emerald-50:  rgba(52, 211, 153, 0.12);
+      --emerald-100: rgba(52, 211, 153, 0.2);
+      --emerald-700: #6EE7B7;
+      --amber:       #FCD34D;
+      --amber-50:    rgba(252, 211, 77, 0.12);
+      --amber-100:   rgba(252, 211, 77, 0.2);
+      --red:         #F87171;
+      --red-50:      rgba(248, 113, 113, 0.12);
+      --red-100:     rgba(248, 113, 113, 0.2);
+      --purple:      #A78BFA;
+      --purple-50:   rgba(167, 139, 250, 0.12);
+
+      --state-new:      #F87171;
+      --state-learning: #FCD34D;
+      --state-review:   #34D399;
+      --state-lapsed:   #A78BFA;
+
+      --shadow-card:  0 2px 8px rgba(0, 0, 0, 0.25);
+      --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.5);
+      --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+      /* Legacy aliases — dark values */
+      --ink:          #F0EBE3;
+      --paper:        #141210;
+      --cream:        #1C1A17;
+      --gold:         #34D399;
+      --gold-light:   rgba(52, 211, 153, 0.2);
+      --rust:         #F87171;
+      --sage:         #34D399;
+      --card:         #221F1A;
+      --card-bg:      #221F1A;
+      --sidebar:      #1C1A17;
+      --sidebar-text: #F0EBE3;
+      --sidebar-hover:rgba(52, 211, 153, 0.12);
+      --accent:       #34D399;
     }
 
     * {
@@ -115,6 +206,7 @@
       display: flex;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
+      transition: background 0.2s, color 0.2s;
     }
 
     /* No texture in M3 warm design */
@@ -131,9 +223,9 @@
 
     /* ── SIDEBAR ── M3 white/emerald */
     aside {
-      width: 240px;
-      background: linear-gradient(180deg, #FFFFFF 0%, var(--sidebar-tint) 100%);
-      border-right: 1px solid var(--border);
+      width: 220px;
+      background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-tint) 100%);
+      border-right: 1px solid var(--sidebar-border);
       color: var(--text);
       display: flex;
       flex-direction: column;
@@ -142,6 +234,7 @@
       z-index: 101;
       height: 100vh;
       overflow-y: auto;
+      transition: background 0.2s, border-color 0.2s;
     }
 
     .sidebar-logo {
@@ -149,6 +242,56 @@
       align-items: center;
       gap: 10px;
       padding: 4px 8px 20px;
+    }
+
+    .sidebar-logo-tagline {
+      display: none;
+    }
+
+    .daily-queue-badge {
+      display: none;
+      background: var(--emerald-50);
+      border: 1px solid var(--emerald-100);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--emerald-700);
+      cursor: pointer;
+    }
+
+    .daily-queue-badge button {
+      display: block;
+      margin-top: 6px;
+      background: var(--emerald);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .mastery-dots {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .mastery-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border-2);
+    }
+
+    .mastery-dot.filled {
+      background: var(--emerald);
     }
 
     .sidebar-logo-mark {
@@ -453,7 +596,7 @@
     }
 
     .modal {
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 20px;
       padding: 32px;
@@ -462,7 +605,8 @@
       max-height: 85vh;
       overflow-y: auto;
       position: relative;
-      box-shadow: 0 20px 48px rgba(17, 24, 39, 0.16);
+      box-shadow: var(--shadow-modal);
+      transition: background 0.2s, border-color 0.2s;
     }
 
     .modal-close {
@@ -2695,6 +2839,30 @@
       margin: 8px 0 6px;
     }
 
+    .theme-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      transition: background 0.15s, color 0.15s;
+      margin: 4px 0;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--sidebar-hover);
+      color: var(--text);
+    }
+
     #helpPanel {
       position: fixed;
       top: 0;
@@ -3146,6 +3314,239 @@
       border: 1px solid var(--emerald-100);
       padding: 2px 9px;
       border-radius: 999px;
+    }
+
+    .deck-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .search-ghost-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--border-2);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: border-color 0.14s, color 0.14s;
+    }
+
+    .search-ghost-btn:hover {
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .add-modal-btn {
+      background: var(--emerald);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: opacity 0.14s;
+    }
+
+    .add-modal-btn:hover {
+      opacity: 0.88;
+    }
+
+    /* ── ADD MODAL ── */
+    #addModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 20, 16, 0.5);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #addModal.open {
+      display: flex;
+    }
+
+    .add-modal-panel {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: var(--shadow-modal);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: background 0.2s;
+    }
+
+    .add-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .add-modal-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .add-modal-title select {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--emerald-700);
+      background: var(--emerald-50);
+      border: 1px solid var(--emerald-100);
+      border-radius: 8px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+
+    .add-modal-close {
+      background: var(--border);
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+    }
+
+    .add-modal-word-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border-2);
+      border-radius: 12px;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.14s;
+      box-sizing: border-box;
+    }
+
+    .add-modal-word-input:focus {
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .add-modal-word-input::placeholder {
+      color: var(--muted-2);
+      font-weight: 400;
+    }
+
+    .add-modal-type-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .add-modal-type-pill {
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border-2);
+      background: none;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all 0.14s;
+    }
+
+    .add-modal-type-pill.active {
+      background: var(--emerald-50);
+      border-color: var(--emerald);
+      color: var(--emerald-700);
+    }
+
+    .add-modal-field label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .add-modal-field textarea,
+    .add-modal-field input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border-2);
+      border-radius: 10px;
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      resize: none;
+      box-sizing: border-box;
+      transition: border-color 0.14s;
+    }
+
+    .add-modal-field textarea:focus,
+    .add-modal-field input[type="text"]:focus {
+      border-color: var(--emerald);
+    }
+
+    .add-modal-field textarea::placeholder,
+    .add-modal-field input[type="text"]::placeholder {
+      color: var(--muted-2);
+    }
+
+    .add-modal-footer {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .add-modal-submit {
+      background: var(--emerald);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 9px 20px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: opacity 0.14s;
+    }
+
+    .add-modal-submit:hover { opacity: 0.88; }
+
+    .add-modal-cancel {
+      background: none;
+      border: 1.5px solid var(--border-2);
+      border-radius: 10px;
+      padding: 9px 16px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font-sans);
     }
 
     /* ── PRACTICE OVERLAY ── M3 */
@@ -3689,13 +4090,13 @@
 
     /* M3 Library list card */
     .lib-list-card {
-      background: #fff;
+      background: var(--surface);
       border: 1px solid transparent;
       border-radius: 14px;
       padding: 22px 26px 20px;
       cursor: pointer;
-      transition: transform 0.18s, box-shadow 0.18s;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+      transition: transform 0.18s, box-shadow 0.18s, background 0.2s;
+      box-shadow: var(--shadow-card);
       border-left-width: 4px;
       border-left-style: solid;
       display: flex;
@@ -4676,8 +5077,14 @@
   <div id="app" style="display:none;">
     <aside>
       <div class="sidebar-logo">
-        <div class="sidebar-logo-mark">S</div>
-        <div class="sidebar-logo-name">Smritikosha</div>
+        <div class="sidebar-logo-mark">N</div>
+        <div class="sidebar-logo-name">Nexora</div>
+        <div class="sidebar-logo-tagline">From Information to Intelligence.</div>
+      </div>
+
+      <div id="dailyQueueBadge" class="daily-queue-badge">
+        <span id="dailyQueueCount">🔥 0 cards due</span>
+        <button onclick="startSM2Review()">Start Review →</button>
       </div>
 
       <div class="sidebar-section-label">Library</div>
@@ -4723,6 +5130,7 @@
       </div>
 
       <div class="help-sidebar-divider"></div>
+      <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">☾ Dark</button>
       <button id="helpSidebarItem" onclick="openHelpPanel()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
@@ -5022,13 +5430,20 @@
           <div class="deck-header-dot"></div>
           <span class="deck-header-name" id="deckHeaderName">Complete Library</span>
           <span class="deck-header-count" id="deckHeaderCount"></span>
+          <div class="deck-header-actions">
+            <button class="search-ghost-btn" onclick="openSearch()" title="⌘K">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <span>⌘K Search…</span>
+            </button>
+            <button class="add-modal-btn" onclick="openAddModal()" title="⌘N">+ Add</button>
+          </div>
         </div>
 
         <!-- Scrollable content -->
         <div class="main-scroll-area">
 
-          <!-- 1. Add Section -->
-          <div class="add-section-card">
+          <!-- 1. Add Section — hidden; form elements preserved for image scan JS compatibility -->
+          <div class="add-section-card" style="display:none">
             <div class="add-section-label">Add to <span id="addDeckLabel">Complete Library</span></div>
             <textarea id="addContentTextarea" class="add-textarea" rows="3"
               placeholder="Enter words, paste text, or write a note…"></textarea>
@@ -5203,7 +5618,7 @@
         <button class="modal-close" onclick="closeAiModalBtn()">✕</button>
         <div class="modal-word" style="font-size:2rem; margin-bottom:10px;">Scan Page</div>
         <p style="color:var(--muted); font-size:0.9rem; line-height:1.4;">Take a photo of a book page. The AI will
-          automatically extract any underlined words and add them to your Lexicon.</p>
+          automatically extract any underlined words and add them to your Nexora library.</p>
 
         <label class="ai-upload-area">
           <input type="file" id="aiImageInput" accept="image/*" capture="environment" onchange="processImage(this)">
@@ -6087,9 +6502,9 @@
         // Tab 0: Getting Started
         () => `
     <div class="help-section">
-      <div class="help-section-title">Welcome to Lexicon</div>
+      <div class="help-section-title">Welcome to Nexora</div>
       <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:20px;">
-        Lexicon is your personal vocabulary library. Build decks, study with flashcards, quiz yourself, and track your progress — all in one place.
+        Nexora turns the words you encounter while reading into knowledge you actually keep. Build decks, study with flashcards, quiz yourself, and track your progress — all in one place.
       </p>
       <div class="help-section-title">Quick Start</div>
       <div class="help-step">
@@ -6158,11 +6573,30 @@
       <div style="font-size:3rem;margin-bottom:16px;">🎓</div>
       <div style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:10px;">Replay Welcome Tour</div>
       <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:24px;">
-        Watch the 4-screen feature overview again to get a refresher on what Lexicon can do.
+        Watch the feature overview again to get a refresher on what Nexora can do.
       </p>
       <button class="help-replay-btn" onclick="replayTour()">▶ Replay Tour</button>
     </div>`,
       ];
+
+      /* ── THEME TOGGLE ── */
+      function toggleTheme() {
+        var root = document.documentElement;
+        var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+        root.dataset.theme = next;
+        localStorage.setItem('nexora_theme', next);
+        var btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = next === 'dark' ? '☀ Light' : '☾ Dark';
+      }
+
+      function syncThemeToggleLabel() {
+        var btn = document.getElementById('themeToggleBtn');
+        if (!btn) return;
+        var theme = document.documentElement.dataset.theme;
+        btn.textContent = theme === 'dark' ? '☀ Light' : '☾ Dark';
+      }
+
+      document.addEventListener('DOMContentLoaded', syncThemeToggleLabel);
 
       let _helpTabIdx = 0;
 
@@ -6289,7 +6723,7 @@
         </div>
       </div>
       <button class="profile-signout-btn" onclick="handleSignOut()">Sign out</button>
-      <div class="version-label">Lexicon v2.0</div>
+      <div class="version-label">Nexora v2.0</div>
     `;
           applyProfileToUI();
         } else {
@@ -6297,7 +6731,7 @@
       <button class="profile-signin-btn" onclick="openLoginScreen()">
         <span>👤</span> Sign In / Create Account
       </button>
-      <div class="version-label">Lexicon v2.0 · local mode</div>
+      <div class="version-label">Nexora v2.0 · local mode</div>
     `;
         }
       }
@@ -6714,6 +7148,29 @@
         initQuiz();
       }
 
+      function _masteryPercent(deckId) {
+        const words = ALL_VOCAB.filter(w => w.projectId === deckId || w.deckId === deckId);
+        if (!words.length) return 0;
+        const mastered = words.filter(w => {
+          const p = perf[w.id];
+          if (!p) return false;
+          const c = (p.quiz.c || 0) + (p.flash.c || 0);
+          const total = c + (p.quiz.w || 0) + (p.flash.w || 0);
+          return total >= 3 && c / total >= 0.75;
+        }).length;
+        return Math.round((mastered / words.length) * 100);
+      }
+
+      function _masteryDots(deckId) {
+        const pct = _masteryPercent(deckId);
+        const filled = Math.round(pct / 25);
+        return [0,1,2,3].map(i => `<span class="mastery-dot${i < filled ? ' filled' : ''}"></span>`).join('');
+      }
+
+      function startSM2Review() {
+        alert('SM-2 review queue is coming in Phase 4!');
+      }
+
       function updateProjectUI() {
         // Update deck header name
         const activeProject = projects.find(p => p.id === currentProjectId);
@@ -6741,14 +7198,17 @@
     <div class="project-item-sidebar ${allActive ? 'active' : ''}" onclick="switchProject('all')">
       <i>📚</i> <span>Complete Library</span>
     </div>
-    ${projects.map(p => `
+    ${projects.map(p => {
+      const dots = _masteryDots(p.id);
+      return `
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
         <i>🗂️</i> <span>${p.name}</span>
+        <div class="mastery-dots" title="${_masteryPercent(p.id)}% mastered">${dots}</div>
         <div class="project-actions">
            <button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>
         </div>
-      </div>
-    `).join('')}
+      </div>`;
+    }).join('')}
   `;
 
         // Update Title (legacy element may not exist in new layout)
@@ -8847,9 +9307,12 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         const items = currentLibListItems;
         const container = document.getElementById('libListItems');
         if (!container) return;
+        const scrollArea = document.querySelector('.main-scroll-area');
+        const savedScroll = scrollArea ? scrollArea.scrollTop : 0;
 
         if (!items.length) {
           container.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:0.9rem;">Nothing here yet. Add some ${type} first!</div>`;
+          if (scrollArea) scrollArea.scrollTop = savedScroll;
           return;
         }
 
@@ -8910,6 +9373,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           }
         }).join('');
         container.innerHTML = `<div class="lib-list-grid">${cards}</div>`;
+        if (scrollArea) scrollArea.scrollTop = savedScroll;
       }
 
       // ── DETAIL POPUP ──
@@ -9344,10 +9808,124 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }
       }
 
+      // ── ADD MODAL ──
+
+      let _addModalType = 'vocab';
+
+      function openAddModal() {
+        _addModalType = 'vocab';
+        const modal = document.getElementById('addModal');
+        modal.classList.add('open');
+
+        // Populate deck select
+        const sel = document.getElementById('addModalDeckSelect');
+        if (sel) {
+          sel.innerHTML = projects.map(p =>
+            `<option value="${p.id}" ${p.id === (currentProjectId === 'all' ? (projects[0] && projects[0].id) : currentProjectId) ? 'selected' : ''}>${p.name}</option>`
+          ).join('');
+        }
+
+        // Reset fields and type pills
+        const wordInput = document.getElementById('addModalWord');
+        if (wordInput) { wordInput.value = ''; wordInput.focus(); }
+        document.getElementById('addContextSentence').value = '';
+        document.getElementById('addNoteTitle').value = '';
+        document.getElementById('addNoteContent').value = '';
+        document.getElementById('addCardFront').value = '';
+        document.getElementById('addCardBack').value = '';
+
+        // Reset type pills to vocab
+        document.querySelectorAll('.add-modal-type-pill').forEach(p => p.classList.toggle('active', p.dataset.type === 'vocab'));
+        switchAddType('vocab');
+      }
+
+      function closeAddModal() {
+        document.getElementById('addModal').classList.remove('open');
+      }
+
+      function switchAddType(type) {
+        _addModalType = type;
+        document.querySelectorAll('.add-modal-type-pill').forEach(p => p.classList.toggle('active', p.dataset.type === type));
+        document.getElementById('addTypeVocab').style.display = type === 'vocab' ? 'block' : 'none';
+        document.getElementById('addTypeNote').style.display = type === 'note' ? 'block' : 'none';
+        document.getElementById('addTypeFlashcard').style.display = type === 'flashcard' ? 'block' : 'none';
+      }
+
+      async function handleAddModalGenerate() {
+        const word = (document.getElementById('addModalWord').value || '').trim();
+        const sel = document.getElementById('addModalDeckSelect');
+        const deckId = sel ? sel.value : (currentProjectId === 'all' ? 'general' : currentProjectId);
+
+        if (_addModalType === 'vocab') {
+          if (!word) { alert('Please enter a word or phrase.'); return; }
+          const btn = document.querySelector('#addModal .add-modal-submit');
+          if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+          await _addWordsFromText(word, deckId);
+          if (btn) { btn.textContent = 'Generate →'; btn.disabled = false; }
+          closeAddModal();
+          renderLibrary();
+        } else if (_addModalType === 'note') {
+          const title = (document.getElementById('addNoteTitle').value || word || '').trim();
+          const content = document.getElementById('addNoteContent').value.trim();
+          if (!title && !content) { alert('Please fill in the note.'); return; }
+          const note = {
+            id: 'n_' + Date.now(),
+            deckId: deckId,
+            title: title || 'Untitled',
+            content: content,
+            createdAt: new Date().toISOString().split('T')[0],
+            updatedAt: new Date().toISOString().split('T')[0]
+          };
+          ALL_NOTES.push(note);
+          lsSet('lexicon_notes', ALL_NOTES);
+          syncToCloud({ lexicon_notes: ALL_NOTES });
+          closeAddModal();
+          renderLibrary();
+        } else if (_addModalType === 'flashcard') {
+          const front = (document.getElementById('addCardFront').value || word || '').trim();
+          const back = document.getElementById('addCardBack').value.trim();
+          if (!front || !back) { alert('Please fill in both sides of the flashcard.'); return; }
+          const newCard = { id: 'cc_' + Date.now(), isCustom: true, front, back, projectId: deckId };
+          ALL_CUSTOM_CARDS.push(newCard);
+          const cards = lsGet('lexicon_custom_cards', []);
+          cards.push(newCard);
+          lsSet('lexicon_custom_cards', cards);
+          syncToCloud({ lexicon_custom_cards: cards });
+          closeAddModal();
+          renderLibrary();
+        }
+      }
+
+      // Keyboard: Cmd+N opens add modal, Cmd+K opens search, Escape closes modals
+      document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+          e.preventDefault();
+          openAddModal();
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          openSearch();
+        }
+        if (e.key === 'Escape') {
+          closeAddModal();
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          if (document.getElementById('addModal').classList.contains('open')) {
+            handleAddModalGenerate();
+          }
+        }
+      });
+
       // ── INIT ──
       // Auth-aware init: if Firebase is loaded, it will call loadVocab via handleAuthState.
       // If Firebase keys are not set (config stub), show login screen for guest skip or sign-in attempt.
       // The login screen is shown by default (see HTML). Guest skip calls loadVocab directly.
+      // Stub for Phase 3 search — prevents errors from Cmd+K wiring
+      function openSearch() {
+        alert('Search (⌘K) is coming in Phase 3!');
+        return;
+      }
+
       if (window._fbAuth === undefined) {
         // Firebase module hasn't loaded yet — it's async; polling for it
         let _fbWaitCount = 0;
@@ -9365,6 +9943,56 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }, 100);
       }
     </script>
+
+  <!-- ── ADD MODAL ── -->
+  <div id="addModal" onclick="if(event.target===this)closeAddModal()">
+    <div class="add-modal-panel">
+      <div class="add-modal-header">
+        <div class="add-modal-title">
+          Add to
+          <select id="addModalDeckSelect"></select>
+        </div>
+        <button class="add-modal-close" onclick="closeAddModal()">✕</button>
+      </div>
+
+      <input id="addModalWord" class="add-modal-word-input" type="text"
+        placeholder="Type a word or phrase…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();handleAddModalGenerate();}">
+
+      <div class="add-modal-type-pills">
+        <button class="add-modal-type-pill active" data-type="vocab" onclick="switchAddType('vocab')">● Vocab</button>
+        <button class="add-modal-type-pill" data-type="note" onclick="switchAddType('note')">Note</button>
+        <button class="add-modal-type-pill" data-type="flashcard" onclick="switchAddType('flashcard')">Flashcard</button>
+      </div>
+
+      <div id="addTypeVocab" class="add-modal-field">
+        <label>Context sentence (optional)</label>
+        <textarea id="addContextSentence" rows="2" placeholder='e.g. "The serendipitous meeting changed everything."'></textarea>
+      </div>
+
+      <div id="addTypeNote" class="add-modal-field" style="display:none">
+        <label>Note title</label>
+        <input type="text" id="addNoteTitle" placeholder="Note title">
+        <div style="margin-top:8px"></div>
+        <label>Content</label>
+        <textarea id="addNoteContent" rows="4" placeholder="Note content…"></textarea>
+      </div>
+
+      <div id="addTypeFlashcard" class="add-modal-field" style="display:none">
+        <label>Front (question)</label>
+        <input type="text" id="addCardFront" placeholder="Question or term">
+        <div style="margin-top:8px"></div>
+        <label>Back (answer)</label>
+        <input type="text" id="addCardBack" placeholder="Answer or definition">
+      </div>
+
+      <div class="add-modal-footer">
+        <button class="add-modal-cancel" onclick="closeAddModal()">Cancel</button>
+        <button class="add-modal-submit" onclick="handleAddModalGenerate()">Generate →</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>

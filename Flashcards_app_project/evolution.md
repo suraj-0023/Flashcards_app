@@ -1,5 +1,23 @@
 # Project Evolution Log
 
+## 2026-04-28 — Phase 2 — Sidebar Redesign, Add Modal (Cmd+N), Header Actions, Scroll Fix
+
+**What:** Implemented Phase 2 of the Nexora production upgrade across `app.html`:
+- Sidebar narrowed to 220px; mastery dots (4-dot quartile indicator) added to each deck entry using existing perf data
+- Daily Queue Badge placeholder added in sidebar (hidden until Phase 4 SM-2 engine)
+- Deck header bar redesigned: ⌘K Search ghost pill + "+ Add" emerald button added with keyboard shortcut wiring
+- Add Modal built from scratch: 3 content types (Vocab/Note/Flashcard), per-type fields, deck selector, Cmd+N/Escape/Cmd+Enter keyboard support
+- Inline `.add-section-card` hidden (preserving hidden file inputs for image scan compatibility)
+- Scroll position bug fixed: `_renderLibListHTML()` now saves/restores `.main-scroll-area` scrollTop before and after re-render
+
+**Why:** The inline add section was cluttered and broke scroll position after every add. The modal gives a clean, focused creation flow. Mastery dots give instant deck health visibility in the sidebar.
+
+**Impact:** All content creation (vocab, notes, flashcards) now goes through a focused modal. Scroll position is preserved after adds. Sidebar shows per-deck mastery at a glance.
+
+**Technical Detail:** `handleAddModalGenerate()` routes to `_addWordsFromText()` for vocab enrichment, creates note/card objects directly for other types. `_masteryPercent(deckId)` computes mastery as words with ≥75% accuracy across ≥3 attempts. Keyboard listener added for Cmd+N, Cmd+K, Escape, Cmd+Enter.
+
+---
+
 ## 2026-04-26 — App Rebranding: Lexicon → Smritikosha (स्मृतिकोश)
 
 **What:** Renamed the app from Lexicon to Smritikosha (Sanskrit: स्मृतिकोश), a compound meaning "Treasury of Memory" (Smriti = memory, Kosha = treasury/dictionary). Updated page title, login screen branding, login tagline, profile setup branding, sidebar logo mark and name, and added Sanskrit text styling.
