@@ -92,7 +92,21 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 - **Google Gemini 2.0 Flash Vision**: Extracts vocabulary from book page photos via two flows (no API key input required):
   1. **Scan Page Modal** (dedicated UI): Returns underlined_words and suggested_words as toggleable chips; user accepts/rejects each before adding to Lexicon
   2. **Generate Flow** (main Add Section): Attaching an image + selecting Vocab opens a popup word review modal with all extracted words (underlined + AI-suggested); per-word Accept / Edit / Decline buttons allow fine-grained control before saving to library
-- **Dictionary Waterfall** (4-tier, in `addWords()`):
+- **Batch AI Tile Preview** (Apr 28, 2026):
+  - `_batchFetchTileDefinitions(words)` calls Gemini once for all image-scan words together instead of calling Free Dictionary API per-word
+  - AI responses cached in `window._tileWordData` for reuse when user accepts a word
+  - Significantly reduces API calls during tile preview (single batch call vs. N sequential calls)
+- **Smart Word Enrichment Save** (Apr 28, 2026):
+  - `_saveWordWithEnrichment(word)` saves immediately with cached AI seed data (card appears instantly in library), then enriches asynchronously
+  - Async enrichment pipeline: Free Dict → Wordnik → Gemini gap-fill (only for missing fields)
+  - Modal auto-refreshes in real-time as background enrichment completes (via `_openModalWordId` tracker)
+  - Eliminates duplicate API calls and no-word alert popups
+- **Multi-Source Data Merge** (Apr 28, 2026):
+  - `_mergeWordSources(freeDict, wordnik, aiData)` merges definitions from multiple sources with smart dedup logic
+  - Picks best non-circular definition; merges up to 5 synonyms + 5 antonyms; dedupes usage examples
+  - New `dataSources[]` field on saved words tracks which APIs contributed (e.g., `["Free Dictionary", "AI"]`)
+  - Word card modal displays source attribution at bottom ("Sources: Free Dictionary, AI")
+- **Dictionary Waterfall** (4-tier, in `_enrichWordAsync()` called after save):
   1. **Free Dictionary API** — no key, covers ~80% of common words; fetches definition, IPA, audio URL, usage, synonyms, antonyms, all definitions grouped by part of speech
   2. **Wordnik** — optional free key (`localStorage('wordnik_key')`); fires when Free Dict fails or returns no definition; multi-source definitions + examples
   3. **Gemini 2.0 Flash gap-fill** — routed through Cloudflare Worker proxy for security; fires automatically when IPA, definition, or usage is still missing after Tiers 1–2; targeted prompt requesting only the missing fields
@@ -165,4 +179,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 27, 2026* (Rich image-scan popup with difficulty system, tile layouts, async definitions)
+*Last Updated: April 28, 2026* (Batch AI tile preview, multi-source word enrichment, source attribution, async background enrichment)

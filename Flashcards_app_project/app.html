@@ -5163,9 +5163,9 @@
           <div class="tag-list" id="mRel"></div>
         </div>
         <div id="mSourceSec"
-          style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border); font-size:0.75rem;">
-          <a id="mSourceLink" href="#" target="_blank" style="color:var(--muted); text-decoration:underline;">View on
-            Wiktionary ↗</a>
+          style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border); font-size:0.75rem; display:flex; flex-direction:column; gap:6px;">
+          <a id="mSourceLink" href="#" target="_blank" style="color:var(--muted); text-decoration:underline; display:none;">View on Wiktionary ↗</a>
+          <div id="mDataSources" style="color:var(--muted); display:none;"></div>
         </div>
         <div id="mNote"></div>
 
@@ -5366,6 +5366,48 @@
       .difficulty-hard   { color: #D97706; background: rgba(217,119,6,0.08); }
       .difficulty-vhard  { color: #DC2626; background: rgba(220,38,38,0.08); }
       .difficulty-loading { color: var(--muted); background: transparent; border-color: var(--border-2); }
+
+      /* ── IMAGE VOCAB TILE ANIMATIONS ── */
+      .img-vocab-tile {
+        transition: background 0.25s, border-color 0.25s, opacity 0.35s, max-height 0.35s ease, padding 0.35s ease, margin 0.35s ease;
+        overflow: hidden;
+      }
+
+      .img-vocab-tile.tile-accepted {
+        background: #f0fdf4;
+        border-color: #059669;
+      }
+
+      .img-vocab-tile.tile-declined {
+        background: #fef2f2;
+        border-color: #DC2626;
+        opacity: 0;
+      }
+
+      .img-vocab-tile.tile-collapsing {
+        max-height: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        opacity: 0;
+      }
+
+      /* ── SECTION SUMMARY ── */
+      .img-vocab-summary-row {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        padding: 10px 14px;
+        background: var(--card-bg);
+        border: 1.5px solid var(--border-2);
+        border-radius: 6px;
+        margin-bottom: 4px;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-size: 0.82rem;
+      }
+
+      .summary-accepted { color: #059669; font-weight: 600; }
+      .summary-declined { color: #DC2626; font-weight: 600; }
 
       /* difficulty dot on library cards */
       .dict-diff-dot {
@@ -5573,6 +5615,7 @@
       let currentUser = null; // Firebase user object, null = guest
       let _firestoreUnsubscribe = null;
       let _previewVocabWord = null;
+      let _openModalWordId  = null;
 
       // ── AUTH HELPERS ──
 
@@ -6869,19 +6912,23 @@
         input.disabled = false;
         const textarea = document.getElementById('addContentTextarea');
         if (textarea) textarea.value = '';
-        if (added > 0) alert(`Successfully added ${added} new word(s)!`);
-        else alert('No valid new words were found or added. They might already exist or are not in the dictionary API.');
+        if (!window._silentAdd) {
+          if (added > 0) alert(`Successfully added ${added} new word(s)!`);
+          else alert('No valid new words were found or added. They might already exist or are not in the dictionary API.');
+        }
       }
 
       function _parseFreeDictEntry(entry, wordStr) {
         const meanings = entry.meanings || [];
         const types = [...new Set(meanings.map(m => m.partOfSpeech))];
         let def = '', usage = [], synonyms = [], antonyms = [], allDefs = [];
+        const _isCircular = (d) => d.length < 70 && d.toLowerCase().includes(wordStr.toLowerCase());
         meanings.forEach(m => {
           if (m.synonyms) synonyms.push(...m.synonyms);
           if (m.antonyms) antonyms.push(...m.antonyms);
           (m.definitions || []).forEach(d => {
-            if (!def) def = d.definition;
+            if (!def) { def = d.definition; }
+            else if (_isCircular(def) && !_isCircular(d.definition)) { def = d.definition; }
             if (d.example) usage.push(d.example);
             if (d.synonyms) synonyms.push(...d.synonyms);
             if (d.antonyms) antonyms.push(...d.antonyms);
@@ -6986,6 +7033,139 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
         } catch { return null; }
       }
 
+      function _mergeWordSources(seed, fd, wn) {
+        const dataSources = [];
+        if (fd)   dataSources.push('Free Dictionary');
+        if (wn)   dataSources.push('Wordnik');
+        if (seed) dataSources.push('AI');
+
+        const word = fd?.word || wn?.word || seed?.word || '';
+        const _circ = (d, w) => d.length < 70 && d.toLowerCase().includes(w.toLowerCase());
+        let definition = fd?.definition || '';
+        if (!definition || _circ(definition, word))
+          definition = wn?.definition || fd?.definition || seed?.definition || '';
+
+        const seenU = new Set();
+        const usage = [];
+        [...(fd?.usage||[]).slice(0,2), ...(wn?.usage||[]).slice(0,1)]
+          .forEach(u => { if (u && !seenU.has(u)) { seenU.add(u); usage.push(u); } });
+
+        const synonyms = [...new Set([...(fd?.synonyms||[]), ...(wn?.synonyms||[])])].slice(0,5);
+        const antonyms = [...new Set([...(fd?.antonyms||[]), ...(wn?.antonyms||[])])].slice(0,5);
+        const phonetic = fd?.phonetic || seed?.phonetic || '';
+        const audio    = fd?.audio    || '';
+        const types    = fd?.types?.length ? fd.types
+                       : (wn?.types?.length ? wn.types
+                       : (seed?.pos ? [seed.pos] : ['noun']));
+        const seenD = new Set();
+        const allDefs = [
+          ...(fd?.allDefs||[]),
+          ...(wn?.definition ? [{pos: wn.types?.[0]||'', def: wn.definition, example: wn.usage?.[0]||''}] : [])
+        ].filter(d => { if (seenD.has(d.def)) return false; seenD.add(d.def); return true; });
+
+        return { word, types, definition, usage, synonyms, antonyms, phonetic, audio,
+                 allDefs, source: fd?.source || wn?.source || '', dataSources,
+                 difficulty: seed?.difficulty || null };
+      }
+
+      async function _saveWordWithEnrichment(wordStr, seedData, deckId) {
+        if (VOCAB.some(v => v.word.toLowerCase() === wordStr.toLowerCase())) return;
+
+        const origProject = currentProjectId;
+        if (deckId && deckId !== currentProjectId) currentProjectId = deckId;
+        const projId = currentProjectId === 'all' ? 'general' : currentProjectId;
+        currentProjectId = origProject;
+
+        const newWord = {
+          id: `c_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          word: wordStr,
+          type: seedData?.pos ? [seedData.pos] : ['noun'],
+          definition: seedData?.definition || '',
+          usage: [],
+          opposites: [],
+          tenses: {},
+          related: [],
+          phonetic: seedData?.phonetic || '',
+          audio: '',
+          source: '',
+          allDefinitions: [],
+          addedOn: new Date().toISOString().split('T')[0],
+          difficulty: seedData?.difficulty || 4,
+          dataSources: seedData ? ['AI'] : [],
+          projectId: projId
+        };
+
+        let customVocab = lsGet('custom_vocab', []);
+        customVocab.push(newWord);
+        ALL_VOCAB.unshift(newWord);
+        ALL_QUIZ_VOCAB.unshift(newWord);
+        perf[newWord.id] = { quiz: { c: 0, w: 0 }, flash: { c: 0, w: 0 } };
+        lsSet('custom_vocab', customVocab);
+        savePerf();
+        syncToCloud({ custom_vocab: customVocab });
+        applyProjectFilter();
+
+        (async () => {
+          let fd = null, wn = null;
+          try {
+            const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(wordStr)}`);
+            if (r.ok) { const d = await r.json(); if (d?.length) fd = _parseFreeDictEntry(d[0], wordStr); }
+          } catch {}
+
+          if (!fd?.definition) {
+            const wKey = localStorage.getItem('wordnik_key');
+            if (wKey) try { wn = await _fetchWordnik(wordStr, wKey); } catch {}
+          }
+
+          const merged = _mergeWordSources(seedData, fd, wn);
+
+          const needsIPA   = !merged.phonetic;
+          const needsDef   = !merged.definition;
+          const needsUsage = !merged.usage.length;
+          if (needsIPA || needsDef || needsUsage) {
+            try {
+              const enriched = await _haikuEnrichWord(wordStr, merged, '', { needsIPA, needsDef, needsUsage });
+              if (enriched) {
+                if (needsIPA   && enriched.phonetic)             merged.phonetic   = enriched.phonetic;
+                if (needsDef   && enriched.definition)           merged.definition = enriched.definition;
+                if (needsUsage && Array.isArray(enriched.usage)) merged.usage      = enriched.usage;
+                if (!merged.dataSources.includes('AI')) merged.dataSources.push('AI');
+              }
+            } catch {}
+          }
+
+          if (!merged.usage.length) merged.usage = [`They used the word ${wordStr} in a sentence.`];
+
+          const updatedVocab = lsGet('custom_vocab', []);
+          const ci = updatedVocab.findIndex(v => v.id === newWord.id);
+          const updates = {
+            type:          merged.types?.length ? merged.types : newWord.type,
+            definition:    merged.definition   || newWord.definition,
+            usage:         [...new Set(merged.usage)].slice(0, 2),
+            opposites:     merged.antonyms     || [],
+            related:       merged.synonyms     || [],
+            phonetic:      merged.phonetic     || newWord.phonetic,
+            audio:         merged.audio        || '',
+            source:        merged.source       || '',
+            allDefinitions: merged.allDefs     || [],
+            difficulty:    _scoreDifficulty(merged),
+            dataSources:   merged.dataSources
+          };
+          if (ci >= 0) Object.assign(updatedVocab[ci], updates);
+          Object.assign(newWord, updates);
+          const ai = ALL_VOCAB.findIndex(v => v.id === newWord.id);
+          if (ai >= 0) Object.assign(ALL_VOCAB[ai], updates);
+          const qi = ALL_QUIZ_VOCAB.findIndex(v => v.id === newWord.id);
+          if (qi >= 0) Object.assign(ALL_QUIZ_VOCAB[qi], updates);
+
+          lsSet('custom_vocab', updatedVocab);
+          syncToCloud({ custom_vocab: updatedVocab });
+          applyProjectFilter();
+
+          if (window._openModalWordId === newWord.id) openModal(newWord.id);
+        })();
+      }
+
       // ── NAV (used internally by practice overlay) ──
       function showView(id, btn) {
         // Only operates on practice overlay views
@@ -7024,6 +7204,7 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
 
       // ── MODAL ──
       function openModal(id) {
+        _openModalWordId = id;
         const w = VOCAB.find(x => x.id === id);
         document.getElementById('mWord').textContent = w.word;
         document.getElementById('mType').textContent = w.type.join(' · ');
@@ -7092,12 +7273,18 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
           };
         } else { audioBtn.style.display = 'none'; }
 
-        const sourceSec = document.getElementById('mSourceSec');
-        const sourceLink = document.getElementById('mSourceLink');
+        const sourceSec     = document.getElementById('mSourceSec');
+        const sourceLink    = document.getElementById('mSourceLink');
+        const dataSourcesEl = document.getElementById('mDataSources');
         if (w.source) {
-          sourceSec.style.display = 'block';
-          sourceLink.href = w.source;
-        } else { sourceSec.style.display = 'none'; }
+          sourceLink.href         = w.source;
+          sourceLink.style.display = '';
+        } else { sourceLink.style.display = 'none'; }
+        if (w.dataSources?.length) {
+          dataSourcesEl.textContent   = 'Sources: ' + w.dataSources.join(', ');
+          dataSourcesEl.style.display = '';
+        } else { dataSourcesEl.style.display = 'none'; }
+        sourceSec.style.display = (w.source || w.dataSources?.length) ? 'block' : 'none';
 
         const noteEl = document.getElementById('mNote');
         noteEl.innerHTML = w.note ? `<div class="modal-note">${w.note}</div>` : '';
@@ -7168,7 +7355,7 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
       }
 
       function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalBtn(); }
-      function closeModalBtn() { document.getElementById('modalOverlay').classList.remove('open'); }
+      function closeModalBtn() { _openModalWordId = null; document.getElementById('modalOverlay').classList.remove('open'); }
 
       // ── AI MODAL & IMAGE PROCESSING ──
       function openAiModal() {
@@ -7374,14 +7561,13 @@ Return only raw JSON with no markdown code fences.`;
       function _buildVocabTile(word, idx) {
         return `<div class="img-vocab-tile" id="vocab-row-${idx}">
           <div class="img-vocab-tile-top">
-            <span class="img-vocab-word" id="vocab-word-${idx}" contenteditable="false">${word}</span>
+            <span class="img-vocab-word" id="vocab-word-${idx}">${word}</span>
             <span class="difficulty-badge difficulty-loading" id="vocab-diff-${idx}">…</span>
           </div>
           <div class="img-vocab-tile-meta" id="vocab-meta-${idx}"></div>
           <div class="img-vocab-tile-def" id="vocab-def-${idx}"><em style="color:var(--muted);">Fetching definition…</em></div>
           <div class="img-vocab-tile-actions">
             <button class="ai-preview-btn accept"  onclick="acceptImageWord(${idx})">✓ Accept</button>
-            <button class="ai-preview-btn edit"    onclick="editImageWord(${idx})">Edit</button>
             <button class="ai-preview-btn discard" onclick="declineImageWord(${idx})">✕ Decline</button>
           </div>
         </div>`;
@@ -7412,38 +7598,148 @@ Return only raw JSON with no markdown code fences.`;
             ? `<span>${entry.definition}</span>`
             : `<em style="color:var(--muted);">No definition found.</em>`;
         } catch {
-          if (diffEl) { diffEl.textContent = '?'; diffEl.className = 'difficulty-badge difficulty-vhard'; }
-          if (metaEl) metaEl.innerHTML = '';
-          if (defEl)  defEl.innerHTML = `<em style="color:var(--muted);">Definition not available.</em>`;
+          // Free Dict failed — fall back to Gemini
+          if (defEl) defEl.innerHTML = `<em style="color:var(--muted);">Looking up via AI…</em>`;
+          try {
+            const prompt = `For the English word "${word}", provide: a clear one-sentence definition; IPA phonetic transcription; part of speech.
+Return ONLY a JSON object: {"definition": string, "phonetic": string, "pos": string}. No markdown, no extra text.`;
+            const gRes = await fetch(GEMINI_PROXY_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const gData = await gRes.json();
+            const raw = (gData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().replace(/```json\n?|\n?```/g, '');
+            const g = JSON.parse(raw);
+            if (diffEl) { diffEl.textContent = 'Hard'; diffEl.className = 'difficulty-badge difficulty-hard'; }
+            if (metaEl) {
+              metaEl.innerHTML = [
+                g.pos      ? `<span class="tile-pos">${g.pos}</span>` : '',
+                g.phonetic ? `<span class="tile-phonetic">${g.phonetic}</span>` : ''
+              ].filter(Boolean).join('');
+            }
+            if (defEl) defEl.innerHTML = g.definition
+              ? `<span>${g.definition}</span><span style="margin-left:6px;font-size:0.68rem;color:var(--muted);font-style:italic;">via AI</span>`
+              : `<em style="color:var(--muted);">No definition found.</em>`;
+          } catch {
+            if (diffEl) { diffEl.textContent = '?'; diffEl.className = 'difficulty-badge difficulty-loading'; }
+            if (metaEl) metaEl.innerHTML = '';
+            if (defEl)  defEl.innerHTML = `<em style="color:var(--muted);">Definition not available.</em>`;
+          }
         }
       }
+
+      async function _batchFetchTileDefinitions(words) {
+        const diffLabels  = ['', 'Easy', 'Medium', 'Hard', 'V.Hard'];
+        const diffClasses = ['', 'difficulty-easy', 'difficulty-medium', 'difficulty-hard', 'difficulty-vhard'];
+
+        words.forEach((_, i) => {
+          const d = document.getElementById(`vocab-diff-${i}`);
+          if (d) { d.textContent = '…'; d.className = 'difficulty-badge difficulty-loading'; }
+        });
+
+        try {
+          const prompt = `You are a vocabulary assistant. For each word in this list, provide a quick preview.
+Words: ${JSON.stringify(words)}
+Return ONLY a JSON array (same order, one object per word):
+[{"word":"...","definition":"one clear sentence","phonetic":"IPA or empty string","pos":"noun|verb|adjective|adverb","difficulty":1},...]
+difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
+
+          const gRes = await fetch(GEMINI_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+          });
+          const gData = await gRes.json();
+          const raw = (gData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().replace(/```json\n?|\n?```/g, '');
+          const results = JSON.parse(raw);
+
+          const byWord = {};
+          results.forEach(r => { if (r.word) byWord[r.word.toLowerCase()] = r; });
+
+          words.forEach((w, i) => {
+            const r = (results[i]?.word) ? results[i] : byWord[w.toLowerCase()];
+            if (!r) return;
+            window._tileWordData[i] = { word: w, definition: r.definition, phonetic: r.phonetic,
+                                         pos: r.pos, difficulty: r.difficulty, source: 'AI' };
+            const diff   = Math.max(1, Math.min(4, r.difficulty || 3));
+            const diffEl = document.getElementById(`vocab-diff-${i}`);
+            const metaEl = document.getElementById(`vocab-meta-${i}`);
+            const defEl  = document.getElementById(`vocab-def-${i}`);
+            if (diffEl) { diffEl.textContent = diffLabels[diff]; diffEl.className = `difficulty-badge ${diffClasses[diff]}`; }
+            if (metaEl) metaEl.innerHTML = [
+              r.pos      ? `<span class="tile-pos">${r.pos}</span>`       : '',
+              r.phonetic ? `<span class="tile-phonetic">${r.phonetic}</span>` : ''
+            ].filter(Boolean).join('');
+            if (defEl) defEl.innerHTML = r.definition
+              ? `<span>${r.definition}</span><span style="margin-left:6px;font-size:0.68rem;color:var(--muted);font-style:italic;">via AI</span>`
+              : `<em style="color:var(--muted);">No definition found.</em>`;
+          });
+        } catch {
+          words.forEach((w, i) => _fetchTileDefinition(w, i));
+        }
+      }
+
+      let _imgVocabSection = {};  // idx -> 'underlined' | 'suggested'
+      let _imgVocabStats  = {};  // section -> { accepted, declined, total }
 
       function showImageVocabModal(underlined, suggested) {
         underlined = underlined || [];
         suggested  = suggested  || [];
         const list = document.getElementById('imageVocabList');
-        list.querySelectorAll('.img-vocab-word').forEach(s => { s.onblur = null; s.onkeydown = null; });
+
+        _imgVocabSection = {};
+        _imgVocabStats   = {
+          underlined: { accepted: 0, declined: 0, total: underlined.length },
+          suggested:  { accepted: 0, declined: 0, total: suggested.length }
+        };
 
         let html = '';
         let idx = 0;
         const allWords = [];
 
         if (underlined.length) {
-          html += `<div class="img-vocab-section-label">📖 Underlined Words <span style="font-weight:400;opacity:0.6;">(${underlined.length})</span></div>`;
-          underlined.forEach(w => { allWords.push(w); html += _buildVocabTile(w, idx++); });
+          html += `<div><div class="img-vocab-section-label">📖 Underlined Words <span style="font-weight:400;opacity:0.6;">(${underlined.length})</span></div>
+            <div id="img-tiles-underlined">`;
+          underlined.forEach(w => { _imgVocabSection[idx] = 'underlined'; allWords.push(w); html += _buildVocabTile(w, idx++); });
+          html += `</div></div>`;
         }
 
         if (suggested.length) {
           if (underlined.length) html += `<div class="img-vocab-section-divider"></div>`;
-          html += `<div class="img-vocab-section-label" style="margin-top:${underlined.length ? '16px' : '0'};">✨ AI-Suggested Words <span style="font-weight:400;opacity:0.6;">(${suggested.length})</span></div>`;
-          suggested.forEach(w => { allWords.push(w); html += _buildVocabTile(w, idx++); });
+          html += `<div style="margin-top:${underlined.length ? '16px' : '0'};"><div class="img-vocab-section-label">✨ AI-Suggested Words <span style="font-weight:400;opacity:0.6;">(${suggested.length})</span></div>
+            <div id="img-tiles-suggested">`;
+          suggested.forEach(w => { _imgVocabSection[idx] = 'suggested'; allWords.push(w); html += _buildVocabTile(w, idx++); });
+          html += `</div></div>`;
         }
 
         list.innerHTML = html;
         document.getElementById('imageVocabEmpty').style.display = allWords.length ? 'none' : 'block';
         document.getElementById('imageVocabModalOverlay').classList.add('open');
 
-        allWords.forEach((w, i) => _fetchTileDefinition(w, i));
+        window._tileWordData = {};
+        _batchFetchTileDefinitions(allWords);
+      }
+
+      function _checkSectionDone(section) {
+        if (!section || !_imgVocabStats[section]) return;
+        const tilesEl = document.getElementById(`img-tiles-${section}`);
+        if (!tilesEl || tilesEl.querySelectorAll('.img-vocab-tile').length > 0) return;
+        const { accepted, declined } = _imgVocabStats[section];
+        tilesEl.innerHTML = `<div class="img-vocab-summary-row">
+          <span class="summary-accepted">✓ ${accepted} accepted</span>
+          <span class="summary-declined">✕ ${declined} declined</span>
+        </div>`;
+      }
+
+      function _animateTileOut(row, cls, onDone) {
+        row.classList.add(cls);
+        const h = row.offsetHeight;
+        row.style.maxHeight = h + 'px';
+        setTimeout(() => {
+          row.classList.add('tile-collapsing');
+          setTimeout(() => { row.remove(); onDone(); }, 370);
+        }, cls === 'tile-accepted' ? 600 : 300);
       }
 
       function closeImageVocabModal() {
@@ -7455,31 +7751,27 @@ Return only raw JSON with no markdown code fences.`;
         if (!span) return;
         const word = span.textContent.trim();
         const row = document.getElementById(`vocab-row-${i}`);
-        row.querySelector('.ai-preview-btn.accept').textContent = 'Saving…';
+        if (!row) return;
         row.querySelectorAll('button').forEach(b => b.disabled = true);
-        _addWordsFromText(word, _imageVocabDeckId)
-          .then(() => row.remove())
+        const section  = _imgVocabSection[i];
+        const seedData = window._tileWordData?.[i] || null;
+        _saveWordWithEnrichment(word, seedData, _imageVocabDeckId)
+          .then(() => {
+            if (section) _imgVocabStats[section].accepted++;
+            _animateTileOut(row, 'tile-accepted', () => _checkSectionDone(section));
+          })
           .catch(() => {
-            row.querySelector('.ai-preview-btn.accept').textContent = '✓ Accept';
             row.querySelectorAll('button').forEach(b => b.disabled = false);
           });
       }
 
-      function editImageWord(i) {
-        const span = document.getElementById(`vocab-word-${i}`);
-        if (!span) return;
-        span.onblur = null;
-        span.onkeydown = null;
-        span.contentEditable = 'true';
-        span.focus();
-        const finish = () => { span.contentEditable = 'false'; span.onblur = null; span.onkeydown = null; };
-        span.onblur = finish;
-        span.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); span.blur(); } };
-      }
-
       function declineImageWord(i) {
         const row = document.getElementById(`vocab-row-${i}`);
-        if (row) row.remove();
+        if (!row) return;
+        const section = _imgVocabSection[i];
+        if (section) _imgVocabStats[section].declined++;
+        row.querySelectorAll('button').forEach(b => b.disabled = true);
+        _animateTileOut(row, 'tile-declined', () => _checkSectionDone(section));
       }
 
       // ── CUSTOM FLASHCARDS ──

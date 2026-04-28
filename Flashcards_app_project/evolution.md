@@ -1,5 +1,36 @@
 # Project Evolution Log
 
+## 2026-04-28 — Batch AI Tile Preview & Multi-Source Word Enrichment
+
+**What**: 
+- Replaced per-word Free Dictionary API calls in image scan popup with single batch Gemini call
+- New `_saveWordWithEnrichment` function: saves immediately with AI seed data, then enriches async (Free Dict → Wordnik → Gemini gap-fill)
+- Added `_mergeWordSources` helper to merge data from multiple APIs with dedup logic
+- Added `dataSources[]` field to track which APIs contributed to each word
+- Added source attribution display in word card modal ("Sources: Free Dictionary, AI")
+- Added `_openModalWordId` tracker for auto-refresh after background enrichment
+- Removed alert popups on word accept
+
+**Why**: 
+The old image scan flow was wasteful — it called Free Dictionary API once per word just for tile preview, then called it again (plus other APIs) on accept. Users also complained about alert popups appearing on every word acceptance. The new flow uses a single batch Gemini call for tile preview (no wasted API calls on declined words), then enriches only accepted words asynchronously without blocking the UI.
+
+**Impact**: 
+- Significant reduction in API call count (from 2N to ~N + M where M < N)
+- Faster tile preview (single batch call instead of N sequential calls)
+- Faster word acceptance (immediate save with AI seed, enrichment happens in background)
+- Better user experience (no alert popups, real-time data enrichment feedback in modal)
+- Full transparency on data sources via attribution display
+
+**Technical Detail**: 
+- `_batchFetchTileDefinitions(words)` — Single Gemini batch call replaces N Free Dict tile calls
+- `window._tileWordData` — Per-tile-index cache for AI-generated definitions (reused on accept)
+- `_saveWordWithEnrichment(word)` — New save flow: synchronously saves with cached AI data, then async enrichment via Free Dict → Wordnik → Gemini gap-fill
+- `_mergeWordSources(freeDict, wordnik, aiData)` — Pure helper merging multiple sources with dedup (5 max synonyms/antonyms each, best non-circular definition)
+- `dataSources[]` — Words now track contributing APIs as array of strings
+- Word card modal — Shows "Sources: <list>" at bottom
+- `_openModalWordId` tracker — Auto-refreshes modal when enrichment completes for the displayed word
+- `acceptImageWord()` — Now bypasses `addWords()` entirely, eliminating popup alerts
+
 ## 2026-04-27 — feat: rich image-scan popup with tiles, definitions, and difficulty system
 
 **What:** Redesigned the image vocabulary scan popup to display extracted words as styled tiles with async-fetched dictionary definitions. Added a difficulty scoring system (Easy/Medium/Hard/Very Hard) computed from API data richness. Introduced visual difficulty indicators: coloured difficulty badges in word tiles and word detail modals; small coloured difficulty dots on library cards. Two labelled sections ("📖 Underlined Words" / "✨ AI-Suggested Words") separated by a divider for clarity. All definitions stored and grouped by part of speech in word detail modals.
