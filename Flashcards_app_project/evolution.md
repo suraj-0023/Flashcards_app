@@ -1,5 +1,17 @@
 # Project Evolution Log
 
+## 2026-04-26 — App Rebranding: Lexicon → Smritikosha (स्मृतिकोश)
+
+**What:** Renamed the app from Lexicon to Smritikosha (Sanskrit: स्मृतिकोश), a compound meaning "Treasury of Memory" (Smriti = memory, Kosha = treasury/dictionary). Updated page title, login screen branding, login tagline, profile setup branding, sidebar logo mark and name, and added Sanskrit text styling.
+
+**Why:** User requested a more meaningful, culturally rooted name that better reflects the app's purpose as a personal vocabulary and memory treasury. The Sanskrit name adds elegance and cultural significance while maintaining accessibility through English subtitle "Your Treasury of Memory."
+
+**Impact:** All visible branding refreshed — login screen now displays "Smritikosha — Your Treasury of Memory" with Sanskrit text (स्मृतिकोश) in emerald below the logo; sidebar logo changed from "L" mark to "S" mark; page `<title>` updated; profile setup branding updated. User experience remains unchanged; focus purely on visual and textual rebranding.
+
+**Technical Detail:** Updated `app.html` — 5 HTML text/content changes (page title, login logo text, login tagline, profile setup logo, sidebar logo mark + name) + 1 new CSS class `.login-sanskrit` for styling Sanskrit subtitle with font-family and emerald color.
+
+---
+
 ## 2026-04-28 — Batch AI Tile Preview & Multi-Source Word Enrichment
 
 **What**: 

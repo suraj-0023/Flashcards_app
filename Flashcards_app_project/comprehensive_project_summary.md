@@ -1,12 +1,12 @@
-# Comprehensive Lexicon App Development Summary
+# Comprehensive Smritikosha App Development Summary
 
-This document provides a unified overview of the development journey, features, and future roadmap of the Lexicon application.
+This document provides a unified overview of the development journey, features, and future roadmap of the Smritikosha application.
 
 ---
 
 ## 1. App Purpose & Pivot
 
-Originally a vocabulary flashcards tool. As of April 2026, evolved into a full **note-taking + flashcards + vocabulary learning platform** organized around "Decks" (formerly "Projects"). The app now combines personal notes, custom flashcards, and curated vocabulary learning in a single, gamified experience inspired by Duolingo and Brainscape.
+Originally a vocabulary flashcards tool. As of April 2026, evolved into a full **note-taking + flashcards + vocabulary learning platform** organized around "Decks" (formerly "Projects"). The app combines personal notes, custom flashcards, and curated vocabulary learning in a single, gamified experience inspired by Duolingo and Brainscape.
 
 ---
 
@@ -179,4 +179,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 28, 2026* (Batch AI tile preview, multi-source word enrichment, source attribution, async background enrichment)
+*Last Updated: April 26, 2026* (App rebranding: Lexicon → Smritikosha; Batch AI tile preview, multi-source word enrichment, source attribution, async background enrichment)
