@@ -1,5 +1,28 @@
 # Project Evolution Log
 
+## 2026-04-28 — Add Modal Multi-Select, PRD/Design Docs, Brand Review
+
+**What:** Upgraded `app.html` Add Modal from radio-style type pills to multi-select checkboxes; added Phase 2 planning documents and brand review.
+- Add Modal now supports multi-select content types: Vocab + Note + Flashcard can be checked simultaneously, or Image/PDF (exclusive mode) for file-based vocab scanning
+- `updateAddModalTypes()` manages checkbox state, shows/hides per-type panels, and updates submit button label ("Generate →" / "Save All →" / "Scan File →")
+- `handleAddModalGenerate()` refactored: dispatches to multi-type path (saves all selected types from a single text input), image/PDF scan path, or single-type path
+- `handleAddModalFileChange()` added: validates file size (5 MB max), stores file reference in `_addModalFile`, shows filename and error text
+- Legacy `switchAddType()` kept as a no-op shim for safety
+- Image/PDF panel wired directly into the modal (no separate scan modal needed for basic flow)
+- Sidebar logo name given emerald gradient (`linear-gradient(90deg, var(--emerald), #34D399)`) + bumped to 18px
+- Submit button padding/size increased (9px 20px, 14.5px)
+- New CSS: `.deck-home-cta-btn`, `.deck-recent-grid/.deck-recent-card`, `.deck-stats-row/.deck-stat-card`, `.deck-mastery-bar-wrap` — Deck Home dashboard scaffolding for Phase 3
+- `PRD_analysis.md` deleted; replaced by `PRD_P2.md` (Phase 2 PRD) and `design_document_P2.md` (full UI/UX redesign spec)
+- `Brand_consultant_review.md` added at repo root
+
+**Why:** Type pills were mutually exclusive and required switching mode before typing. Multi-select lets users create a vocab entry, a note, and a flashcard from a single text block in one submit. Image/PDF scan is now accessible directly from the modal without an extra trigger. PRD_P2 and design doc capture the next phase plan in a structured format.
+
+**Impact:** Content creation is more flexible — a single "Save All →" action can populate three content types at once. The modal is now self-contained for all add flows including file scan. Deck Home CSS scaffolding is in place for the upcoming dashboard widget (Phase 3).
+
+**Technical Detail:** `updateAddModalTypes()` is the single source of truth for modal UI state — called on every checkbox `onchange`. `_addModalFile` module-level variable stores the selected file between `handleAddModalFileChange` and `handleAddModalGenerate`. Multi-type path splits raw textarea by newline; first line → vocab word and flashcard front; full text → note body.
+
+---
+
 ## 2026-04-28 — Phase 2 — Sidebar Redesign, Add Modal (Cmd+N), Header Actions, Scroll Fix
 
 **What:** Implemented Phase 2 of the Nexora production upgrade across `app.html`:

@@ -24,12 +24,14 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 ### Main Area — Single Scrollable Page
 1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch; includes ⌘K Search ghost pill and "+ Add" button (Cmd+N shortcut)
 2. **Add Modal** (Cmd+N to open, Escape to close)
-   - 3 content type pills: Vocab, Note, Flashcard (with per-type fields)
-   - Word/title input field
+   - **Multi-select content type checkboxes**: Vocab, Note, Flashcard (combinable), and Image/PDF (exclusive)
+   - When 2+ types selected: single textarea input → first line becomes vocab word + flashcard front; full text becomes note body; "Save All →" saves to all selected types in one action
+   - When Image/PDF selected: file picker (5 MB limit) replaces text input; "Scan File →" runs vision AI extraction
+   - Word/title input field (hidden in multi-type and image/PDF modes)
    - Deck selector dropdown
-   - Type-specific fields (e.g., definition for Vocab, front/back for Flashcard)
+   - Type-specific fields (context sentence for Vocab, title+body for Note, front+back for Flashcard)
    - Cmd+Enter or button click to submit; scroll position preserved after add
-   - Smart routing: Vocab → `_addWordsFromText()` for enrichment, Note/Flashcard → direct object creation
+   - Smart routing: Vocab → `_addWordsFromText()` for enrichment, Note/Flashcard → direct object creation, Image/PDF → `generateVocabFromImage()`
 3. **Library** (2-column card grid, scroll position preserved)
    - Unified grid of all content types for the active deck
    - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), circular SVG score ring badge, accuracy label
@@ -137,7 +139,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 
 ## 6. Tech Stack
 
-- Single HTML file (`app.html`) — ~5800 lines
+- Single HTML file (`app.html`) — ~10,400 lines
 - Firebase Auth (Google + email) via CDN
 - Firestore for cloud sync (single merged doc per user)
 - localStorage as primary store (works offline); namespaced by userId

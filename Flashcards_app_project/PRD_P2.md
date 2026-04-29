@@ -481,6 +481,8 @@ The home screen for returning users shows:
 - Guest → sign-in data save prompt
 - Quiz distractor caching (generate once, store in Firestore)
 - Global search (Cmd+K)
+- add feature to create a note or a flash card. 
+- bug -- when scrolled in side a deck after entring vocab or notes the screen goes to top , so we should retain the scroll position. and also provide a option to add the a new entry for that section. 
 
 ### V1 (4–8 Weeks)
 

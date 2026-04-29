@@ -275,25 +275,6 @@
       width: 100%;
     }
 
-    .mastery-dots {
-      display: flex;
-      gap: 3px;
-      align-items: center;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-
-    .mastery-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--border-2);
-    }
-
-    .mastery-dot.filled {
-      background: var(--emerald);
-    }
-
     .sidebar-logo-mark {
       width: 32px;
       height: 32px;
@@ -309,9 +290,12 @@
 
     .sidebar-logo-name {
       font-weight: 800;
-      font-size: 16px;
+      font-size: 18px;
       letter-spacing: -0.02em;
-      color: var(--text);
+      background: linear-gradient(90deg, var(--emerald), #34D399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .sidebar-section-label {
@@ -3349,8 +3333,8 @@
       color: #fff;
       border: none;
       border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 13px;
+      padding: 9px 20px;
+      font-size: 14.5px;
       font-weight: 700;
       cursor: pointer;
       font-family: var(--font-sans);
@@ -4321,6 +4305,160 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
+
+    /* ── DECK HOME ENHANCEMENTS ── */
+    .deck-home-cta-btn {
+      display: block;
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--emerald);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      margin-bottom: 24px;
+      transition: opacity 0.14s;
+    }
+    .deck-home-cta-btn:hover { opacity: 0.88; }
+
+    .deck-home-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .deck-recent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .deck-recent-card {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .deck-recent-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      width: fit-content;
+    }
+    .deck-recent-badge.badge-vocab { background: var(--emerald-50); color: var(--emerald-700); }
+    .deck-recent-badge.badge-note  { background: var(--amber-50);   color: #92400E; }
+    .deck-recent-badge.badge-flash { background: var(--purple-50);  color: #6D28D9; }
+    [data-theme="dark"] .deck-recent-badge.badge-note  { color: var(--amber); }
+    [data-theme="dark"] .deck-recent-badge.badge-flash { color: var(--purple); }
+
+    .deck-recent-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .deck-recent-date { font-size: 11px; color: var(--muted-2); }
+
+    .deck-stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .deck-stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .deck-stat-number {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .deck-stat-label { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+
+    .deck-mastery-bar-wrap { margin-top: 12px; }
+
+    .deck-mastery-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .deck-mastery-bar-track {
+      height: 8px;
+      background: var(--border-2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .deck-mastery-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--emerald), #34D399);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── ADD MODAL TYPE CHECKBOXES ── */
+    .add-modal-type-checks {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .add-type-check {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 1.5px solid var(--border-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      user-select: none;
+      transition: border-color 0.12s, background 0.12s;
+      color: var(--muted);
+    }
+
+    .add-type-check input[type="checkbox"] { display: none; }
+
+    .add-type-check.active {
+      border-color: var(--emerald);
+      background: var(--emerald-50);
+      color: var(--emerald-700);
+    }
+
+    [data-theme="dark"] .add-type-check.active { color: var(--emerald); }
 
     /* ── NOTES SECTION ── */
     .notes-header {
@@ -5492,6 +5630,9 @@
             </div>
             <div id="aiPreviewCards" class="ai-preview-cards-row"></div>
           </div>
+
+          <!-- 2b. Deck Home Panel — shown when a specific deck is selected -->
+          <div id="deck-home-content" style="display:none; padding: 32px 0;"></div>
 
           <!-- 3. Library -->
           <div class="library-section">
@@ -7144,6 +7285,19 @@
         // Reset library list to tiles view on deck switch
         if (currentLibListType) hideLibraryList();
         renderLibrary();
+
+        // Show deck home panel for specific decks, hide library when a deck is selected
+        const deckHomeEl = document.getElementById('deck-home-content');
+        const libSectionEl = document.querySelector('.library-section');
+        if (currentProjectId !== 'all' && deckHomeEl) {
+          deckHomeEl.style.display = 'block';
+          if (libSectionEl) libSectionEl.style.display = 'none';
+          renderDeckHome();
+        } else {
+          if (deckHomeEl) deckHomeEl.style.display = 'none';
+          if (libSectionEl) libSectionEl.style.display = '';
+        }
+
         initFlash();
         initQuiz();
       }
@@ -7159,12 +7313,6 @@
           return total >= 3 && c / total >= 0.75;
         }).length;
         return Math.round((mastered / words.length) * 100);
-      }
-
-      function _masteryDots(deckId) {
-        const pct = _masteryPercent(deckId);
-        const filled = Math.round(pct / 25);
-        return [0,1,2,3].map(i => `<span class="mastery-dot${i < filled ? ' filled' : ''}"></span>`).join('');
       }
 
       function startSM2Review() {
@@ -7198,17 +7346,13 @@
     <div class="project-item-sidebar ${allActive ? 'active' : ''}" onclick="switchProject('all')">
       <i>📚</i> <span>Complete Library</span>
     </div>
-    ${projects.map(p => {
-      const dots = _masteryDots(p.id);
-      return `
+    ${projects.map(p => `
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
         <i>🗂️</i> <span>${p.name}</span>
-        <div class="mastery-dots" title="${_masteryPercent(p.id)}% mastered">${dots}</div>
         <div class="project-actions">
            <button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>
         </div>
-      </div>`;
-    }).join('')}
+      </div>`).join('')}
   `;
 
         // Update Title (legacy element may not exist in new layout)
@@ -9236,6 +9380,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
         // Refresh list view if currently open
         if (currentLibListType) renderLibraryList();
+
+        // Keep deck home stats current when items are added
+        if (currentProjectId !== 'all') renderDeckHome();
       }
 
       // ── LIBRARY LIST VIEW ──
@@ -9689,6 +9836,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       }
 
       function renderDeckHome() {
+        const el = document.getElementById('deck-home-content');
+        if (!el) return;
+
         const deck = projects.find(p => p.id === currentProjectId);
         const deckName = deck ? deck.name : 'Deck';
 
@@ -9696,30 +9846,106 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         const flashCount = ALL_CUSTOM_CARDS.filter(c => c.projectId === currentProjectId).length;
         const notesData = lsGet('lexicon_notes', []);
         const notesCount = notesData.filter(n => n.deckId === currentProjectId).length;
+        const masteryPct = _masteryPercent(currentProjectId);
 
-        document.getElementById('deck-home-content').innerHTML = `
-    <div style="margin-bottom: 32px;">
-      <h2 style="font-family:'Plus Jakarta Sans',system-ui,sans-serif; font-size:1.8rem; font-weight:400; margin-bottom:6px;">${deckName}</h2>
-      <p style="color:var(--muted); font-size:0.85rem;">Choose a section to get started</p>
-    </div>
-    <div class="deck-section-grid">
-      <div class="deck-section-card" onclick="showDeckSection('notes', null)">
-        <div class="deck-card-icon">📝</div>
-        <div class="deck-card-title">Notes</div>
-        <div class="deck-card-count">${notesCount} note${notesCount !== 1 ? 's' : ''}</div>
-      </div>
-      <div class="deck-section-card" onclick="showDeckSection('flashcards', null)">
-        <div class="deck-card-icon">🃏</div>
-        <div class="deck-card-title">Flashcards</div>
-        <div class="deck-card-count">${flashCount} card${flashCount !== 1 ? 's' : ''}</div>
-      </div>
-      <div class="deck-section-card" onclick="showDeckSection('vocab', null)">
-        <div class="deck-card-icon">📖</div>
-        <div class="deck-card-title">Vocabulary</div>
-        <div class="deck-card-count">${vocabCount} word${vocabCount !== 1 ? 's' : ''}</div>
-      </div>
-    </div>
-  `;
+        const deckVocab = ALL_VOCAB.filter(w => w.projectId === currentProjectId);
+        let quizAttempts = 0;
+        deckVocab.forEach(w => {
+          const p = perf[w.id];
+          if (p) quizAttempts += (p.quiz.c || 0) + (p.quiz.w || 0) + (p.flash.c || 0) + (p.flash.w || 0);
+        });
+
+        function _itemTs(item, type) {
+          if (type === 'vocab') return new Date(item.addedOn || '2000-01-01').getTime();
+          if (type === 'note')  return new Date(item.createdAt || item.updatedAt || '2000-01-01').getTime();
+          if (type === 'flash') return parseInt((item.id || '').replace('cc_', '')) || 0;
+          return 0;
+        }
+
+        const recentItems = [
+          ...ALL_VOCAB.filter(w => w.projectId === currentProjectId).map(w => ({ type: 'vocab', ts: _itemTs(w, 'vocab'), label: w.word })),
+          ...notesData.filter(n => n.deckId === currentProjectId).map(n => ({ type: 'note', ts: _itemTs(n, 'note'), label: n.title || 'Untitled' })),
+          ...ALL_CUSTOM_CARDS.filter(c => c.projectId === currentProjectId).map(c => ({ type: 'flash', ts: _itemTs(c, 'flash'), label: c.front }))
+        ].sort((a, b) => b.ts - a.ts).slice(0, 6);
+
+        const badgeText = { vocab: 'Vocab', note: 'Note', flash: 'Flashcard' };
+        const badgeClass = { vocab: 'badge-vocab', note: 'badge-note', flash: 'badge-flash' };
+
+        const recentHTML = recentItems.length
+          ? recentItems.map(({ type, label, ts }) => {
+              const dateStr = ts > 946684800000
+                ? new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                : '';
+              return `<div class="deck-recent-card">
+                <span class="deck-recent-badge ${badgeClass[type]}">${badgeText[type]}</span>
+                <div class="deck-recent-title" title="${String(label).replace(/"/g, '&quot;')}">${String(label).replace(/</g, '&lt;')}</div>
+                ${dateStr ? `<div class="deck-recent-date">${dateStr}</div>` : ''}
+              </div>`;
+            }).join('')
+          : `<p style="color:var(--muted);font-size:0.85rem;">Nothing added yet.</p>`;
+
+        el.innerHTML = `
+          <div style="text-align:center; margin-bottom:28px;">
+            <h2 style="font-family:var(--font-sans); font-size:2.4rem; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.2;">${String(deckName).replace(/</g,'&lt;')}</h2>
+            <p style="color:var(--muted); font-size:0.875rem;">Your personal study deck</p>
+          </div>
+
+          <button class="deck-home-cta-btn" onclick="openAddModal()">+ Add Content to ${String(deckName).replace(/</g,'&lt;')}</button>
+
+          <div class="deck-section-grid">
+            <div class="deck-section-card" onclick="showDeckSection('notes', null)">
+              <div class="deck-card-icon">📝</div>
+              <div class="deck-card-title">Notes</div>
+              <div class="deck-card-count">${notesCount} note${notesCount !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="deck-section-card" onclick="showDeckSection('flashcards', null)">
+              <div class="deck-card-icon">🃏</div>
+              <div class="deck-card-title">Flashcards</div>
+              <div class="deck-card-count">${flashCount} card${flashCount !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="deck-section-card" onclick="showDeckSection('vocab', null)">
+              <div class="deck-card-icon">📖</div>
+              <div class="deck-card-title">Vocabulary</div>
+              <div class="deck-card-count">${vocabCount} word${vocabCount !== 1 ? 's' : ''}</div>
+            </div>
+          </div>
+
+          <div style="margin-top:32px;">
+            <div class="deck-home-section-label">Recently Added</div>
+            <div class="deck-recent-grid">${recentHTML}</div>
+          </div>
+
+          <div>
+            <div class="deck-home-section-label">Deck Stats</div>
+            <div class="deck-stats-row">
+              <div class="deck-stat-card">
+                <div class="deck-stat-number">${vocabCount}</div>
+                <div class="deck-stat-label">Vocab words</div>
+              </div>
+              <div class="deck-stat-card">
+                <div class="deck-stat-number">${notesCount}</div>
+                <div class="deck-stat-label">Notes</div>
+              </div>
+              <div class="deck-stat-card">
+                <div class="deck-stat-number">${flashCount}</div>
+                <div class="deck-stat-label">Flashcards</div>
+              </div>
+              <div class="deck-stat-card">
+                <div class="deck-stat-number">${quizAttempts}</div>
+                <div class="deck-stat-label">Practice reps</div>
+              </div>
+            </div>
+            <div class="deck-mastery-bar-wrap">
+              <div class="deck-mastery-bar-label">
+                <span>Mastery</span>
+                <span>${masteryPct}%</span>
+              </div>
+              <div class="deck-mastery-bar-track">
+                <div class="deck-mastery-bar-fill" style="width:${masteryPct}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
       }
 
       function showDeckSection(section, btn) {
@@ -9810,10 +10036,50 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
       // ── ADD MODAL ──
 
-      let _addModalType = 'vocab';
+      let _addModalFile = null;
+      const _ADD_MODAL_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+      function _getSelectedTypes() {
+        return [...document.querySelectorAll('.add-modal-type-checks input:checked')].map(i => i.value);
+      }
+
+      function updateAddModalTypes() {
+        const selected = _getSelectedTypes();
+
+        // Image/PDF is exclusive — uncheck all others when selected
+        if (selected.includes('imagepdf') && selected.length > 1) {
+          document.querySelectorAll('.add-modal-type-checks input').forEach(cb => {
+            if (cb.value !== 'imagepdf') cb.checked = false;
+          });
+        }
+
+        const finalSelected = _getSelectedTypes();
+        document.querySelectorAll('.add-type-check').forEach(el => {
+          el.classList.toggle('active', finalSelected.includes(el.dataset.type));
+        });
+
+        const isImagePdf = finalSelected.includes('imagepdf');
+        const isMulti = !isImagePdf && finalSelected.length > 1;
+
+        // Show/hide word input
+        const wordWrap = document.getElementById('addModalWord');
+        if (wordWrap) wordWrap.style.display = (isImagePdf || isMulti) ? 'none' : '';
+
+        // Show/hide panels
+        document.getElementById('addTypeVocab').style.display     = (!isMulti && !isImagePdf && finalSelected.includes('vocab'))      ? 'block' : 'none';
+        document.getElementById('addTypeNote').style.display      = (!isMulti && !isImagePdf && finalSelected.includes('note'))       ? 'block' : 'none';
+        document.getElementById('addTypeFlashcard').style.display = (!isMulti && !isImagePdf && finalSelected.includes('flashcard'))  ? 'block' : 'none';
+        document.getElementById('addTypeMulti').style.display     = isMulti    ? 'block' : 'none';
+        document.getElementById('addTypeImagePdf').style.display  = isImagePdf ? 'block' : 'none';
+
+        // Submit button label
+        const submitBtn = document.getElementById('addModalSubmitBtn');
+        if (submitBtn) {
+          submitBtn.textContent = isImagePdf ? 'Scan File →' : isMulti ? 'Save All →' : 'Generate →';
+        }
+      }
 
       function openAddModal() {
-        _addModalType = 'vocab';
         const modal = document.getElementById('addModal');
         modal.classList.add('open');
 
@@ -9825,54 +10091,139 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           ).join('');
         }
 
-        // Reset fields and type pills
+        // Reset all fields
         const wordInput = document.getElementById('addModalWord');
-        if (wordInput) { wordInput.value = ''; wordInput.focus(); }
+        if (wordInput) { wordInput.value = ''; wordInput.style.display = ''; }
         document.getElementById('addContextSentence').value = '';
         document.getElementById('addNoteTitle').value = '';
         document.getElementById('addNoteContent').value = '';
         document.getElementById('addCardFront').value = '';
         document.getElementById('addCardBack').value = '';
+        document.getElementById('addMultiText').value = '';
 
-        // Reset type pills to vocab
-        document.querySelectorAll('.add-modal-type-pill').forEach(p => p.classList.toggle('active', p.dataset.type === 'vocab'));
-        switchAddType('vocab');
+        // Reset file state
+        _addModalFile = null;
+        document.getElementById('addModalFileName').textContent = '';
+        document.getElementById('addModalFileSizeError').style.display = 'none';
+        const fi = document.getElementById('addModalFileInput');
+        if (fi) fi.value = '';
+
+        // Reset checkboxes — only vocab checked
+        document.querySelectorAll('.add-modal-type-checks input').forEach(cb => {
+          cb.checked = cb.value === 'vocab';
+        });
+        updateAddModalTypes();
+
+        if (wordInput) wordInput.focus();
       }
 
       function closeAddModal() {
         document.getElementById('addModal').classList.remove('open');
       }
 
-      function switchAddType(type) {
-        _addModalType = type;
-        document.querySelectorAll('.add-modal-type-pill').forEach(p => p.classList.toggle('active', p.dataset.type === type));
-        document.getElementById('addTypeVocab').style.display = type === 'vocab' ? 'block' : 'none';
-        document.getElementById('addTypeNote').style.display = type === 'note' ? 'block' : 'none';
-        document.getElementById('addTypeFlashcard').style.display = type === 'flashcard' ? 'block' : 'none';
+      function handleAddModalFileChange(input) {
+        const file = input.files && input.files[0];
+        const errEl = document.getElementById('addModalFileSizeError');
+        if (!file) return;
+        if (file.size > _ADD_MODAL_MAX_BYTES) {
+          errEl.style.display = 'block';
+          document.getElementById('addModalFileName').textContent = '';
+          _addModalFile = null;
+          input.value = '';
+          return;
+        }
+        errEl.style.display = 'none';
+        _addModalFile = file;
+        document.getElementById('addModalFileName').textContent = file.name;
       }
 
       async function handleAddModalGenerate() {
-        const word = (document.getElementById('addModalWord').value || '').trim();
         const sel = document.getElementById('addModalDeckSelect');
-        const deckId = sel ? sel.value : (currentProjectId === 'all' ? 'general' : currentProjectId);
+        const deckId = sel ? sel.value : (currentProjectId === 'all' ? (projects[0] ? projects[0].id : 'general') : currentProjectId);
+        const selectedTypes = _getSelectedTypes();
+        const isImagePdf = selectedTypes.includes('imagepdf');
+        const isMulti = !isImagePdf && selectedTypes.length > 1;
+        const btn = document.getElementById('addModalSubmitBtn');
 
-        if (_addModalType === 'vocab') {
+        if (isImagePdf) {
+          if (!_addModalFile) { alert('Please choose a file first.'); return; }
+          if (btn) { btn.textContent = 'Scanning…'; btn.disabled = true; }
+          try {
+            if (typeof _imageVocabDeckId !== 'undefined') _imageVocabDeckId = deckId;
+            await generateVocabFromImage(_addModalFile, deckId);
+          } finally {
+            if (btn) { btn.textContent = 'Scan File →'; btn.disabled = false; }
+            _addModalFile = null;
+            document.getElementById('addModalFileName').textContent = '';
+            const fi = document.getElementById('addModalFileInput');
+            if (fi) fi.value = '';
+          }
+          closeAddModal();
+          return;
+        }
+
+        if (isMulti) {
+          const raw = (document.getElementById('addMultiText').value || '').trim();
+          if (!raw) { alert('Please paste some content first.'); return; }
+          const lines = raw.split('\n').filter(l => l.trim());
+          const firstLine = lines[0] || raw;
+          if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+          try {
+            if (selectedTypes.includes('vocab')) {
+              window._silentAdd = true;
+              try { await _addWordsFromText(firstLine, deckId); }
+              finally { window._silentAdd = false; }
+            }
+            if (selectedTypes.includes('note')) {
+              const note = {
+                id: 'n_' + Date.now(),
+                deckId,
+                title: firstLine.slice(0, 60),
+                content: raw,
+                createdAt: new Date().toISOString().split('T')[0],
+                updatedAt: new Date().toISOString().split('T')[0]
+              };
+              ALL_NOTES.push(note);
+              lsSet('lexicon_notes', ALL_NOTES);
+              syncToCloud({ lexicon_notes: ALL_NOTES });
+            }
+            if (selectedTypes.includes('flashcard')) {
+              const back = lines.length > 1 ? lines.slice(1).join(' ') : firstLine;
+              const newCard = { id: 'cc_' + (Date.now() + 1), isCustom: true, front: firstLine, back, projectId: deckId };
+              ALL_CUSTOM_CARDS.push(newCard);
+              const cards = lsGet('lexicon_custom_cards', []);
+              cards.push(newCard);
+              lsSet('lexicon_custom_cards', cards);
+              syncToCloud({ lexicon_custom_cards: cards });
+            }
+          } finally {
+            if (btn) { btn.textContent = 'Save All →'; btn.disabled = false; }
+          }
+          closeAddModal();
+          renderLibrary();
+          return;
+        }
+
+        // Single type
+        const word = (document.getElementById('addModalWord').value || '').trim();
+        const type = selectedTypes[0] || 'vocab';
+
+        if (type === 'vocab') {
           if (!word) { alert('Please enter a word or phrase.'); return; }
-          const btn = document.querySelector('#addModal .add-modal-submit');
           if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
           await _addWordsFromText(word, deckId);
           if (btn) { btn.textContent = 'Generate →'; btn.disabled = false; }
           closeAddModal();
           renderLibrary();
-        } else if (_addModalType === 'note') {
+        } else if (type === 'note') {
           const title = (document.getElementById('addNoteTitle').value || word || '').trim();
           const content = document.getElementById('addNoteContent').value.trim();
           if (!title && !content) { alert('Please fill in the note.'); return; }
           const note = {
             id: 'n_' + Date.now(),
-            deckId: deckId,
+            deckId,
             title: title || 'Untitled',
-            content: content,
+            content,
             createdAt: new Date().toISOString().split('T')[0],
             updatedAt: new Date().toISOString().split('T')[0]
           };
@@ -9881,7 +10232,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           syncToCloud({ lexicon_notes: ALL_NOTES });
           closeAddModal();
           renderLibrary();
-        } else if (_addModalType === 'flashcard') {
+        } else if (type === 'flashcard') {
           const front = (document.getElementById('addCardFront').value || word || '').trim();
           const back = document.getElementById('addCardBack').value.trim();
           if (!front || !back) { alert('Please fill in both sides of the flashcard.'); return; }
@@ -9895,6 +10246,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           renderLibrary();
         }
       }
+
+      // Keep legacy switchAddType as a no-op shim for any remaining references
+      function switchAddType(type) { }
 
       // Keyboard: Cmd+N opens add modal, Cmd+K opens search, Escape closes modals
       document.addEventListener('keydown', function(e) {
@@ -9955,16 +10309,28 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         <button class="add-modal-close" onclick="closeAddModal()">✕</button>
       </div>
 
+      <!-- Type checkboxes — multi-select -->
+      <div class="add-modal-type-checks">
+        <label class="add-type-check active" data-type="vocab">
+          <input type="checkbox" value="vocab" checked onchange="updateAddModalTypes()"> ● Vocab
+        </label>
+        <label class="add-type-check" data-type="note">
+          <input type="checkbox" value="note" onchange="updateAddModalTypes()"> Note
+        </label>
+        <label class="add-type-check" data-type="flashcard">
+          <input type="checkbox" value="flashcard" onchange="updateAddModalTypes()"> Flashcard
+        </label>
+        <label class="add-type-check" data-type="imagepdf">
+          <input type="checkbox" value="imagepdf" onchange="updateAddModalTypes()"> 📎 Image / PDF
+        </label>
+      </div>
+
+      <!-- Word input — hidden in multi + imagepdf mode -->
       <input id="addModalWord" class="add-modal-word-input" type="text"
         placeholder="Type a word or phrase…"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();handleAddModalGenerate();}">
 
-      <div class="add-modal-type-pills">
-        <button class="add-modal-type-pill active" data-type="vocab" onclick="switchAddType('vocab')">● Vocab</button>
-        <button class="add-modal-type-pill" data-type="note" onclick="switchAddType('note')">Note</button>
-        <button class="add-modal-type-pill" data-type="flashcard" onclick="switchAddType('flashcard')">Flashcard</button>
-      </div>
-
+      <!-- Single-type panels -->
       <div id="addTypeVocab" class="add-modal-field">
         <label>Context sentence (optional)</label>
         <textarea id="addContextSentence" rows="2" placeholder='e.g. "The serendipitous meeting changed everything."'></textarea>
@@ -9986,9 +10352,40 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         <input type="text" id="addCardBack" placeholder="Answer or definition">
       </div>
 
+      <!-- Multi-type panel — shown when 2+ content types selected -->
+      <div id="addTypeMulti" class="add-modal-field" style="display:none">
+        <label>Paste your content</label>
+        <textarea id="addMultiText" rows="5"
+          placeholder="Paste any text. The first line becomes the vocab word and flashcard front; the full text becomes the note body."></textarea>
+        <p style="font-size:11px;color:var(--muted);margin-top:6px;">Content will be saved to all selected types above.</p>
+      </div>
+
+      <!-- Image / PDF panel — exclusive -->
+      <div id="addTypeImagePdf" class="add-modal-field" style="display:none">
+        <label>Upload an image or PDF to scan for vocabulary</label>
+        <div style="margin-top:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button
+            style="padding:8px 16px; border-radius:10px; border:1.5px dashed var(--border-2); background:var(--surface-2); color:var(--text); font-family:var(--font-sans); font-size:13px; font-weight:600; cursor:pointer;"
+            onclick="document.getElementById('addModalFileInput').click()">
+            📎 Choose File…
+          </button>
+          <input type="file" id="addModalFileInput" accept="image/*,.pdf" style="display:none"
+            onchange="handleAddModalFileChange(this)">
+          <span id="addModalFileName" style="font-size:12px; color:var(--muted);"></span>
+        </div>
+        <p id="addModalFileSizeError"
+          style="display:none; color:var(--red); font-size:12px; margin-top:6px;">
+          File exceeds the 5 MB limit. Please choose a smaller file.
+        </p>
+        <p style="font-size:11px; color:var(--muted); margin-top:10px;">
+          Supported: images (JPG, PNG, WEBP) and PDFs · Max 5 MB<br>
+          Results appear in the vocabulary review panel.
+        </p>
+      </div>
+
       <div class="add-modal-footer">
         <button class="add-modal-cancel" onclick="closeAddModal()">Cancel</button>
-        <button class="add-modal-submit" onclick="handleAddModalGenerate()">Generate →</button>
+        <button class="add-modal-submit" id="addModalSubmitBtn" onclick="handleAddModalGenerate()">Generate →</button>
       </div>
     </div>
   </div>
