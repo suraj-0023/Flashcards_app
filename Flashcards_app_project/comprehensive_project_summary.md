@@ -2,6 +2,8 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Smritikosha application.
 
+**Last Updated**: 2026-04-30
+
 ---
 
 ## 1. App Purpose & Pivot

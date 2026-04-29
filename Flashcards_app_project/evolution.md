@@ -1,5 +1,17 @@
 # Project Evolution Log
 
+## 2026-04-30 — Fix Flashcards section card navigating to practice instead of list
+
+**What**: Fixed `showDeckSection('flashcards')` which was calling `openPracticeView('flashcards')` (launching full-screen practice mode) instead of showing the flashcard items list like Notes and Vocab do.
+
+**Why**: User reported clicking the Flashcards card in the deck home sent them to practice mode rather than displaying the list of flashcard items.
+
+**Impact**: Clicking Flashcards in the deck home now correctly opens the library list of flashcard items. Practice mode is still reachable from the sidebar.
+
+**Technical Detail**: Simplified `showDeckSection()` — removed the special-case branch for `flashcards`; all three section types now uniformly hide deck home, show the library section, and call `showLibraryList(section)`.
+
+---
+
 ## 2026-04-29 — Fix Notes/Vocab section navigation (deck-specific mode)
 
 **What:** Fixed three bugs that caused Notes and Vocab tiles to do nothing when clicked from a specific deck's home panel, and fixed the ← Back button restoring the wrong view.

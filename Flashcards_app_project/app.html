@@ -9969,16 +9969,11 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       }
 
       function showDeckSection(section, btn) {
-        if (section === 'flashcards') {
-          openPracticeView('flashcards');
-        } else if (section === 'notes' || section === 'vocab') {
-          // Reveal library section and jump straight to the filtered list
-          const deckHomeEl = document.getElementById('deck-home-content');
-          const libSectionEl = document.querySelector('.library-section');
-          if (deckHomeEl) deckHomeEl.style.display = 'none';
-          if (libSectionEl) libSectionEl.style.display = '';
-          showLibraryList(section);
-        }
+        const deckHomeEl = document.getElementById('deck-home-content');
+        const libSectionEl = document.querySelector('.library-section');
+        if (deckHomeEl) deckHomeEl.style.display = 'none';
+        if (libSectionEl) libSectionEl.style.display = '';
+        showLibraryList(section);
       }
 
       // ── NOTES ──
