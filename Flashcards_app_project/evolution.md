@@ -1,5 +1,17 @@
 # Project Evolution Log
 
+## 2026-04-29 — Fix Notes/Vocab section navigation (deck-specific mode)
+
+**What:** Fixed three bugs that caused Notes and Vocab tiles to do nothing when clicked from a specific deck's home panel, and fixed the ← Back button restoring the wrong view.
+
+**Why:** `showDeckSection` was a no-op for 'notes' and 'vocab' — only 'flashcards' routed to the practice view. When in deck-specific mode, the library section is hidden and the deck home is shown instead, so clicking Notes/Vocab did nothing visually.
+
+**Impact:** Notes, Flashcards, and Vocab tiles in the deck home panel now correctly navigate to their filtered list views. The ← Back button correctly restores the deck home (not the tile grid) when in deck-specific mode. Tiles briefly highlight green on click for visual feedback.
+
+**Technical Detail:** `showDeckSection()` now calls `showLibraryList(section)` for notes/vocab after unhiding `.library-section`. `hideLibraryList()` now restores `#deck-home-content` when `currentProjectId !== 'all'`. Added `.lib-summary-tile.active` CSS class and applied it in `showLibraryList` via `tileMap` index lookup.
+
+---
+
 ## 2026-04-29 — Add Modal text-input preview/review step
 
 **What**: Added a confirm-before-save preview step in the +Add modal for Vocab, Note, and Flashcard types. After clicking "Generate →", a preview card is shown with the content (word + live dictionary definition for vocab, title/content for notes, front/back for flashcards). Buttons change to "← Edit" (go back) and "✓ Save" (commit to storage). Multi-type selections show all preview cards stacked. Image/PDF flow unchanged.

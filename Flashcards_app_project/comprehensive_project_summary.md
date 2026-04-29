@@ -183,4 +183,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 29, 2026* (Add Modal text-input preview/review step for Vocab/Note/Flashcard; April 28: Phase 2 upgrade with Add Modal Cmd+N, sidebar mastery dots, deck header search/add buttons, scroll preservation)
+*Last Updated: April 29, 2026* (Fixed deck section navigation for Notes/Vocab tiles; Add Modal text-input preview/review step for Vocab/Note/Flashcard; April 28: Phase 2 upgrade with Add Modal Cmd+N, sidebar mastery dots, deck header search/add buttons, scroll preservation)
