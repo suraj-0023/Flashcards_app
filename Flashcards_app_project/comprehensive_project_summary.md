@@ -118,9 +118,12 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
   - Difficulty badges shown in word tiles (image scan popup), word detail modals (as coloured pill), and library cards (as small coloured dot bottom-right)
   - Colour scheme: green=easy, blue=medium, orange=hard, red=very hard
 - **Add Section Generate flow**: Preview-before-save for all content types:
-  - Text + Vocab: Shows AI Preview card with fetched definition from Free Dictionary API before saving
+  - Text + Vocab: Shows preview card with fetched definition from Free Dictionary API (phonetic, meaning, example); buttons change to "← Edit" / "✓ Save" before committing
+  - Text + Note: Shows title and content preview cards
+  - Text + Flashcard: Shows Front and Back labels clearly in preview
+  - Multi-type selections (Vocab + Note + Flashcard): All selected type previews stacked together
   - Image + Vocab: Opens popup modal with two labelled sections ("📖 Underlined Words" / "✨ AI-Suggested Words") displaying extracted words as styled tiles with async-fetched definitions; per-word Accept / Edit / Decline buttons
-  - Other types (Notes/Flashcards): Generic inline preview with Accept / Edit / Discard
+  - Image/PDF flow unchanged (no preview step, goes straight to word review)
 - **Image Scan Popup UI** (Apr 27, 2026 redesign):
   - `showImageVocabModal(underlined, suggested)` renders two distinct sections separated by a visual divider
   - Each word displayed as a styled `.img-vocab-tile` with phonetic, part-of-speech, and definition fetched async from Free Dictionary API on modal open
@@ -180,4 +183,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 28, 2026* (Phase 2 upgrade: Add Modal Cmd+N, sidebar mastery dots, deck header search/add buttons, scroll preservation)
+*Last Updated: April 29, 2026* (Add Modal text-input preview/review step for Vocab/Note/Flashcard; April 28: Phase 2 upgrade with Add Modal Cmd+N, sidebar mastery dots, deck header search/add buttons, scroll preservation)

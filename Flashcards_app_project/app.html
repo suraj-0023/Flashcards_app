@@ -4055,6 +4055,12 @@
       box-shadow: 0 8px 20px rgba(17, 24, 39, 0.08);
     }
 
+    .lib-summary-tile.active {
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.18), 0 8px 20px rgba(17, 24, 39, 0.08);
+      transform: translateY(-2px);
+    }
+
     .lib-tile-icon {
       font-size: 24px;
       line-height: 1;
@@ -9393,6 +9399,12 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       function showLibraryList(type) {
         currentLibListType = type;
 
+        // Briefly mark the clicked tile active before hiding the grid
+        document.querySelectorAll('.lib-summary-tile').forEach(t => t.classList.remove('active'));
+        const tileMap = { notes: 0, flashcards: 1, vocab: 2 };
+        const activeTile = document.querySelectorAll('.lib-summary-tile')[tileMap[type]];
+        if (activeTile) activeTile.classList.add('active');
+
         document.getElementById('librarySummaryTiles').style.display = 'none';
         document.getElementById('libraryListView').style.display = 'block';
 
@@ -9413,7 +9425,15 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       function hideLibraryList() {
         currentLibListType = null;
         document.getElementById('libraryListView').style.display = 'none';
-        document.getElementById('librarySummaryTiles').style.display = 'grid';
+        if (currentProjectId !== 'all') {
+          // Deck-specific mode: restore deck home, keep library section hidden
+          const deckHomeEl = document.getElementById('deck-home-content');
+          const libSectionEl = document.querySelector('.library-section');
+          if (libSectionEl) libSectionEl.style.display = 'none';
+          if (deckHomeEl) deckHomeEl.style.display = 'block';
+        } else {
+          document.getElementById('librarySummaryTiles').style.display = 'grid';
+        }
       }
 
       function renderLibraryList() {
@@ -9949,10 +9969,15 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       }
 
       function showDeckSection(section, btn) {
-        // No-op in new layout — deck sections are in the library
         if (section === 'flashcards') {
           openPracticeView('flashcards');
-          initFlash();
+        } else if (section === 'notes' || section === 'vocab') {
+          // Reveal library section and jump straight to the filtered list
+          const deckHomeEl = document.getElementById('deck-home-content');
+          const libSectionEl = document.querySelector('.library-section');
+          if (deckHomeEl) deckHomeEl.style.display = 'none';
+          if (libSectionEl) libSectionEl.style.display = '';
+          showLibraryList(section);
         }
       }
 
@@ -10038,6 +10063,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
       let _addModalFile = null;
       const _ADD_MODAL_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+      let _pendingAddModalSaveFn = null;
 
       function _getSelectedTypes() {
         return [...document.querySelectorAll('.add-modal-type-checks input:checked')].map(i => i.value);
@@ -10114,11 +10140,15 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         });
         updateAddModalTypes();
 
+        // Reset preview state
+        _discardAddModalPreview(true);
+
         if (wordInput) wordInput.focus();
       }
 
       function closeAddModal() {
         document.getElementById('addModal').classList.remove('open');
+        _pendingAddModalSaveFn = null;
       }
 
       function handleAddModalFileChange(input) {
@@ -10167,8 +10197,21 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           if (!raw) { alert('Please paste some content first.'); return; }
           const lines = raw.split('\n').filter(l => l.trim());
           const firstLine = lines[0] || raw;
-          if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
-          try {
+
+          // Build multi-preview
+          const previewItems = [];
+          if (selectedTypes.includes('vocab')) {
+            previewItems.push({ type: 'vocab', word: firstLine });
+          }
+          if (selectedTypes.includes('note')) {
+            previewItems.push({ type: 'note', title: firstLine.slice(0, 60), content: raw });
+          }
+          if (selectedTypes.includes('flashcard')) {
+            const back = lines.length > 1 ? lines.slice(1).join(' ') : firstLine;
+            previewItems.push({ type: 'flashcard', front: firstLine, back });
+          }
+
+          _pendingAddModalSaveFn = async () => {
             if (selectedTypes.includes('vocab')) {
               window._silentAdd = true;
               try { await _addWordsFromText(firstLine, deckId); }
@@ -10196,11 +10239,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
               lsSet('lexicon_custom_cards', cards);
               syncToCloud({ lexicon_custom_cards: cards });
             }
-          } finally {
-            if (btn) { btn.textContent = 'Save All →'; btn.disabled = false; }
-          }
-          closeAddModal();
-          renderLibrary();
+          };
+
+          _showAddModalPreview(previewItems, deckId);
           return;
         }
 
@@ -10210,41 +10251,138 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
         if (type === 'vocab') {
           if (!word) { alert('Please enter a word or phrase.'); return; }
-          if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
-          await _addWordsFromText(word, deckId);
-          if (btn) { btn.textContent = 'Generate →'; btn.disabled = false; }
-          closeAddModal();
-          renderLibrary();
+          _pendingAddModalSaveFn = async () => {
+            await _addWordsFromText(word, deckId);
+          };
+          _showAddModalPreview([{ type: 'vocab', word }], deckId);
+          // Kick off async definition fetch to enrich preview
+          _fetchAddModalVocabPreview(word);
         } else if (type === 'note') {
           const title = (document.getElementById('addNoteTitle').value || word || '').trim();
           const content = document.getElementById('addNoteContent').value.trim();
           if (!title && !content) { alert('Please fill in the note.'); return; }
-          const note = {
-            id: 'n_' + Date.now(),
-            deckId,
-            title: title || 'Untitled',
-            content,
-            createdAt: new Date().toISOString().split('T')[0],
-            updatedAt: new Date().toISOString().split('T')[0]
+          _pendingAddModalSaveFn = async () => {
+            const note = {
+              id: 'n_' + Date.now(),
+              deckId,
+              title: title || 'Untitled',
+              content,
+              createdAt: new Date().toISOString().split('T')[0],
+              updatedAt: new Date().toISOString().split('T')[0]
+            };
+            ALL_NOTES.push(note);
+            lsSet('lexicon_notes', ALL_NOTES);
+            syncToCloud({ lexicon_notes: ALL_NOTES });
           };
-          ALL_NOTES.push(note);
-          lsSet('lexicon_notes', ALL_NOTES);
-          syncToCloud({ lexicon_notes: ALL_NOTES });
-          closeAddModal();
-          renderLibrary();
+          _showAddModalPreview([{ type: 'note', title: title || 'Untitled', content }], deckId);
         } else if (type === 'flashcard') {
           const front = (document.getElementById('addCardFront').value || word || '').trim();
           const back = document.getElementById('addCardBack').value.trim();
           if (!front || !back) { alert('Please fill in both sides of the flashcard.'); return; }
-          const newCard = { id: 'cc_' + Date.now(), isCustom: true, front, back, projectId: deckId };
-          ALL_CUSTOM_CARDS.push(newCard);
-          const cards = lsGet('lexicon_custom_cards', []);
-          cards.push(newCard);
-          lsSet('lexicon_custom_cards', cards);
-          syncToCloud({ lexicon_custom_cards: cards });
-          closeAddModal();
-          renderLibrary();
+          _pendingAddModalSaveFn = async () => {
+            const newCard = { id: 'cc_' + Date.now(), isCustom: true, front, back, projectId: deckId };
+            ALL_CUSTOM_CARDS.push(newCard);
+            const cards = lsGet('lexicon_custom_cards', []);
+            cards.push(newCard);
+            lsSet('lexicon_custom_cards', cards);
+            syncToCloud({ lexicon_custom_cards: cards });
+          };
+          _showAddModalPreview([{ type: 'flashcard', front, back }], deckId);
         }
+      }
+
+      function _showAddModalPreview(items, deckId) {
+        // Hide form inputs
+        const hideEls = ['addModalWord', 'addTypeVocab', 'addTypeNote', 'addTypeFlashcard', 'addTypeMulti'];
+        hideEls.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+        document.querySelector('.add-modal-type-checks').style.display = 'none';
+
+        // Build preview HTML
+        const typeLabel = { vocab: 'Vocab', note: 'Note', flashcard: 'Flashcard' };
+        const typeColor = { vocab: 'var(--emerald-700)', note: 'var(--gold)', flashcard: '#6366f1' };
+
+        const cardsHtml = items.map(item => {
+          let contentHtml = '';
+          if (item.type === 'vocab') {
+            contentHtml = `<strong id="addModalPreviewWord">${item.word}</strong><br><span id="addModalPreviewDef" style="color:var(--muted);font-size:0.82rem;">Fetching definition…</span>`;
+          } else if (item.type === 'note') {
+            const preview = item.content ? item.content.slice(0, 160) + (item.content.length > 160 ? '…' : '') : '';
+            contentHtml = `<strong>${item.title}</strong>${preview ? `<br><span style="color:var(--muted);font-size:0.82rem;">${preview.replace(/</g,'&lt;')}</span>` : ''}`;
+          } else if (item.type === 'flashcard') {
+            contentHtml = `<span style="font-size:0.78rem;color:var(--muted);font-weight:600;">FRONT</span><br><strong>${item.front.replace(/</g,'&lt;')}</strong><br><span style="font-size:0.78rem;color:var(--muted);font-weight:600;margin-top:6px;display:block;">BACK</span><span style="font-size:0.88rem;">${item.back.replace(/</g,'&lt;')}</span>`;
+          }
+          return `<div style="background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+            <div style="font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:${typeColor[item.type]};margin-bottom:8px;">${typeLabel[item.type] || item.type}</div>
+            <div style="font-size:0.88rem;line-height:1.55;color:var(--text);">${contentHtml}</div>
+          </div>`;
+        }).join('');
+
+        document.getElementById('addModalPreviewCards').innerHTML = cardsHtml;
+        document.getElementById('addModalPreview').style.display = 'block';
+
+        // Swap footer buttons
+        document.getElementById('addModalSubmitBtn').style.display = 'none';
+        document.getElementById('addModalDiscardBtn').style.display = '';
+        document.getElementById('addModalSaveBtn').style.display = '';
+      }
+
+      async function _fetchAddModalVocabPreview(word) {
+        const defEl = document.getElementById('addModalPreviewDef');
+        if (!defEl) return;
+        try {
+          const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+          if (!res.ok) throw new Error('not found');
+          const data = await res.json();
+          if (!data || !data.length) throw new Error('empty');
+          const entry = _parseFreeDictEntry(data[0], word);
+          if (!defEl) return;
+          const wordEl = document.getElementById('addModalPreviewWord');
+          if (wordEl && entry.phonetic) wordEl.innerHTML = `${word} <span style="color:var(--muted);font-size:0.8em;">${entry.phonetic}</span>`;
+          defEl.innerHTML = `<em>${entry.definition || 'No definition found.'}</em>${entry.usage && entry.usage[0] ? `<br>"${entry.usage[0]}"` : ''}`;
+        } catch {
+          if (defEl) defEl.innerHTML = '<em>Definition not found — will save as-is.</em>';
+        }
+      }
+
+      async function _saveAddModalPreview() {
+        if (!_pendingAddModalSaveFn) { closeAddModal(); return; }
+        const btn = document.getElementById('addModalSaveBtn');
+        if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+        try {
+          await _pendingAddModalSaveFn();
+        } finally {
+          _pendingAddModalSaveFn = null;
+          if (btn) { btn.textContent = '✓ Save'; btn.disabled = false; }
+        }
+        closeAddModal();
+        renderLibrary();
+      }
+
+      function _discardAddModalPreview(silent) {
+        _pendingAddModalSaveFn = null;
+        const preview = document.getElementById('addModalPreview');
+        if (preview) preview.style.display = 'none';
+        const cards = document.getElementById('addModalPreviewCards');
+        if (cards) cards.innerHTML = '';
+
+        // Restore form elements (updateAddModalTypes will re-show the right ones)
+        const wordEl = document.getElementById('addModalWord');
+        if (wordEl) wordEl.style.display = '';
+        const checksEl = document.querySelector('.add-modal-type-checks');
+        if (checksEl) checksEl.style.display = '';
+
+        // Restore footer buttons
+        const submitBtn = document.getElementById('addModalSubmitBtn');
+        if (submitBtn) submitBtn.style.display = '';
+        const discardBtn = document.getElementById('addModalDiscardBtn');
+        if (discardBtn) discardBtn.style.display = 'none';
+        const saveBtn = document.getElementById('addModalSaveBtn');
+        if (saveBtn) saveBtn.style.display = 'none';
+
+        if (!silent) updateAddModalTypes();
       }
 
       // Keep legacy switchAddType as a no-op shim for any remaining references
@@ -10383,8 +10521,16 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         </p>
       </div>
 
+      <!-- Preview section — shown after Generate, before Save -->
+      <div id="addModalPreview" style="display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:0.04em;">PREVIEW — confirm before saving</div>
+        <div id="addModalPreviewCards"></div>
+      </div>
+
       <div class="add-modal-footer">
         <button class="add-modal-cancel" onclick="closeAddModal()">Cancel</button>
+        <button class="add-modal-cancel" id="addModalDiscardBtn" style="display:none;" onclick="_discardAddModalPreview()">← Edit</button>
+        <button class="add-modal-submit" id="addModalSaveBtn" style="display:none;" onclick="_saveAddModalPreview()">✓ Save</button>
         <button class="add-modal-submit" id="addModalSubmitBtn" onclick="handleAddModalGenerate()">Generate →</button>
       </div>
     </div>

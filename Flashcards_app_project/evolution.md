@@ -1,5 +1,17 @@
 # Project Evolution Log
 
+## 2026-04-29 — Add Modal text-input preview/review step
+
+**What**: Added a confirm-before-save preview step in the +Add modal for Vocab, Note, and Flashcard types. After clicking "Generate →", a preview card is shown with the content (word + live dictionary definition for vocab, title/content for notes, front/back for flashcards). Buttons change to "← Edit" (go back) and "✓ Save" (commit to storage). Multi-type selections show all preview cards stacked. Image/PDF flow unchanged.
+
+**Why**: User requested the same accept/decline UX that image scan already provides, applied to typed text input.
+
+**Impact**: Users can review and confirm (or back out and edit) before any typed content is persisted.
+
+**Technical Detail**: New functions `_showAddModalPreview()`, `_fetchAddModalVocabPreview()`, `_saveAddModalPreview()`, `_discardAddModalPreview()`. State held in `_pendingAddModalSaveFn`. New HTML elements: `#addModalPreview`, `#addModalPreviewCards`, `#addModalDiscardBtn`, `#addModalSaveBtn` inside `.add-modal-panel`.
+
+---
+
 ## 2026-04-28 — Add Modal Multi-Select, PRD/Design Docs, Brand Review
 
 **What:** Upgraded `app.html` Add Modal from radio-style type pills to multi-select checkboxes; added Phase 2 planning documents and brand review.
