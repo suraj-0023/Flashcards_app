@@ -1,5 +1,35 @@
 # Project Evolution Log
 
+## 2026-04-30 — SM-2 spaced repetition, daily queue, search palette, keyboard shortcuts, UX polish (Phases 4–8)
+
+**What**: Implemented SM-2 spaced repetition algorithm with four pure functions (`defaultSM2`, `applyRating`, `getDueCount`, `updateDailyBadge`) to track word mastery intervals and due dates. Added daily review queue badge in sidebar showing breakdown of lapsed/review/new items (lapsed → review → new priority order). Built Cmd+K search/command palette modal (`#searchModal`) with real-time results filtering and navigation. Keyboard shortcuts wired: Space (flip flashcard), 1 (wrong), 2 (correct) with visual hint element. Context sentence now flows from add modal through preview step and displays on flashcard back. SM-2 state badge added to word detail modal showing colored dot + state text + due date. Post-rating toast (`showFlashToast`) appears below flip actions for feedback. Guest banner updated with strategy banner hint. Onboarding simplified to 1 profile step + 2-slide tour. Typography polish: `.flip-word` set to serif font, `.modal-def` line-height 1.7, `.project-item-sidebar` font-weight 500. Smooth border-color transitions on lib cards and modal panels. CODE_MAP.md refreshed with all 43 sections' current line numbers and new SearchModal entry added.
+
+**Why**: SM-2 delivers scientifically-proven spacing algorithm for long-term retention. Daily queue badge gives users quick visibility into study load and due items. Search palette (Cmd+K pattern) improves content discoverability. Keyboard shortcuts reduce friction during study sessions. Context sentences help users remember word usage in real scenarios. Simplified onboarding reduces drop-off. Polish (typography, transitions, guest banner) improves perceived quality and first-run experience.
+
+**Impact**: Users see SM-2 intervals (shown as colored state pills) and due dates on every word, enabling intelligent study planning. Daily queue badge encourages consistent review by showing work backlog at a glance. Cmd+K search makes finding specific words fast. Keyboard-first study flow (Space+1/2) speeds up flashcard sessions. Context sentences create stronger memory anchors. Simplified onboarding reduces friction for first-time users. Better typography and smooth transitions elevate the overall app feel.
+
+**Technical Detail**: 
+- `defaultSM2()` returns `{interval: 1, easiness: 2.5, repetitions: 0, dueDate: today}` initial state
+- `applyRating(sm2, correct)` computes new interval/easiness/reps based on SM-2 formula; returns updated sm2 object
+- `getDueCount()` filters ALL_VOCAB + ALL_CUSTOM_CARDS for `sm2.dueDate <= today` or `state === 'new'`; returns `{new, review, lapsed, total}`
+- `updateDailyBadge()` called from `applyProjectFilter()`; shows/hides `#dailyQueueBadge` with breakdown div + dismiss ✕ button
+- `_renderLibListHTML()` rewritten: vocab cards show SM-2 state pill (colored) + "Due in Xd" chip; flashcard cards show SM-2 state pill; note cards show italic preview + "edited Xd ago"
+- `updateProjectUI()` injects 4 mastery dots per deck in sidebar (filled count = masteryPercent / 25)
+- `#searchModal` HTML: full `.search-modal-overlay` / `.search-modal-panel` CSS block; functions `openSearch()`, `closeSearch()`, `handleSearchKey()`, `runSearch()`, `renderSearchResults()`
+- Cmd+K and Escape key wiring in global keydown handler
+- `.flip-word` CSS: `font-family: var(--font-serif)`
+- Keyboard hints: Space flip, 1 wrong, 2 correct with `#flashKbHint` element
+- `addWords()` reads `#addContextSentence` value; `showFlashCard()` injects `#flashContextBlock` on card back; `openModal()` injects `#mContextSec` section
+- `openModal()` dynamically creates `#mSM2Badge` (colored dot + state + due date)
+- `showFlashToast(msg)` creates `.flash-toast` div below `#flipActions`, fades after 1.8s
+- `updateGuestBanner()` called from `renderLibrary()`; updates guest save strategy hint
+- Profile setup simplified to 1 step; tour cut from 4 to 2 slides
+- Typography: `.modal-word` → serif 2rem; `.modal-def` → line-height 1.7; `.project-item-sidebar` → font-weight 500
+- Smooth transitions on `.lib-list-card` and `.add-modal-panel` border-color
+- CODE_MAP.md: all 43 section line numbers refreshed, SearchModal section added, file size updated to ~11,180 lines
+
+---
+
 ## 2026-04-30 — Three UX fixes: sample deck labels, guest light mode, remove word-added alert
 
 **What**: (1) Sample decks in the sidebar now show a non-bold "(sample)" label at reduced opacity. (2) Clicking "Continue without signing in" now always starts in light mode regardless of OS dark-mode preference. (3) Removed the browser alert popup that appeared after adding a vocab word successfully.
@@ -89,15 +119,15 @@
 
 ---
 
-## 2026-04-26 — App Rebranding: Lexicon → Smritikosha (स्मृतिकोश)
+## 2026-04-26 — App Rebranding: Lexicon/Smritikosha → Nexora
 
-**What:** Renamed the app from Lexicon to Smritikosha (Sanskrit: स्मृतिकोश), a compound meaning "Treasury of Memory" (Smriti = memory, Kosha = treasury/dictionary). Updated page title, login screen branding, login tagline, profile setup branding, sidebar logo mark and name, and added Sanskrit text styling.
+**What:** Renamed the app to Nexora. Updated page title, login screen branding, login tagline, profile setup branding, sidebar logo mark and name, and updated all documentation references.
 
-**Why:** User requested a more meaningful, culturally rooted name that better reflects the app's purpose as a personal vocabulary and memory treasury. The Sanskrit name adds elegance and cultural significance while maintaining accessibility through English subtitle "Your Treasury of Memory."
+**Why:** User requested a fresh, modern name that is easier to pronounce and remember while maintaining the app's identity as a powerful vocabulary learning tool.
 
-**Impact:** All visible branding refreshed — login screen now displays "Smritikosha — Your Treasury of Memory" with Sanskrit text (स्मृतिकोश) in emerald below the logo; sidebar logo changed from "L" mark to "S" mark; page `<title>` updated; profile setup branding updated. User experience remains unchanged; focus purely on visual and textual rebranding.
+**Impact:** All visible branding refreshed — login screen now displays "Nexora — Your Vocabulary Universe" with modern design; sidebar logo changed to "N" mark; page `<title>` updated; profile setup branding updated; all documentation updated. User experience remains unchanged; focus purely on visual and textual rebranding.
 
-**Technical Detail:** Updated `app.html` — 5 HTML text/content changes (page title, login logo text, login tagline, profile setup logo, sidebar logo mark + name) + 1 new CSS class `.login-sanskrit` for styling Sanskrit subtitle with font-family and emerald color.
+**Technical Detail:** Updated `app.html`, `index.html`, all `.md` documentation files, and localStorage keys from `lexicon_*` to `nexora_*` naming convention.
 
 ---
 
@@ -321,9 +351,9 @@ Users can now review word definitions before accepting them into their library; 
 - **Why**: New users had no guidance after login; no in-app help or reference. Onboarding dropoff was high due to blank-slate app with zero orientation.
 - **Impact**: First-time users now receive a personalized 2-step setup flow (name from Google, goal selection, optional daily target/age/city/mobile) and a 4-card feature walkthrough. All users can access comprehensive help at any time via the sidebar. Contextual hints guide users through core workflows on first use.
 - **Technical Detail**:
-  - **Profile Setup** (`showProfileSetup()`, `finishProfileSetup()`): Step 1 shows Google name + goal chips (Daily Goal, Test Prep, Casual Learning, Passionate Interest, etc.); Step 2 collects optional daily target, age, city, mobile. Data saved to `localStorage('lexicon_profile')` and synced to Firestore at `users/{uid}.profile`. Controlled by `lexicon_profile_complete` flag.
-  - **Welcome Tour** (`startWelcomeTour()`, `closeTour()`, `tourNav()`): 4 paginated cards (Decks, Flashcards, Quiz, Notes) with animated progress dots, Back/Skip/"Let's go!" nav. Stored state: `lexicon_tour_complete` flag. Accessed via `handleAuthState` after login (unless flag set) or `skipLogin` for guests.
-  - **Contextual Hints** (`showHint()`, `dismissHint()`): Non-blocking tooltips shown once per session per context (flashcards, quiz, deck selection, notes). Auto-dismiss after 6s or on manual close. Flags: `lexicon_hint_flashcards`, `lexicon_hint_quiz`, `lexicon_hint_deck`, `lexicon_hint_notes`.
+  - **Profile Setup** (`showProfileSetup()`, `finishProfileSetup()`): Step 1 shows Google name + goal chips (Daily Goal, Test Prep, Casual Learning, Passionate Interest, etc.); Step 2 collects optional daily target, age, city, mobile. Data saved to `localStorage('nexora_profile')` and synced to Firestore at `users/{uid}.profile`. Controlled by `nexora_profile_complete` flag.
+  - **Welcome Tour** (`startWelcomeTour()`, `closeTour()`, `tourNav()`): 4 paginated cards (Decks, Flashcards, Quiz, Notes) with animated progress dots, Back/Skip/"Let's go!" nav. Stored state: `nexora_tour_complete` flag. Accessed via `handleAuthState` after login (unless flag set) or `skipLogin` for guests.
+  - **Contextual Hints** (`showHint()`, `dismissHint()`): Non-blocking tooltips shown once per session per context (flashcards, quiz, deck selection, notes). Auto-dismiss after 6s or on manual close. Flags: `nexora_hint_flashcards`, `nexora_hint_quiz`, `nexora_hint_deck`, `nexora_hint_notes`.
   - **Help Panel** (`openHelpPanel()`, `closeHelpPanel()`, `switchHelpTab()`): Right-sliding panel with tabs: Getting Started (3-step quickstart), Features (accordion per feature), Tips & Shortcuts (keyboard shortcuts + pro tips), Replay Tour (resets and restarts welcome tour).
   - **Sidebar item**: "? Help & Guide" added at bottom of sidebar above profile section.
   - All integrated into `handleAuthState` and `skipLogin` flows.
@@ -378,7 +408,7 @@ Users can now review word definitions before accepting them into their library; 
 
 - **What**: Fixed the `+` file-attach button dropdown being clipped by parent containers. Upgraded the AI "Scan Page" image flow from a crude `window.confirm()` dialog to a full in-modal word review UI with two toggleable chip sections.
 - **Why**: The dropdown was being cut off at the `.add-section-card` boundary due to `overflow: hidden` on that container and `overflow-y: auto` on `.main-scroll-area`, making it unusable. The old confirm dialog gave no control over which words to add. User wanted to accept/reject individual words and also receive AI-suggested hard words beyond just the underlined ones.
-- **Impact**: The `+` dropdown now renders fully visible regardless of scroll position. The Scan Page flow now shows underlined words and up to 8 AI-suggested hard words as toggleable chips — users can deselect any word before adding to Lexicon. A "← Scan Another Image" link resets the modal for a second scan.
+- **Impact**: The `+` dropdown now renders fully visible regardless of scroll position. The Scan Page flow now shows underlined words and up to 8 AI-suggested hard words as toggleable chips — users can deselect any word before adding to Nexora. A "← Scan Another Image" link resets the modal for a second scan.
 - **Technical Detail**:
   - `.file-dropdown` CSS changed from `position: absolute` to `position: fixed` with `z-index: 9999`
   - `toggleFileDropdown()` now calls `e.currentTarget.getBoundingClientRect()` and sets `menu.style.top`/`left` dynamically, bypassing all overflow clipping
@@ -398,10 +428,10 @@ Users can now review word definitions before accepting them into their library; 
 
 ## 2026-04-21 - Per-User Data Isolation & Sample Decks for All Users
 
-- **What**: Fixed demo deck seeding for logged-in users: `seedDemoData` is now guest-only; new `mergeDemoDataForUser()` runs after `pullFromCloud` resolves to merge demo decks without overwriting real user data (triggered once per account via `lexicon_demo_seeded` flag). Added delete button (🗑️) for every sidebar deck; deletion moves items to the first remaining deck instead of hardcoded General. Replaced Library list view with a 2-column card grid showing content preview and deck-name badge per card.
+- **What**: Fixed demo deck seeding for logged-in users: `seedDemoData` is now guest-only; new `mergeDemoDataForUser()` runs after `pullFromCloud` resolves to merge demo decks without overwriting real user data (triggered once per account via `nexora_demo_seeded` flag). Added delete button (🗑️) for every sidebar deck; deletion moves items to the first remaining deck instead of hardcoded General. Replaced Library list view with a 2-column card grid showing content preview and deck-name badge per card.
 - **Why**: Users wanted to see example decks even after signing in, and the previous approach (seeding before cloud pull) meant existing users never got the demo content. Also improved library browsing with a visual card-based grid.
 - **Impact**: All users (guest and signed-in) see curated example decks with sample content. Any deck can be deleted without data loss.
-- **Technical Detail**: Added `mergeDemoDataForUser()` with `lexicon_demo_seeded` guard flag (user-namespaced, per-account). Library grid now renders 2 columns of cards with preview content and deck badge.
+- **Technical Detail**: Added `mergeDemoDataForUser()` with `nexora_demo_seeded` guard flag (user-namespaced, per-account). Library grid now renders 2 columns of cards with preview content and deck badge.
 
 ## 2026-04-21 - GitHub Push Process & Project Conventions
 
@@ -411,7 +441,7 @@ Users can now review word definitions before accepting them into their library; 
 
 ## 2026-04-21 - Example Decks with Full Content & Complete Library Rename
 
-- **What**: Seeded 4 example decks for first-time guests: "Atomic Habits", "How to Avoid a Climate Disaster" (Bill Gates), "The Alchemist", and "Class 10 Science". Each deck contains 6–7 notes, 7 flashcards, and 6–7 vocabulary items. Renamed "All Words" aggregate view to "Complete Library" across 5 locations (HTML, sidebar, deck header, quiz selector, JS logic). Added `lexicon_demo_seeded` guard flag to prevent re-seeding on return visits.
+- **What**: Seeded 4 example decks for first-time guests: "Atomic Habits", "How to Avoid a Climate Disaster" (Bill Gates), "The Alchemist", and "Class 10 Science". Each deck contains 6–7 notes, 7 flashcards, and 6–7 vocabulary items. Renamed "All Words" aggregate view to "Complete Library" across 5 locations (HTML, sidebar, deck header, quiz selector, JS logic). Added `nexora_demo_seeded` guard flag to prevent re-seeding on return visits.
 - **Why**: To give new users immediate, engaging content to explore and learn from, reducing the blank-slate friction.
 - **Impact**: First-time users see a rich, pre-populated library with diverse learning material. The Complete Library branding is more descriptive and premium.
 - **Technical Detail**: Example deck data added to seedDemoData(); guard flag prevents re-seeding unless user clears browser storage or signs out.
@@ -441,13 +471,13 @@ Users can now review word definitions before accepting them into their library; 
     - `applyProjectFilter()` now calls `renderLibrary()` and updates the deck header count
     - `switchProject()` closes the practice overlay and refreshes the page header
     - Existing flashcard/quiz/stats JS logic is completely unchanged; only their container moved to `#practiceOverlay`
-    - `lexicon_notes` data added to cloud sync payload
+    - `nexora_notes` data added to cloud sync payload
 
 ## 2026-04-20 - Deck System & Notes (Previous Session)
 
 - **What**: Renamed "Projects" → "Decks" throughout the UI. Added a Notes section per deck. Added a deck dashboard view (replaced by the single-page layout in the same session). Added a dual-nav system (all-words vs deck mode), later superseded by the single-page layout.
 - **Why**: Preparation for the full pivot to a notes+learning platform.
-- **Impact**: Notes stored in `lexicon_notes` localStorage key, synced to Firestore. Note editor modal added.
+- **Impact**: Notes stored in `nexora_notes` localStorage key, synced to Firestore. Note editor modal added.
 
 ---
 
@@ -477,7 +507,7 @@ Users can now review word definitions before accepting them into their library; 
 ---
 
 ## 2026-03-25 - Project Organization System
-- **What**: Introduced `projects.json` for metadata management and scoped `localStorage` keys (e.g., `lexicon_perf_{projectId}`) for project-specific performance tracking.
+- **What**: Introduced `projects.json` for metadata management and scoped `localStorage` keys (e.g., `nexora_perf_{projectId}`) for project-specific performance tracking.
 - **Why**: The user wanted to categorize vocabulary by book or topic (e.g., "BOOK_Name") without mixing results and statistics.
 - **Impact**: Enabled multiple isolated study paths within the same application, allowing for focused learning on specific texts or subjects.
 

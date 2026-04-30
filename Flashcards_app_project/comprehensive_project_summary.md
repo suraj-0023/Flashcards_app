@@ -1,8 +1,8 @@
-# Comprehensive Smritikosha App Development Summary
+# Comprehensive Nexora App Development Summary
 
-This document provides a unified overview of the development journey, features, and future roadmap of the Smritikosha application.
+This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-04-30
+**Last Updated**: 2026-04-30 (Phases 4–8: SM-2 spaced repetition, daily queue, search palette, keyboard shortcuts, UX polish)
 
 ---
 
@@ -25,27 +25,33 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 
 ### Main Area — Single Scrollable Page
 1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch; includes ⌘K Search ghost pill and "+ Add" button (Cmd+N shortcut)
-2. **Add Modal** (Cmd+N to open, Escape to close)
+2. **Daily Queue Badge** (sidebar) — Shows total items due today; expandable breakdown showing count of new, review, and lapsed items; dismissible with ✕ button (Apr 30)
+3. **Add Modal** (Cmd+N to open, Escape to close)
    - **Multi-select content type checkboxes**: Vocab, Note, Flashcard (combinable), and Image/PDF (exclusive)
    - When 2+ types selected: single textarea input → first line becomes vocab word + flashcard front; full text becomes note body; "Save All →" saves to all selected types in one action
    - When Image/PDF selected: file picker (5 MB limit) replaces text input; "Scan File →" runs vision AI extraction
+   - **Context Sentence** field for Vocab (optional) — displayed on flashcard back and in word detail modal (Apr 30)
    - Word/title input field (hidden in multi-type and image/PDF modes)
    - Deck selector dropdown
-   - Type-specific fields (context sentence for Vocab, title+body for Note, front+back for Flashcard)
+   - Type-specific fields (title+body for Note, front+back for Flashcard)
+   - Preview step before save: vocab shows definition preview; note/flashcard show content preview; multi-type shows all previews stacked
    - Cmd+Enter or button click to submit; scroll position preserved after add
    - Smart routing: Vocab → `_addWordsFromText()` for enrichment, Note/Flashcard → direct object creation, Image/PDF → `generateVocabFromImage()`
-3. **Library** (2-column card grid, scroll position preserved)
+4. **Library** (2-column card grid, scroll position preserved)
    - Unified grid of all content types for the active deck
-   - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), circular SVG score ring badge, accuracy label
-   - **Note cards**: 14px radius, title + content preview + creation date, color-coded left border
-   - **Flashcard cards**: 14px radius, front + back preview, color-coded left border
+   - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), SM-2 state pill + "Due in Xd" chip (Apr 30), circular SVG score ring badge, accuracy label
+   - **Note cards**: 14px radius, title + italic content preview + creation date, color-coded left border, "edited Xd ago" timestamp (Apr 30)
+   - **Flashcard cards**: 14px radius, front + back preview, SM-2 state pill (Apr 30), color-coded left border
    - Each card shows a small deck-name badge in the top corner
-4. **Background**: Warm #FFF7ED, M3 rounded aesthetic throughout
+5. **Background**: Warm #FFF7ED, M3 rounded aesthetic throughout
 
 ### Practice Overlay (Flashcards / Vocab / Stats)
 - Accessed via sidebar Practice links
 - Full-area overlay with `← Library` back button
 - **Flashcards**: 18px radius cards with amber (learning) or emerald (mastered) top border; flip-card animation; self-rated (Got It / Need Practice); 3 modes (Word→Def, Def→Word, Usage→Word)
+  - **Keyboard support** (Apr 30): Space to flip, 1 to mark wrong, 2 to mark correct; visual hint shows available shortcuts
+  - **Context sentence** displays on card back when available (Apr 30)
+  - **Post-rating toast** provides feedback after rating a card (Apr 30)
 - **Vocab**: Landing screen with two options (Vocab Flashcards, Quiz); Quiz shows multi-tier difficulty (Easy/Medium/Hard) with intelligent distractor logic
 - **Stats**: Displays per-word accuracy breakdown across quiz and flashcard modes
 - All rounded, M3-compliant design
@@ -62,13 +68,23 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 
 | Key | Contents |
 |-----|----------|
-| `lexicon_projects` | Deck list `[{id, name}]` |
-| `custom_vocab` | User-added vocabulary entries |
+| `nexora_projects` | Deck list `[{id, name}]` |
+| `custom_vocab` | User-added vocabulary entries with SM-2 tracking `{id, word, definition, sm2, context, dataSources[], ...}` (Apr 30) |
 | `deleted_vocab` | Blacklisted core word IDs |
-| `lexicon_custom_cards` | Front/back custom flashcards `{id, front, back, projectId}` |
-| `lexicon_notes` | Notes `{id, deckId, title, content, createdAt, updatedAt}` |
-| `lexicon_perf_*` | Per-word performance stats scoped by deck |
-| `lexicon_demo_seeded` | Flag (user-namespaced) indicating demo decks have been merged for this account |
+| `nexora_custom_cards` | Front/back custom flashcards `{id, front, back, projectId, sm2, ...}` (Apr 30 SM-2) |
+| `nexora_notes` | Notes `{id, deckId, title, content, createdAt, updatedAt}` |
+| `nexora_perf_*` | Per-word performance stats scoped by deck |
+| `nexora_demo_seeded` | Flag (user-namespaced) indicating demo decks have been merged for this account |
+
+**SM-2 Schema** (Apr 30): Each vocab word and custom card tracks spaced repetition state:
+```
+sm2: {
+  interval: number,        // days until next review (starts at 1, grows geometrically)
+  easiness: number,        // SM-2 difficulty factor (2.5 default, 1.3–2.5 range)
+  repetitions: number,     // successful review count
+  dueDate: string          // ISO date, when this item is next due for review
+}
+```
 
 All keys namespaced by `userId` when signed in. Full Firestore sync on every mutation. Security enforced server-side: each user can only read/write their own document. Guest data is un-namespaced and cleared on sign-out or new guest session.
 
@@ -77,10 +93,30 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 ## 4. Core Learning System
 
 - **Flashcards**: Self-rated (Got It / Need Practice), 3 modes (Word→Def, Def→Word, Usage→Word), includes custom cards. Deck selection screen before practice; state-persistent sessions (Back/Next).
+- **SM-2 Spaced Repetition** (Apr 30, 2026):
+  - Pure functions `defaultSM2()` and `applyRating(sm2, correct)` implement the SM-2 algorithm for interval scheduling
+  - Every vocab word and custom card tracks `sm2: {interval, easiness, repetitions, dueDate}`
+  - `getDueCount()` computes daily review workload across three categories: new items, items in review cycle, and lapsed items
+  - `updateDailyBadge()` displays sidebar badge with breakdown; dismissible with ✕ button
+  - Library cards show SM-2 state pill (New/Learning/Mastered) and "Due in Xd" chip
+  - Word detail modal shows colored state badge + due date
+  - `startSM2Review()` builds sorted daily queue (lapsed → review → new priority) and opens practice view
 - **Vocab Practice**: Landing screen with two options:
   1. Vocab Flashcards — flip-card review of all vocab in selected decks
   2. Quiz — 3-tier difficulty (Easy/Medium/Hard), intelligent distractor selection, multi-level progression
 - **Stats**: Per-word accuracy breakdown across quiz and flashcard modes; visual accuracy indicators on library cards
+- **Search & Command Palette** (Apr 30, 2026):
+  - Cmd+K opens full-screen search modal with real-time results filtering
+  - Search across all content types (vocab, notes, flashcards) with deck-aware filtering
+  - Navigate results with arrow keys; open with Enter
+  - Escape closes the modal
+- **Keyboard Shortcuts** (Apr 30, 2026):
+  - Space: flip flashcard during study
+  - 1: mark flashcard as wrong / need practice
+  - 2: mark flashcard as correct / mastered
+  - Cmd+N: open Add modal
+  - Cmd+K: open search palette
+  - Visual hint element displays available shortcuts
 - **Onboarding & Help System** (Apr 2026):
   - **Profile Setup Screen**: 2-step flow (Google-prefilled name + goal selection → daily target/age/city/mobile). Redesigned Apr 24 with animated progress bar, gradient step icons, goal validation with shake animation, directional slide transitions, and mobile bottom-sheet layout. Shown once after first login.
   - **Welcome Tour Modal**: 4 paginated cards (Decks, Flashcards, Quiz, Notes) redesigned Apr 24 with CSS-animated hero illustrations per slide (floating deck cards, 3D flip card, cascading quiz bars, typewriter notepad), per-slide accent badges, swipe gestures, and goal-aware copy. Navigation with progress dots and controls.
@@ -93,8 +129,8 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 ## 5. AI & Word Acquisition
 
 - **Google Gemini 2.0 Flash Vision**: Extracts vocabulary from book page photos via two flows (no API key input required):
-  1. **Scan Page Modal** (dedicated UI): Returns underlined_words and suggested_words as toggleable chips; user accepts/rejects each before adding to Lexicon
-  2. **Generate Flow** (main Add Section): Attaching an image + selecting Vocab opens a popup word review modal with all extracted words (underlined + AI-suggested); per-word Accept / Edit / Decline buttons allow fine-grained control before saving to library
+  1. **Scan Page Modal** (dedicated UI): Returns underlined_words and suggested_words as toggleable chips; user accepts/rejects each before adding to Nexora
+  2. **Generate Flow** (main Add Section): Attaching an image + selecting Vocab opens a popup word review modal with all extracted words (underlined + AI-suggested); per-word Accept / Edit / Decline buttons allow fine-grained control before saving to library Nexora
 - **Batch AI Tile Preview** (Apr 28, 2026):
   - `_batchFetchTileDefinitions(words)` calls Gemini once for all image-scan words together instead of calling Free Dictionary API per-word
   - AI responses cached in `window._tileWordData` for reuse when user accepts a word
@@ -144,7 +180,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 
 ## 6. Tech Stack
 
-- Single HTML file (`app.html`) — ~10,400 lines
+- Single HTML file (`app.html`) — ~11,180 lines
 - Firebase Auth (Google + email) via CDN
 - Firestore for cloud sync (single merged doc per user)
 - localStorage as primary store (works offline); namespaced by userId
@@ -177,7 +213,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 ## 8. Roadmap
 
 1. **AI Generation Backend** — Wire Generate → button to actual AI (Gemini/Claude) for auto-creating notes, flashcards, quiz questions from pasted text or uploaded images
-2. **Quiz Card Type** — Add `lexicon_quiz_cards` data model; display in Library and generate via AI
+2. **Quiz Card Type** — Add `nexora_quiz_cards` data model; display in Library and generate via AI
 3. **Mobile / PWA** — Responsive layout, service worker, iOS/Android
 4. **Branding & Deployment** — Custom domain, app stores (iOS/Android), GitHub Pages
 5. **Cross-device sync** — Already functional via Firestore; needs edge-case testing
@@ -185,4 +221,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 29, 2026* (Fixed deck section navigation for Notes/Vocab tiles; Add Modal text-input preview/review step for Vocab/Note/Flashcard; April 28: Phase 2 upgrade with Add Modal Cmd+N, sidebar mastery dots, deck header search/add buttons, scroll preservation)
+*Last Updated: April 30, 2026* (Phases 4–8: SM-2 spaced repetition with daily queue badge, Cmd+K search palette, keyboard shortcuts Space/1/2, context sentences, post-rating toast, guest banner, 1-step onboarding + 2-slide tour, typography polish, smooth transitions, CODE_MAP.md refreshed with 43 sections and SearchModal entry)

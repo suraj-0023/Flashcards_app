@@ -62,6 +62,7 @@
       document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
     })();
   </script>
+  <!-- @@SECTION: StylesGlobal -->
   <style>
     :root {
       /* Backgrounds */
@@ -344,7 +345,7 @@
       border-radius: 999px;
       cursor: pointer;
       font-size: 13.5px;
-      font-weight: 600;
+      font-weight: 500;
       transition: background 0.14s;
       color: var(--text);
       position: relative;
@@ -367,12 +368,35 @@
     .project-actions {
       position: absolute;
       right: 8px;
-      display: none;
-      gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .project-item-sidebar:hover .project-actions {
+    .mastery-dots {
       display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+
+    .mastery-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border-2, rgba(255,255,255,0.2));
+      flex-shrink: 0;
+    }
+
+    .mastery-dot.filled {
+      background: var(--emerald);
+    }
+
+    .project-action-btn {
+      display: none;
+    }
+
+    .project-item-sidebar:hover .project-action-btn {
+      display: inline-block;
     }
 
     .project-action-btn {
@@ -384,7 +408,7 @@
     }
 
     .project-action-btn:hover {
-      color: white;
+      color: var(--text);
     }
 
     /* ── MAIN CONTENT ── */
@@ -617,9 +641,10 @@
     }
 
     .modal-word {
-      font-size: 1.8rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+      font-size: 2rem;
+      font-weight: 400;
+      font-family: var(--font-serif);
+      letter-spacing: -0.01em;
       color: var(--text);
       margin-bottom: 4px;
     }
@@ -653,7 +678,7 @@
     .modal-def {
       font-size: 15px;
       font-weight: 500;
-      line-height: 1.65;
+      line-height: 1.7;
       color: var(--text);
     }
 
@@ -1066,6 +1091,7 @@
     .flip-word {
       font-size: 2.6rem;
       font-weight: 800;
+      font-family: var(--font-serif);
       letter-spacing: -0.03em;
       line-height: 1.05;
       color: var(--text);
@@ -3372,7 +3398,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      transition: background 0.2s;
+      transition: background 0.2s, border-color 0.2s;
     }
 
     .add-modal-header {
@@ -4038,7 +4064,7 @@
     }
 
     .lib-summary-tile {
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 16px;
       padding: 20px;
@@ -4085,7 +4111,7 @@
       border-radius: 14px;
       padding: 22px 26px 20px;
       cursor: pointer;
-      transition: transform 0.18s, box-shadow 0.18s, background 0.2s;
+      transition: transform 0.18s, box-shadow 0.18s, background 0.2s, border-color 0.2s;
       box-shadow: var(--shadow-card);
       border-left-width: 4px;
       border-left-style: solid;
@@ -4342,7 +4368,7 @@
 
     .deck-recent-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
       gap: 10px;
       margin-bottom: 28px;
     }
@@ -4350,12 +4376,20 @@
     .deck-recent-card {
       background: var(--surface);
       border: 1px solid var(--border-2);
-      border-radius: 10px;
-      padding: 12px 14px;
+      border-radius: 12px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
+      cursor: pointer;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      transition: background 0.12s, box-shadow 0.12s;
     }
+    .deck-recent-card:hover { background: var(--bg-2); box-shadow: var(--shadow-card); }
+    .deck-recent-word { font-size: 14px; font-weight: 700; font-family: var(--font-serif); color: var(--text); margin-top: 4px; }
+    .deck-recent-phonetic { font-size: 10.5px; color: var(--muted); font-style: italic; }
+    .deck-recent-def { font-size: 11px; color: var(--muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
 
     .deck-recent-badge {
       font-size: 10px;
@@ -5015,17 +5049,176 @@
       color: var(--muted);
       line-height: 1.5;
     }
+
+    /* ── SEARCH COMMAND PALETTE ── */
+    .search-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 80px;
+    }
+
+    .search-modal-panel {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+      overflow: hidden;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .search-input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .search-input::placeholder { color: var(--muted); }
+
+    .search-results {
+      max-height: 380px;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .search-group-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 8px 16px 4px;
+    }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .search-result-item:hover,
+    .search-result-item.active {
+      background: var(--bg-2);
+    }
+
+    .search-result-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--bg-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .search-result-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .search-result-sub {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 340px;
+    }
+
+    .search-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    /* ── FLASH TOAST ── */
+    .flash-toast {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 6px 0 2px;
+      opacity: 1;
+      transition: opacity 0.4s;
+    }
+
+    .flash-toast-hide {
+      opacity: 0;
+    }
+
+    /* ── GUEST BANNER ── */
+    .guest-save-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--amber-50, #FFFBEB);
+      border-top: 1px solid var(--amber-100, #FDE68A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 10px 16px;
+      z-index: 8000;
+      font-size: 13px;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    .guest-save-banner button {
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .guest-banner-dismiss {
+      background: none !important;
+      color: var(--muted) !important;
+      font-size: 16px !important;
+      padding: 0 !important;
+      font-weight: 400 !important;
+    }
   </style>
 </head>
 
 <body>
 
+  <!-- @@SECTION: LoginScreen -->
   <!-- ── LOGIN SCREEN ── -->
   <div id="loginScreen">
     <div class="login-card">
-      <div class="login-logo">Smriti<span>kosha</span></div>
-      <div class="login-sanskrit">स्मृतिकोश</div>
-      <div class="login-subtitle">Your treasury of memory</div>
+      <div class="login-logo">Nexora</div>
+      <div class="login-subtitle">Your vocabulary universe</div>
       <div class="login-notice">
         <strong>Note:</strong> To enable cloud sync across devices, you need a Firebase project. You can use the app
         locally without signing in.
@@ -5071,6 +5264,7 @@
     </div>
   </div>
 
+  <!-- @@SECTION: ProfileSetup -->
   <!-- ── PROFILE SETUP SCREEN ── -->
   <div id="profileSetupScreen" style="display:none;">
     <div class="profile-setup-card">
@@ -5081,7 +5275,7 @@
         <div class="profile-progress-track">
           <div class="profile-progress-fill" id="profileProgressFill"></div>
         </div>
-        <div class="profile-progress-label" id="profileProgressLabel">Step 1 of 2 · ~30s</div>
+        <div class="profile-progress-label" id="profileProgressLabel">Step 1 of 1 · ~15s</div>
       </div>
 
       <!-- Step 1: Identity & Goal -->
@@ -5104,11 +5298,11 @@
           <button class="profile-chip" onclick="selectGoal(this,'language')">🌍 Language learning</button>
           <button class="profile-chip" onclick="selectGoal(this,'other')">✨ Other</button>
         </div>
-        <button class="profile-btn profile-btn-primary" onclick="profileNextStep()">Next →</button>
+        <button class="profile-btn profile-btn-primary" onclick="finishProfileSetup(false)">Finish & Start →</button>
       </div>
 
-      <!-- Step 2: Optional details -->
-      <div class="profile-step" id="profileStep1">
+      <!-- Step 2: Optional details (hidden — simplified to 1 step) -->
+      <div class="profile-step" id="profileStep1" style="display:none !important;">
         <button class="profile-skip-all" onclick="finishProfileSetup(true)">Skip all</button>
         <div class="profile-step-icon profile-step-icon--target">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -5149,17 +5343,16 @@
     </div>
   </div>
 
+  <!-- @@SECTION: WelcomeTour -->
   <!-- ── WELCOME TOUR MODAL ── -->
   <div id="welcomeTourModal" style="display:none;">
     <div class="tour-card">
       <button class="tour-skip-btn" onclick="closeTour()">Skip tour</button>
       <!-- Header: progress text + dots -->
       <div class="tour-header-row">
-        <div class="tour-progress-text" id="tourProgressText">Step 1 of 4</div>
+        <div class="tour-progress-text" id="tourProgressText">Step 1 of 2</div>
         <div class="tour-dots" id="tourDots">
           <div class="tour-dot active"></div>
-          <div class="tour-dot"></div>
-          <div class="tour-dot"></div>
           <div class="tour-dot"></div>
         </div>
       </div>
@@ -5184,6 +5377,7 @@
     </div>
   </div>
 
+  <!-- @@SECTION: OnboardCompleteOverlay -->
   <!-- ── ONBOARDING COMPLETE OVERLAY ── -->
   <div id="onboardCompleteOverlay" style="display:none;">
     <div class="onboard-complete-card">
@@ -5198,6 +5392,7 @@
     </div>
   </div>
 
+  <!-- @@SECTION: HelpPanel -->
   <!-- ── HELP PANEL ── -->
   <div id="helpPanel">
     <div class="help-panel-header">
@@ -5218,6 +5413,7 @@
   <div id="loadingScreen"
     style="display:none;align-items:center;justify-content:center;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.2rem;color:#8a7f72;letter-spacing:0.05em;">
     Loading vocabulary...</div>
+  <!-- @@SECTION: MainAppContainer -->
   <div id="app" style="display:none;">
     <aside>
       <div class="sidebar-logo">
@@ -5226,9 +5422,13 @@
         <div class="sidebar-logo-tagline">From Information to Intelligence.</div>
       </div>
 
-      <div id="dailyQueueBadge" class="daily-queue-badge">
-        <span id="dailyQueueCount">🔥 0 cards due</span>
-        <button onclick="startSM2Review()">Start Review →</button>
+      <div id="dailyQueueBadge" class="daily-queue-badge" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
+          <span id="dailyQueueCount" style="font-weight:700;font-size:13px;">🔥 0 cards due</span>
+          <button onclick="dismissDailyBadge()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1;">✕</button>
+        </div>
+        <div id="dailyQueueBreakdown" style="font-size:11px;margin:3px 0 6px;color:var(--muted);"></div>
+        <button onclick="startSM2Review()" style="width:100%;padding:6px 0;font-size:12px;font-weight:700;background:var(--emerald);color:#fff;border:none;border-radius:8px;cursor:pointer;">Start Review →</button>
       </div>
 
       <div class="sidebar-section-label">Library</div>
@@ -5299,6 +5499,7 @@
 
     <main>
 
+      <!-- @@SECTION: PracticeOverlay -->
       <!-- ── PRACTICE OVERLAY (Flashcards / Quiz / Stats) ── -->
       <div id="practiceOverlay">
         <div class="practice-back-bar">
@@ -5361,6 +5562,7 @@
               <div class="flip-actions" id="flipNext" style="display:none;">
                 <button class="action-btn next" onclick="nextFlashCard()">Next Word →</button>
               </div>
+              <div id="flashKbHint" style="text-align:center;font-size:11px;color:var(--muted);padding:4px 0 0;"></div>
               <!-- Utility Controls Panel -->
               <div class="util-panel" id="flashUtilPanel">
                 <div class="util-row" style="grid-template-columns:1fr 1fr;">
@@ -5566,6 +5768,7 @@
         </div><!-- end .practice-scroll -->
       </div><!-- end #practiceOverlay -->
 
+      <!-- @@SECTION: MainPage -->
       <!-- ── MAIN PAGE (single scrollable) ── -->
       <div id="mainPage">
 
@@ -5648,17 +5851,17 @@
             <!-- Summary Tiles -->
             <div id="librarySummaryTiles" class="library-summary-tiles">
               <div class="lib-summary-tile" onclick="showLibraryList('notes')">
-                <div class="lib-tile-icon">📝</div>
+                <div class="lib-tile-icon"><svg width="36" height="36" viewBox="0 0 40 40" fill="none"><rect x="7" y="5" width="22" height="28" rx="3" fill="var(--amber-100)" stroke="var(--amber)" stroke-width="1.5"/><line x1="12" y1="13" x2="24" y2="13" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="18" x2="24" y2="18" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="23" x2="19" y2="23" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/><circle cx="30" cy="30" r="7" fill="var(--amber)"/><line x1="28" y1="30" x2="32" y2="30" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="30" y1="28" x2="30" y2="32" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
                 <div class="lib-tile-name">Notes</div>
                 <div class="lib-tile-count" id="libTileCountNotes">0 notes</div>
               </div>
               <div class="lib-summary-tile" onclick="showLibraryList('flashcards')">
-                <div class="lib-tile-icon">🃏</div>
+                <div class="lib-tile-icon"><svg width="36" height="36" viewBox="0 0 40 40" fill="none"><rect x="4" y="9" width="24" height="16" rx="3" fill="var(--purple-50)" stroke="var(--purple)" stroke-width="1.5"/><rect x="12" y="15" width="24" height="16" rx="3" fill="var(--surface)" stroke="var(--purple)" stroke-width="1.5"/><line x1="17" y1="21" x2="31" y2="21" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round"/><line x1="17" y1="26" x2="27" y2="26" stroke="var(--purple)" stroke-width="1" stroke-linecap="round" opacity="0.6"/></svg></div>
                 <div class="lib-tile-name">Flashcards</div>
                 <div class="lib-tile-count" id="libTileCountFlashcards">0 flashcards</div>
               </div>
               <div class="lib-summary-tile" onclick="showLibraryList('vocab')">
-                <div class="lib-tile-icon">📖</div>
+                <div class="lib-tile-icon"><svg width="36" height="36" viewBox="0 0 40 40" fill="none"><path d="M6 9 C6 9 16 7 20 11 C24 7 34 9 34 9 L34 29 C34 29 24 27 20 31 C16 27 6 29 6 29 Z" fill="var(--emerald-50)" stroke="var(--emerald)" stroke-width="1.5"/><line x1="20" y1="11" x2="20" y2="31" stroke="var(--emerald)" stroke-width="1.5"/><line x1="23" y1="16" x2="31" y2="16" stroke="var(--emerald)" stroke-width="1" stroke-linecap="round" opacity="0.7"/><line x1="23" y1="20" x2="30" y2="20" stroke="var(--emerald)" stroke-width="1" stroke-linecap="round" opacity="0.5"/><line x1="23" y1="24" x2="28" y2="24" stroke="var(--emerald)" stroke-width="1" stroke-linecap="round" opacity="0.35"/></svg></div>
                 <div class="lib-tile-name">Vocab</div>
                 <div class="lib-tile-count" id="libTileCountVocab">0 words</div>
               </div>
@@ -6168,9 +6371,13 @@
       </div>
     </div>
 
+    <!-- @@SECTION: MainScript -->
     <script>
       const GEMINI_PROXY_URL = 'https://gemini-proxy.suraj-kunuku23.workers.dev';
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSState
+      // ──────────────────────────────────────────────────────────────
       // ── STATE ──
       let VOCAB = [];
       let QUIZ_VOCAB = [];
@@ -6190,9 +6397,12 @@
       let _previewVocabWord = null;
       let _openModalWordId  = null;
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSAuthHelpers
+      // ──────────────────────────────────────────────────────────────
       // ── AUTH HELPERS ──
 
-      function getPerfKey() { return `lexicon_perf_${currentProjectId}`; }
+      function getPerfKey() { return `nexora_perf_${currentProjectId}`; }
       function loadPerf() {
         perf = lsGet(getPerfKey(), {});
       }
@@ -6201,7 +6411,17 @@
         syncPerfToCloud();
       }
       function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+      function _daysAgo(dateStr) {
+        if (!dateStr) return '';
+        const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+        if (diff === 0) return 'today';
+        if (diff === 1) return '1d ago';
+        return diff + 'd ago';
+      }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSAnalytics
+      // ──────────────────────────────────────────────────────────────
       // ── ANALYTICS ──
 
       function trackEvent(name, params = {}) {
@@ -6213,6 +6433,9 @@
         }
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSStorage
+      // ──────────────────────────────────────────────────────────────
       // ── STORAGE LAYER (localStorage + optional Firestore) ──
 
       function getUserDataKey(key) {
@@ -6242,8 +6465,8 @@
             currentProjectId: currentProjectId,
             deleted_vocab: lsGet('deleted_vocab', []),
             custom_vocab: lsGet('custom_vocab', []),
-            lexicon_custom_cards: lsGet('lexicon_custom_cards', []),
-            lexicon_notes: lsGet('lexicon_notes', []),
+            nexora_custom_cards: lsGet('nexora_custom_cards', []),
+            nexora_notes: lsGet('nexora_notes', []),
             updatedAt: Date.now()
           }, partial);
           await window._fbSetDoc(ref, payload, { merge: true });
@@ -6273,15 +6496,15 @@
           const snap = await window._fbGetDoc(ref);
           if (snap.exists()) {
             const d = snap.data();
-            if (d.projects) { projects = d.projects; lsSet('lexicon_projects', projects); }
-            if (d.currentProjectId) { currentProjectId = d.currentProjectId; lsSet('lexicon_current_project', currentProjectId); }
+            if (d.projects) { projects = d.projects; lsSet('nexora_projects', projects); }
+            if (d.currentProjectId) { currentProjectId = d.currentProjectId; lsSet('nexora_current_project', currentProjectId); }
             if (d.deleted_vocab) lsSet('deleted_vocab', d.deleted_vocab);
             if (d.custom_vocab) lsSet('custom_vocab', d.custom_vocab);
-            if (d.lexicon_custom_cards) lsSet('lexicon_custom_cards', d.lexicon_custom_cards);
-            if (d.lexicon_notes) lsSet('lexicon_notes', d.lexicon_notes);
+            if (d.nexora_custom_cards) lsSet('nexora_custom_cards', d.nexora_custom_cards);
+            if (d.nexora_notes) lsSet('nexora_notes', d.nexora_notes);
             // Restore perf keys
             Object.keys(d).forEach(k => {
-              if (k.startsWith('lexicon_perf_')) lsSet(k, d[k]);
+              if (k.startsWith('nexora_perf_')) lsSet(k, d[k]);
             });
             updateSyncBadge('synced');
             return false; // existing user
@@ -6298,7 +6521,7 @@
 
       // Keys that hold un-namespaced guest data. Clearing these ensures a fresh
       // guest session for the next visitor after a sign-out or post-migration.
-      const GUEST_LS_KEYS = ['custom_vocab', 'lexicon_custom_cards', 'lexicon_notes', 'deleted_vocab', 'lexicon_projects', 'lexicon_current_project', 'lexicon_demo_seed_version'];
+      const GUEST_LS_KEYS = ['custom_vocab', 'nexora_custom_cards', 'nexora_notes', 'deleted_vocab', 'nexora_projects', 'nexora_current_project', 'nexora_demo_seed_version'];
 
       function clearGuestLocalStorage() {
         GUEST_LS_KEYS.forEach(k => localStorage.removeItem(k));
@@ -6312,6 +6535,9 @@
         else { el.textContent = '⚠ offline'; el.classList.remove('syncing'); el.style.color = '#c9a84c'; }
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSOnboarding
+      // ──────────────────────────────────────────────────────────────
       // ── ONBOARDING: PROFILE SETUP ──
 
       let _profileGoal = '';
@@ -6390,8 +6616,8 @@
           if (mobile) profile.mobile = mobile;
           if (customTarget) profile.dailyTarget = parseInt(customTarget);
         }
-        lsSet('lexicon_profile', profile);
-        lsSet('lexicon_profile_complete', true);
+        lsSet('nexora_profile', profile);
+        lsSet('nexora_profile_complete', true);
         // Persist to Firestore if logged in (setDoc+merge to safely upsert even on first login)
         if (currentUser && window._fbSetDoc && window._fbDb) {
           const ref = window._fbDoc(window._fbDb, 'users', currentUser.uid);
@@ -6427,27 +6653,13 @@
           heroHTML: '<div class="flip-card do-flip">WORD</div>',
           label: 'Flashcards', accentColor: 'var(--tour-c-cards)',
           title: 'Flashcards',
-          desc: 'Flip cards to study definitions. Mark words correct or wrong to track your progress over time.',
-        },
-        {
-          heroClass: 'tour-hero-quiz',
-          heroHTML: '<div class="tour-quiz-bar animate"></div><div class="tour-quiz-bar animate correct"></div><div class="tour-quiz-bar animate"></div><div class="tour-quiz-bar animate"></div>',
-          label: 'Quiz', accentColor: 'var(--tour-c-quiz)',
-          title: 'Quiz Mode',
-          desc: 'Test yourself with 4-option quizzes. Choose Easy, Medium, or Hard difficulty to match your level.',
-        },
-        {
-          heroClass: 'tour-hero-notes',
-          heroHTML: '<div class="tour-notepad"><div class="tour-notepad-line"></div><div style="margin-bottom:8px"><span class="tour-notepad-typed">perspicacious</span><span class="tour-notepad-cursor"></span></div><div class="tour-notepad-line" style="width:60%"></div></div>',
-          label: 'Notes', accentColor: 'var(--tour-c-notes)',
-          title: 'Notes & Custom Cards',
-          desc: 'Write study notes per deck and create your own flashcards. Notes can even be turned into a quiz with AI.',
+          desc: 'Flip cards to study definitions. Mark words correct or wrong to track your progress over time. Use ⌘K to search any word.',
         },
       ];
       let _tourIdx = 0;
 
       function startWelcomeTour() {
-        if (lsGet('lexicon_tour_complete', false)) return;
+        if (lsGet('nexora_tour_complete', false)) return;
         _tourIdx = 0;
         renderTourSlide(0);
         document.getElementById('welcomeTourModal').style.display = 'flex';
@@ -6523,10 +6735,10 @@
       })();
 
       function closeTour() {
-        lsSet('lexicon_tour_complete', true);
+        lsSet('nexora_tour_complete', true);
         trackEvent('onboarding_tour_complete', { slides_seen: _tourIdx + 1 });
         document.getElementById('welcomeTourModal').style.display = 'none';
-        const profile = lsGet('lexicon_profile', {});
+        const profile = lsGet('nexora_profile', {});
         showOnboardComplete(profile);
       }
 
@@ -6588,7 +6800,7 @@
       // ── PROFILE: APPLY TO UI ──
 
       function applyProfileToUI() {
-        const profile = lsGet('lexicon_profile', {});
+        const profile = lsGet('nexora_profile', {});
         // Sidebar display name
         const nameEl = document.getElementById('sidebarProfileName');
         if (nameEl && profile.displayName) nameEl.textContent = profile.displayName;
@@ -6643,6 +6855,9 @@
         if (hint) { clearTimeout(hint._timer); hint.remove(); }
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSHelpPanel
+      // ──────────────────────────────────────────────────────────────
       // ── HELP PANEL ──
 
       const HELP_TABS_CONTENT = [
@@ -6773,12 +6988,15 @@
 
       function replayTour() {
         closeHelpPanel();
-        lsSet('lexicon_tour_complete', false);
+        lsSet('nexora_tour_complete', false);
         _tourIdx = 0;
         renderTourSlide(0);
         document.getElementById('welcomeTourModal').style.display = 'flex';
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSAuthStateHandler
+      // ──────────────────────────────────────────────────────────────
       // ── AUTH STATE HANDLER ──
 
       window.handleAuthState = async function (user) {
@@ -6788,8 +7006,8 @@
 
           // STEP 1: Hide login, load from local storage IMMEDIATELY (no waiting)
           document.getElementById('loginScreen').style.display = 'none';
-          projects = lsGet('lexicon_projects', [{ "id": "general", "name": "General" }]);
-          currentProjectId = lsGet('lexicon_current_project', 'all');
+          projects = lsGet('nexora_projects', [{ "id": "general", "name": "General" }]);
+          currentProjectId = lsGet('nexora_current_project', 'all');
 
           // STEP 2: Load the app instantly using saved local data
           await loadVocab();
@@ -6797,9 +7015,9 @@
           applyProfileToUI();
 
           // STEP 2b: Show profile setup on first login, else show tour if pending
-          if (!lsGet('lexicon_profile_complete', false)) {
+          if (!lsGet('nexora_profile_complete', false)) {
             showProfileSetup(user);
-          } else if (!lsGet('lexicon_tour_complete', false)) {
+          } else if (!lsGet('nexora_tour_complete', false)) {
             startWelcomeTour();
           }
 
@@ -6809,25 +7027,25 @@
             if (isNewUser) {
               // Migrate any data the user created as a guest into their UID namespace
               const guestVocab = JSON.parse(localStorage.getItem('custom_vocab') || '[]');
-              const guestCards = JSON.parse(localStorage.getItem('lexicon_custom_cards') || '[]');
-              const guestNotes = JSON.parse(localStorage.getItem('lexicon_notes') || '[]');
+              const guestCards = JSON.parse(localStorage.getItem('nexora_custom_cards') || '[]');
+              const guestNotes = JSON.parse(localStorage.getItem('nexora_notes') || '[]');
               const guestDeleted = JSON.parse(localStorage.getItem('deleted_vocab') || '[]');
               if (guestVocab.length || guestCards.length || guestNotes.length) {
                 lsSet('custom_vocab', guestVocab);
-                lsSet('lexicon_custom_cards', guestCards);
-                lsSet('lexicon_notes', guestNotes);
+                lsSet('nexora_custom_cards', guestCards);
+                lsSet('nexora_notes', guestNotes);
                 lsSet('deleted_vocab', guestDeleted);
                 await syncToCloud();
               }
               // Clear un-namespaced guest keys so the next visitor starts clean
               clearGuestLocalStorage();
             }
-            projects = lsGet('lexicon_projects', [{ "id": "general", "name": "General" }]);
-            currentProjectId = lsGet('lexicon_current_project', 'all');
+            projects = lsGet('nexora_projects', [{ "id": "general", "name": "General" }]);
+            currentProjectId = lsGet('nexora_current_project', 'all');
             // Merge demo decks for this account; re-runs when DEMO_SEED_VERSION is bumped
-            if (lsGet('lexicon_demo_seed_version', 0) < DEMO_SEED_VERSION) {
+            if (lsGet('nexora_demo_seed_version', 0) < DEMO_SEED_VERSION) {
               mergeDemoDataForUser();
-              lsSet('lexicon_demo_seed_version', DEMO_SEED_VERSION);
+              lsSet('nexora_demo_seed_version', DEMO_SEED_VERSION);
               syncToCloud();
             }
             loadVocab(); // Refresh silently with the latest cloud data
@@ -6883,6 +7101,9 @@
         }
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSLoginFunctions
+      // ──────────────────────────────────────────────────────────────
       // ── LOGIN SCREEN FUNCTIONS ──
 
       function openLoginScreen() {
@@ -6901,10 +7122,10 @@
           // App not loaded yet, load it in guest mode
           document.getElementById('loadingScreen').style.display = 'flex';
           loadVocab().then(() => {
-            if (!lsGet('lexicon_tour_complete', false)) startWelcomeTour();
+            if (!lsGet('nexora_tour_complete', false)) startWelcomeTour();
           });
         } else {
-          if (!lsGet('lexicon_tour_complete', false)) startWelcomeTour();
+          if (!lsGet('nexora_tour_complete', false)) startWelcomeTour();
         }
       }
 
@@ -7048,6 +7269,9 @@
         return map[code] || `Sign-in error: ${code}`;
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSDemoData
+      // ──────────────────────────────────────────────────────────────
       // ── DEMO DATA SEED ──
       // Bump DEMO_SEED_VERSION whenever DEMO_DATA changes — existing accounts will receive the new content on next login.
       const DEMO_SEED_VERSION = 2;
@@ -7158,41 +7382,44 @@
 
       function seedDemoData() {
         if (currentUser) return; // logged-in users handled by mergeDemoDataForUser after cloud pull
-        if (lsGet('lexicon_demo_seed_version', 0) >= DEMO_SEED_VERSION) return;
+        if (lsGet('nexora_demo_seed_version', 0) >= DEMO_SEED_VERSION) return;
         const generalDeck = { id: 'general', name: 'General' };
         const demoProjects = [generalDeck, ...DEMO_DATA.projects];
-        lsSet('lexicon_projects', demoProjects);
-        lsSet('lexicon_notes', DEMO_DATA.notes);
-        lsSet('lexicon_custom_cards', DEMO_DATA.custom_cards);
+        lsSet('nexora_projects', demoProjects);
+        lsSet('nexora_notes', DEMO_DATA.notes);
+        lsSet('nexora_custom_cards', DEMO_DATA.custom_cards);
         lsSet('custom_vocab', DEMO_DATA.custom_vocab);
-        lsSet('lexicon_demo_seed_version', DEMO_SEED_VERSION);
+        lsSet('nexora_demo_seed_version', DEMO_SEED_VERSION);
         projects = demoProjects;
         currentProjectId = 'all';
       }
 
       // Merges demo decks/notes/cards into a logged-in user's data without overwriting anything.
-      // Called once per account (after cloud pull) when lexicon_demo_seeded is not yet set.
+      // Called once per account (after cloud pull) when nexora_demo_seeded is not yet set.
       function mergeDemoDataForUser() {
         const existingIds = new Set(projects.map(p => p.id));
         const newProjects = DEMO_DATA.projects.filter(p => !existingIds.has(p.id));
         if (newProjects.length) {
           const generalDeck = projects.find(p => p.id === 'general') || { id: 'general', name: 'General' };
           projects = [generalDeck, ...projects.filter(p => p.id !== 'general'), ...newProjects];
-          lsSet('lexicon_projects', projects);
+          lsSet('nexora_projects', projects);
         }
-        const existingNoteIds = new Set(lsGet('lexicon_notes', []).map(n => n.id));
-        const mergedNotes = [...lsGet('lexicon_notes', []), ...DEMO_DATA.notes.filter(n => !existingNoteIds.has(n.id))];
-        lsSet('lexicon_notes', mergedNotes);
+        const existingNoteIds = new Set(lsGet('nexora_notes', []).map(n => n.id));
+        const mergedNotes = [...lsGet('nexora_notes', []), ...DEMO_DATA.notes.filter(n => !existingNoteIds.has(n.id))];
+        lsSet('nexora_notes', mergedNotes);
 
-        const existingCardIds = new Set(lsGet('lexicon_custom_cards', []).map(c => c.id));
-        const mergedCards = [...lsGet('lexicon_custom_cards', []), ...DEMO_DATA.custom_cards.filter(c => !existingCardIds.has(c.id))];
-        lsSet('lexicon_custom_cards', mergedCards);
+        const existingCardIds = new Set(lsGet('nexora_custom_cards', []).map(c => c.id));
+        const mergedCards = [...lsGet('nexora_custom_cards', []), ...DEMO_DATA.custom_cards.filter(c => !existingCardIds.has(c.id))];
+        lsSet('nexora_custom_cards', mergedCards);
 
         const existingVocabIds = new Set(lsGet('custom_vocab', []).map(v => v.id));
         const mergedVocab = [...lsGet('custom_vocab', []), ...DEMO_DATA.custom_vocab.filter(v => !existingVocabIds.has(v.id))];
         lsSet('custom_vocab', mergedVocab);
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSLoadJSON
+      // ──────────────────────────────────────────────────────────────
       // ── LOAD FROM JSON ──
       async function loadVocab() {
         const loading = document.getElementById('loadingScreen');
@@ -7224,7 +7451,7 @@
 
           // 2. Load Custom Entries (from user-namespaced localStorage)
           const customVocab = lsGet('custom_vocab', []);
-          ALL_CUSTOM_CARDS = lsGet('lexicon_custom_cards', []);
+          ALL_CUSTOM_CARDS = lsGet('nexora_custom_cards', []);
           const deletedIDs = lsGet('deleted_vocab', []);
           const filterDeleted = (list) => list.filter(w => !deletedIDs.includes(w.id));
 
@@ -7245,7 +7472,7 @@
           savePerf();
 
           // 5. Load notes
-          ALL_NOTES = lsGet('lexicon_notes', []);
+          ALL_NOTES = lsGet('nexora_notes', []);
 
           // 6. Setup UI
           updateProjectUI();
@@ -7269,13 +7496,13 @@
 
       function switchProject(id) {
         currentProjectId = id;
-        lsSet('lexicon_current_project', id);
+        lsSet('nexora_current_project', id);
         syncToCloud({ currentProjectId: id });
         // Close practice overlay if open
         closePracticeOverlay();
         updateProjectUI();
         applyProjectFilter();
-        setTimeout(() => showHint('.word-item, .vocab-card', 'Tap any word to see its full definition, usage, and related words.', 'lexicon_hint_library'), 600);
+        setTimeout(() => showHint('.word-item, .vocab-card', 'Tap any word to see its full definition, usage, and related words.', 'nexora_hint_library'), 600);
       }
 
       function applyProjectFilter() {
@@ -7294,8 +7521,9 @@
         const countEl = document.getElementById('deckHeaderCount');
         if (countEl) countEl.textContent = totalItems + ' items';
 
-        // Reset library list to tiles view on deck switch
-        if (currentLibListType) hideLibraryList();
+        // Always reset: tiles can be hidden even when currentLibListType is null
+        currentLibListType = null;
+        hideLibraryList();
         renderLibrary();
 
         // Show deck home panel for specific decks, hide library when a deck is selected
@@ -7310,6 +7538,7 @@
           if (libSectionEl) libSectionEl.style.display = '';
         }
 
+        if (!sessionStorage.getItem('queue_dismissed')) updateDailyBadge();
         initFlash();
         initQuiz();
       }
@@ -7327,8 +7556,99 @@
         return Math.round((mastered / words.length) * 100);
       }
 
+      function defaultSM2() {
+        return { state: 'new', interval: 0, ease: 2.5, repetitions: 0, dueDate: null, lastReviewed: null };
+      }
+
+      function applyRating(sm2, correct) {
+        const s = Object.assign({}, sm2);
+        const today = new Date().toISOString().split('T')[0];
+        s.lastReviewed = today;
+        if (correct) {
+          s.repetitions = (s.repetitions || 0) + 1;
+          if (s.repetitions === 1) s.interval = 1;
+          else if (s.repetitions === 2) s.interval = 6;
+          else s.interval = Math.round((s.interval || 1) * (s.ease || 2.5));
+          s.ease = Math.max(1.3, (s.ease || 2.5) + 0.1);
+          s.state = s.repetitions < 2 ? 'learning' : 'review';
+        } else {
+          s.repetitions = 0;
+          s.interval = 1;
+          s.ease = Math.max(1.3, (s.ease || 2.5) - 0.2);
+          s.state = (sm2.state === 'new') ? 'learning' : 'lapsed';
+        }
+        const due = new Date();
+        due.setDate(due.getDate() + s.interval);
+        s.dueDate = due.toISOString().split('T')[0];
+        return s;
+      }
+
+      function getDueCount() {
+        const today = new Date().toISOString().split('T')[0];
+        let newCount = 0, review = 0, lapsed = 0;
+        [...ALL_VOCAB, ...ALL_CUSTOM_CARDS].forEach(item => {
+          const s = item.sm2 || defaultSM2();
+          const due = !s.dueDate || s.dueDate <= today;
+          if (s.state === 'new') newCount++;
+          else if (due && s.state === 'lapsed') lapsed++;
+          else if (due && s.state === 'review') review++;
+        });
+        return { new: newCount, review, lapsed, total: newCount + review + lapsed };
+      }
+
+      function updateDailyBadge() {
+        const badge = document.getElementById('dailyQueueBadge');
+        const countEl = document.getElementById('dailyQueueCount');
+        const breakdownEl = document.getElementById('dailyQueueBreakdown');
+        if (!badge || !countEl) return;
+        const { new: n, review: r, lapsed: l, total } = getDueCount();
+        if (total === 0) { badge.style.display = 'none'; return; }
+        badge.style.display = 'block';
+        countEl.textContent = `🔥 ${total} card${total !== 1 ? 's' : ''} due`;
+        if (breakdownEl) {
+          breakdownEl.innerHTML = [
+            n ? `<span style="color:var(--state-new)">${n} new</span>` : '',
+            r ? `<span style="color:var(--state-review)">${r} review</span>` : '',
+            l ? `<span style="color:var(--state-lapsed)">${l} lapsed</span>` : ''
+          ].filter(Boolean).join(' · ');
+        }
+      }
+
+      function dismissDailyBadge() {
+        sessionStorage.setItem('queue_dismissed', '1');
+        const badge = document.getElementById('dailyQueueBadge');
+        if (badge) badge.style.display = 'none';
+      }
+
       function startSM2Review() {
-        alert('SM-2 review queue is coming in Phase 4!');
+        const today = new Date().toISOString().split('T')[0];
+        const dueVocab = ALL_VOCAB.filter(w => {
+          const s = w.sm2 || defaultSM2();
+          return !s.dueDate || s.dueDate <= today || s.state === 'new';
+        });
+        const dueCards = ALL_CUSTOM_CARDS.filter(c => {
+          const s = c.sm2 || defaultSM2();
+          return !s.dueDate || s.dueDate <= today || s.state === 'new';
+        });
+        const lapsed = [...dueVocab, ...dueCards].filter(x => (x.sm2||{}).state === 'lapsed');
+        const review = [...dueVocab, ...dueCards].filter(x => (x.sm2||{}).state === 'review');
+        const newCards = [...dueVocab, ...dueCards].filter(x => !x.sm2 || x.sm2.state === 'new');
+        const SM2_QUEUE = [...shuffle(lapsed), ...shuffle(review), ...shuffle(newCards)];
+        if (!SM2_QUEUE.length) { alert('No cards due for review today!'); return; }
+        flashQueue = SM2_QUEUE;
+        flashIdx = 0; flashCorrect = 0; flashWrong = 0;
+        openPracticeView('flashcards');
+        // openPracticeView calls renderDeckSelection which shows the deck picker;
+        // override synchronously after it returns
+        const deckSel = document.getElementById('flashDeckSelect');
+        const practiceContent = document.getElementById('flashPracticeContent');
+        if (deckSel) deckSel.style.display = 'none';
+        if (practiceContent) practiceContent.style.display = 'block';
+        const doneEl = document.getElementById('flashDone');
+        const cardEl = document.getElementById('flipCard');
+        if (doneEl) doneEl.style.display = 'none';
+        if (cardEl) cardEl.style.display = '';
+        showFlashCard();
       }
 
       function updateProjectUI() {
@@ -7363,11 +7683,15 @@
       const nameHtml = isSample
         ? `${p.name} <span style="font-weight:400;opacity:0.55;font-size:0.78em;">(sample)</span>`
         : p.name;
+      const pct = _masteryPercent(p.id);
+      const filled = Math.round(pct / 25);
+      const dotsHtml = `<span class="mastery-dots">${[0,1,2,3].map(i => `<span class="mastery-dot${i < filled ? ' filled' : ''}"></span>`).join('')}</span>`;
       return `
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
         <i>🗂️</i> <span>${nameHtml}</span>
         <div class="project-actions">
-           <button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>
+          ${dotsHtml}
+          <button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>
         </div>
       </div>`;
     }).join('')}
@@ -7396,7 +7720,7 @@
         if (!name) return;
         const id = 'p_' + Date.now();
         projects.push({ id, name });
-        lsSet('lexicon_projects', projects);
+        lsSet('nexora_projects', projects);
         syncToCloud({ projects });
         updateProjectUI();
         closeNewProjectModalBtn();
@@ -7417,7 +7741,7 @@
         if (!name) return;
         const id = 'p_' + Date.now();
         projects.push({ id, name });
-        lsSet('lexicon_projects', projects);
+        lsSet('nexora_projects', projects);
         syncToCloud({ projects });
         updateProjectUI();
         document.getElementById('newProjectInput').value = '';
@@ -7430,7 +7754,7 @@
         if (!confirm(`Are you sure? All items in this deck will be moved to "${fallbackName}".`)) return;
 
         projects = projects.filter(p => p.id !== id);
-        lsSet('lexicon_projects', projects);
+        lsSet('nexora_projects', projects);
 
         // Migrate vocab and cards
         [ALL_VOCAB, ALL_QUIZ_VOCAB, ALL_CUSTOM_CARDS].forEach(list => {
@@ -7439,12 +7763,12 @@
 
         // Migrate notes
         ALL_NOTES = ALL_NOTES.filter(n => n.deckId !== id);
-        lsSet('lexicon_notes', ALL_NOTES);
+        lsSet('nexora_notes', ALL_NOTES);
 
         const customVocab = ALL_VOCAB.filter(w => w.id.startsWith('c_'));
         lsSet('custom_vocab', customVocab);
-        lsSet('lexicon_custom_cards', ALL_CUSTOM_CARDS);
-        syncToCloud({ projects, custom_vocab: customVocab, lexicon_custom_cards: ALL_CUSTOM_CARDS, lexicon_notes: ALL_NOTES });
+        lsSet('nexora_custom_cards', ALL_CUSTOM_CARDS);
+        syncToCloud({ projects, custom_vocab: customVocab, nexora_custom_cards: ALL_CUSTOM_CARDS, nexora_notes: ALL_NOTES });
 
         if (currentProjectId === id) switchProject('all');
         else { updateProjectUI(); applyProjectFilter(); }
@@ -7468,6 +7792,7 @@
           if (VOCAB.some(v => v.word.toLowerCase() === wordStr.toLowerCase())) continue;
 
           let wordData = null;
+          const _dataSources = [];
 
           // Tier 1: Free Dictionary API
           try {
@@ -7476,6 +7801,7 @@
               const data = await res.json();
               if (!data || !data.length) throw new Error('empty response');
               wordData = _parseFreeDictEntry(data[0], wordStr);
+              if (wordData.definition) _dataSources.push('Free Dictionary');
             }
           } catch (e) { console.warn('Free Dict failed for', wordStr, e); }
 
@@ -7484,7 +7810,8 @@
             const wordnikKey = localStorage.getItem('wordnik_key');
             if (wordnikKey) {
               try {
-                wordData = await _fetchWordnik(wordStr, wordnikKey) || wordData;
+                const wn = await _fetchWordnik(wordStr, wordnikKey);
+                if (wn) { wordData = wn; _dataSources.push('Wordnik'); }
               } catch (e) { console.warn('Wordnik failed for', wordStr, e); }
             }
           }
@@ -7502,6 +7829,7 @@
                 if (needsIPA && enriched.phonetic) wordData.phonetic = enriched.phonetic;
                 if (needsDef && enriched.definition) wordData.definition = enriched.definition;
                 if (needsUsage && Array.isArray(enriched.usage)) wordData.usage = enriched.usage;
+                _dataSources.push('Gemini');
               }
             } catch (e) { console.warn('Gemini gap-fill failed for', wordStr, e); }
           }
@@ -7521,10 +7849,13 @@
             phonetic: wordData.phonetic,
             audio: wordData.audio,
             source: wordData.source,
+            dataSources: _dataSources,
             allDefinitions: wordData.allDefs || [],
             addedOn: new Date().toISOString().split('T')[0],
             difficulty: _scoreDifficulty(wordData),
-            projectId: (currentProjectId === 'all' ? 'general' : currentProjectId)
+            projectId: (currentProjectId === 'all' ? 'general' : currentProjectId),
+            contextSentence: (() => { const el = document.getElementById('addContextSentence'); return el ? el.value.trim() : ''; })(),
+            sm2: defaultSM2()
           };
 
           customVocab.push(newWordObj);
@@ -7809,6 +8140,9 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
         if (id === 'quiz') showVocabLanding();
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSDictionary
+      // ──────────────────────────────────────────────────────────────
       // ── DICTIONARY ──
       function renderDict() {
         const grid = document.getElementById('dictGrid');
@@ -7834,6 +8168,9 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
         }).join('');
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSModalDialog
+      // ──────────────────────────────────────────────────────────────
       // ── MODAL ──
       function openModal(id) {
         _openModalWordId = id;
@@ -7891,6 +8228,44 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
         } else { relSec.style.display = 'none'; }
 
         document.getElementById('mPhonetic').textContent = w.phonetic || '';
+
+        // SM-2 badge in word modal
+        let sm2Badge = document.getElementById('mSM2Badge');
+        if (!sm2Badge) {
+          sm2Badge = document.createElement('span');
+          sm2Badge.id = 'mSM2Badge';
+          sm2Badge.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;margin-left:4px;';
+          const typeEl = document.getElementById('mType');
+          if (typeEl && typeEl.parentNode) typeEl.parentNode.insertBefore(sm2Badge, typeEl.nextSibling);
+        }
+        const sm2 = w.sm2 || defaultSM2();
+        const sm2Color = { new: 'var(--state-new)', learning: 'var(--state-learning)', review: 'var(--state-review)', lapsed: 'var(--state-lapsed)' }[sm2.state] || 'var(--state-new)';
+        const sm2Due = sm2.dueDate ? (() => { const diff = Math.ceil((new Date(sm2.dueDate) - new Date()) / 86400000); return diff <= 0 ? 'Due now' : `Due in ${diff}d`; })() : '';
+        sm2Badge.style.color = sm2Color;
+        sm2Badge.style.border = `1px solid ${sm2Color}`;
+        sm2Badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${sm2Color};"></span>${sm2.state || 'new'}${sm2Due ? ' · ' + sm2Due : ''}`;
+        sm2Badge.style.display = 'inline-flex';
+
+        // Context sentence in word modal
+        let ctxSec = document.getElementById('mContextSec');
+        if (!ctxSec) {
+          ctxSec = document.createElement('div');
+          ctxSec.id = 'mContextSec';
+          ctxSec.className = 'modal-section';
+          const usageSection = document.querySelector('#wordModal .modal-section');
+          if (usageSection && usageSection.parentNode) {
+            const allSections = [...usageSection.parentNode.querySelectorAll('.modal-section')];
+            const usageSec = allSections.find(s => s.querySelector('h4') && s.querySelector('h4').textContent === 'Usage Examples');
+            if (usageSec) usageSec.parentNode.insertBefore(ctxSec, usageSec.nextSibling);
+          }
+        }
+        if (w.contextSentence) {
+          ctxSec.innerHTML = `<h4>Context Sentence</h4><div style="font-size:0.85rem;font-style:italic;color:var(--muted);line-height:1.6;padding:8px 12px;background:var(--amber-50);border-radius:8px;">"${w.contextSentence}"</div>`;
+          ctxSec.style.display = '';
+        } else {
+          ctxSec.style.display = 'none';
+        }
+
         const audioBtn = document.getElementById('mAudioBtn');
         if (!audioBtn) return;
         if (w.audio) {
@@ -7989,6 +8364,9 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
       function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalBtn(); }
       function closeModalBtn() { _openModalWordId = null; document.getElementById('modalOverlay').classList.remove('open'); }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSAIModal
+      // ──────────────────────────────────────────────────────────────
       // ── AI MODAL & IMAGE PROCESSING ──
       function openAiModal() {
         document.getElementById('aiModalOverlay').classList.add('open');
@@ -8107,6 +8485,9 @@ Return only raw JSON with no markdown code fences.`;
         document.querySelector('.ai-upload-area').style.display = '';
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSVocabPreview
+      // ──────────────────────────────────────────────────────────────
       // ── VOCAB PREVIEW (Generate → text word) ──
       async function _loadVocabPreview(word, deckId) {
         _previewVocabWord = word;
@@ -8130,6 +8511,9 @@ Return only raw JSON with no markdown code fences.`;
         }
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSImageVocab
+      // ──────────────────────────────────────────────────────────────
       // ── IMAGE VOCAB MODAL (Generate → image) ──
       let _imageVocabDeckId = '';
 
@@ -8406,6 +8790,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         _animateTileOut(row, 'tile-declined', () => _checkSectionDone(section));
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSCustomFlashcards
+      // ──────────────────────────────────────────────────────────────
       // ── CUSTOM FLASHCARDS ──
       function openCustomCardModal() {
         document.getElementById('customCardModalOverlay').classList.add('open');
@@ -8426,7 +8813,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           return;
         }
 
-        const customCards = lsGet('lexicon_custom_cards', []);
+        const customCards = lsGet('nexora_custom_cards', []);
         const newCard = {
           id: 'cc_' + Date.now(),
           isCustom: true,
@@ -8437,8 +8824,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
         customCards.push(newCard);
         ALL_CUSTOM_CARDS.push(newCard);
-        lsSet('lexicon_custom_cards', customCards);
-        syncToCloud({ lexicon_custom_cards: customCards });
+        lsSet('nexora_custom_cards', customCards);
+        syncToCloud({ nexora_custom_cards: customCards });
 
         closeCustomCardModalBtn();
         applyProjectFilter();
@@ -8446,14 +8833,17 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
       function deleteCustomCard(id) {
         if (!confirm("Delete this custom card?")) return;
-        let customCards = lsGet('lexicon_custom_cards', []);
+        let customCards = lsGet('nexora_custom_cards', []);
         customCards = customCards.filter(c => c.id !== id);
-        lsSet('lexicon_custom_cards', customCards);
+        lsSet('nexora_custom_cards', customCards);
         ALL_CUSTOM_CARDS = ALL_CUSTOM_CARDS.filter(c => c.id !== id);
-        syncToCloud({ lexicon_custom_cards: customCards });
+        syncToCloud({ nexora_custom_cards: customCards });
         initFlash();
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSFlashcards
+      // ──────────────────────────────────────────────────────────────
       // ── FLASHCARDS ──
       let flashQueue = [], flashIdx = 0, flashCorrect = 0, flashWrong = 0, flashMode = 'word', isFlipped = false;
       let flashBaseQueue = [];
@@ -8462,7 +8852,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       let _flashStarred = new Set();
 
       function _loadFlashStarred() {
-        _flashStarred = new Set(lsGet('lexicon_flash_starred', []));
+        _flashStarred = new Set(lsGet('nexora_flash_starred', []));
       }
 
       function toggleFlashStar(e) {
@@ -8471,7 +8861,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (!w) return;
         if (_flashStarred.has(w.id)) { _flashStarred.delete(w.id); }
         else { _flashStarred.add(w.id); }
-        lsSet('lexicon_flash_starred', [..._flashStarred]);
+        lsSet('nexora_flash_starred', [..._flashStarred]);
         _updateStarBtn();
       }
 
@@ -8573,7 +8963,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         const toggleEl = document.getElementById('includeCustomToggle');
         const includeCustom = toggleEl ? toggleEl.checked : true;
         if (includeCustom) {
-          const customCards = lsGet('lexicon_custom_cards', []);
+          const customCards = lsGet('nexora_custom_cards', []);
           baseQueue = baseQueue.concat(customCards);
         }
 
@@ -8642,6 +9032,20 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
             defEl.textContent = w.word;
           }
           usageEl.textContent = `"${w.usage[1] || w.usage[0]}"`;
+          // Context sentence block
+          let ctxBlock = document.getElementById('flashContextBlock');
+          if (!ctxBlock) {
+            ctxBlock = document.createElement('div');
+            ctxBlock.id = 'flashContextBlock';
+            ctxBlock.style.cssText = 'margin-top:10px;padding:8px 12px;background:var(--amber-50);border-radius:8px;font-size:12px;font-style:italic;color:var(--text);line-height:1.5;';
+            usageEl.parentNode.appendChild(ctxBlock);
+          }
+          if (w.contextSentence) {
+            ctxBlock.textContent = `"${w.contextSentence}"`;
+            ctxBlock.style.display = 'block';
+          } else {
+            ctxBlock.style.display = 'none';
+          }
         }
 
         const total = flashQueue.length;
@@ -8653,6 +9057,15 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         _updateStarBtn();
         _clearAutoFlipTimer();
         if (_flashAutoFlipSec > 0) _startAutoFlipTimer();
+        const kbHint = document.getElementById('flashKbHint');
+        if (kbHint) {
+          if (!localStorage.getItem('nexora_kb_hint_seen')) {
+            kbHint.textContent = 'Space to flip · 1 = need practice · 2 = got it';
+            kbHint.style.display = '';
+          } else {
+            kbHint.style.display = 'none';
+          }
+        }
       }
 
       function flipCard() {
@@ -8673,9 +9086,43 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (correct) { perf[w.id].flash.c++; flashCorrect++; }
         else { perf[w.id].flash.w++; flashWrong++; }
         savePerf();
+
+        // SM-2 update
+        const updatedSm2 = applyRating(w.sm2 || defaultSM2(), correct);
+        w.sm2 = updatedSm2;
+        if (w.isCustom) {
+          const idx = ALL_CUSTOM_CARDS.findIndex(c => c.id === w.id);
+          if (idx !== -1) ALL_CUSTOM_CARDS[idx].sm2 = updatedSm2;
+          lsSet('nexora_custom_cards', ALL_CUSTOM_CARDS);
+          syncToCloud({ nexora_custom_cards: ALL_CUSTOM_CARDS });
+        } else {
+          const vocabIdx = ALL_VOCAB.findIndex(v => v.id === w.id);
+          if (vocabIdx !== -1) ALL_VOCAB[vocabIdx].sm2 = updatedSm2;
+          const customVocab = ALL_VOCAB.filter(v => v.id.startsWith('c_'));
+          lsSet('custom_vocab', customVocab);
+          syncToCloud({ custom_vocab: customVocab });
+        }
+        updateDailyBadge();
+
+        // Post-rating toast
+        const daysLabel = updatedSm2.interval === 1 ? 'tomorrow' : `in ${updatedSm2.interval} days`;
+        showFlashToast(`Next review: ${daysLabel}`);
+
         flashIdx++;
         document.getElementById('flipActions').style.display = 'none';
         showFlashCard();
+      }
+
+      function showFlashToast(msg) {
+        const existing = document.getElementById('flashToast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.id = 'flashToast';
+        toast.className = 'flash-toast';
+        toast.textContent = msg;
+        const actionsEl = document.getElementById('flipActions');
+        if (actionsEl && actionsEl.parentNode) actionsEl.parentNode.insertBefore(toast, actionsEl.nextSibling);
+        setTimeout(() => { toast.classList.add('flash-toast-hide'); setTimeout(() => toast.remove(), 400); }, 1800);
       }
 
       function nextFlashCard() { flashIdx++; showFlashCard(); }
@@ -8691,6 +9138,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
       function restartFlash() { renderDeckSelection(); }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSQuiz
+      // ──────────────────────────────────────────────────────────────
       // ── QUIZ ──
       let quizQueue = [], quizIdx = 0, quizCorrect = 0, quizWrong = 0, quizLevel = 1, quizInProgress = false;
       let quizStates = { 1: null, 2: null, 3: null }; // Per-level state preservation
@@ -8919,6 +9369,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         _showQuizLevelSelect();
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSStats
+      // ──────────────────────────────────────────────────────────────
       // ── STATS ──
       function renderStats() {
         let totalC = 0, totalW = 0;
@@ -8972,6 +9425,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }).join('');
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSFlashcardDeckSelection
+      // ──────────────────────────────────────────────────────────────
       // ── FLASHCARD DECK SELECTION ──
 
       let selectedDeckIds = new Set();
@@ -9064,6 +9520,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         showFlashCard();
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSPracticeOverlay
+      // ──────────────────────────────────────────────────────────────
       // ── PRACTICE OVERLAY ──
 
       function openPracticeView(type) {
@@ -9085,12 +9544,12 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           const view = document.getElementById('view-flashcards');
           if (view) view.classList.add('active');
           renderDeckSelection();
-          setTimeout(() => showHint('#startPracticeBtn', 'Select decks above, then tap "Start Practice" to begin flipping cards. Mark ✓ or ✗ after each flip to track your score.', 'lexicon_hint_flash'), 800);
+          setTimeout(() => showHint('#startPracticeBtn', 'Select decks above, then tap "Start Practice" to begin flipping cards. Mark ✓ or ✗ after each flip to track your score.', 'nexora_hint_flash'), 800);
         } else if (type === 'vocab') {
           const view = document.getElementById('view-quiz');
           if (view) view.classList.add('active');
           showVocabLanding();
-          setTimeout(() => showHint('#view-quiz', 'Pick a difficulty — Easy uses simple definitions, Hard uses context clues. Your score is saved to Stats.', 'lexicon_hint_quiz'), 800);
+          setTimeout(() => showHint('#view-quiz', 'Pick a difficulty — Easy uses simple definitions, Hard uses context clues. Your score is saved to Stats.', 'nexora_hint_quiz'), 800);
         } else {
           const view = document.getElementById('view-' + type);
           if (view) view.classList.add('active');
@@ -9105,6 +9564,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         document.querySelectorAll('.practice-link').forEach(el => el.classList.remove('active'));
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSNewQuizSystem
+      // ──────────────────────────────────────────────────────────────
       // ── NEW QUIZ SYSTEM ──
 
       let _nqMode = null; // 'notes' | 'vocab'
@@ -9307,6 +9769,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         else showVocabLanding();
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSVocabPractice
+      // ──────────────────────────────────────────────────────────────
       // ── VOCAB PRACTICE ──
 
       let vfQueue = [], vfIdx = 0, vfCorrect = 0, vfWrong = 0, _vfFlipped = false;
@@ -9381,7 +9846,19 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         document.getElementById('vfFinalScore').textContent = `${vfCorrect}/${vfCorrect + vfWrong}`;
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSLibrary
+      // ──────────────────────────────────────────────────────────────
       // ── LIBRARY ──
+
+      function updateGuestBanner() {
+        if (sessionStorage.getItem('guest_banner_dismissed')) return;
+        const banner = document.getElementById('guestSaveBanner');
+        if (!banner) return;
+        const isGuest = currentUser === null;
+        const hasItems = ALL_VOCAB.some(w => w.id.startsWith('c_')) || ALL_NOTES.length > 0 || ALL_CUSTOM_CARDS.length > 0;
+        banner.style.display = (isGuest && hasItems) ? 'flex' : 'none';
+      }
 
       function renderLibrary() {
         const notesItems = ALL_NOTES.filter(n => currentProjectId === 'all' || n.deckId === currentProjectId);
@@ -9400,8 +9877,12 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
         // Keep deck home stats current when items are added
         if (currentProjectId !== 'all') renderDeckHome();
+        updateGuestBanner();
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSLibraryListView
+      // ──────────────────────────────────────────────────────────────
       // ── LIBRARY LIST VIEW ──
 
       let currentLibListType = null;
@@ -9494,7 +9975,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           return;
         }
 
-        const R = 15, C = 2 * Math.PI * R;
+        const today = new Date().toISOString().split('T')[0];
         const cards = items.map((item, idx) => {
           const deckId = item.deckId || item.projectId || '';
           const deckProj = projects.find(p => p.id === deckId);
@@ -9503,44 +9984,51 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
           if (type === 'notes') {
             const preview = (item.content || '').replace(/</g, '&lt;');
+            const ago = item.updatedAt ? _daysAgo(item.updatedAt) : '';
             return `<div class="lib-list-card card-note" onclick="openDetailPopup(${idx})">
         <div class="lib-card-word">${item.title || 'Untitled'}</div>
-        <div class="lib-card-preview">${preview}</div>
-        ${badge}
+        <div class="lib-card-preview" style="font-style:italic;">${preview}</div>
+        <div class="lib-card-foot">${badge}${ago ? `<span style="font-size:11px;color:var(--muted);">edited ${ago}</span>` : ''}</div>
       </div>`;
           } else if (type === 'flashcards') {
+            const sm2 = item.sm2 || defaultSM2();
+            const fcState = sm2.state || 'new';
+            const fcStateColor = { new: 'var(--state-new)', learning: 'var(--state-learning)', review: 'var(--state-review)', lapsed: 'var(--state-lapsed)' }[fcState] || 'var(--state-new)';
+            const fcStatePill = `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid ${fcStateColor};color:${fcStateColor};text-transform:capitalize;">${fcState}</span>`;
             return `<div class="lib-list-card card-flash" onclick="openDetailPopup(${idx})">
         <div class="lib-card-word">${item.front}</div>
         <div class="lib-card-preview">${item.back || ''}</div>
-        ${badge}
+        <div class="lib-card-foot">${fcStatePill}${badge}</div>
       </div>`;
           } else {
             const typeStr = (item.type || []).join(' · ');
-            const score = typeof item.score === 'number' ? item.score : 0;
-            const state = score >= 80 ? 'mastered' : score >= 30 ? 'learning' : 'new';
-            const stateColor = state === 'mastered' ? 'var(--emerald)' : state === 'learning' ? 'var(--amber)' : 'var(--red)';
-            const stateLabel = state === 'mastered' ? 'Mastered' : state === 'learning' ? 'Learning' : 'New';
-            const stateBg = state === 'mastered' ? 'var(--emerald-50)' : state === 'learning' ? 'var(--amber-50)' : 'var(--red-50)';
-            const stateText = state === 'mastered' ? 'var(--emerald-700)' : state === 'learning' ? '#B45309' : '#B91C1C';
-            const stateBorder = state === 'mastered' ? 'var(--emerald-100)' : state === 'learning' ? 'var(--amber-100)' : 'var(--red-100)';
-            const dashoffset = (C * (1 - score / 100)).toFixed(2);
-            return `<div class="lib-list-card card-${state}" onclick="openDetailPopup(${idx})">
-        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+            const p = perf[item.id] || { quiz: { c: 0, w: 0 }, flash: { c: 0, w: 0 } };
+            const tC = p.quiz.c + p.flash.c, tW = p.quiz.w + p.flash.w;
+            const t = tC + tW;
+            const score = t ? Math.round((tC / t) * 100) : 0;
+            const sm2 = item.sm2 || defaultSM2();
+            const sm2State = sm2.state || 'new';
+            const sm2Color = { new: 'var(--state-new)', learning: 'var(--state-learning)', review: 'var(--state-review)', lapsed: 'var(--state-lapsed)' }[sm2State] || 'var(--state-new)';
+            const sm2Label = sm2State.charAt(0).toUpperCase() + sm2State.slice(1);
+            const statePill = `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid ${sm2Color};color:${sm2Color};"><span style="width:6px;height:6px;border-radius:50%;background:${sm2Color};display:inline-block;"></span>${sm2Label}</span>`;
+            const dueChip = (sm2State === 'review' || sm2State === 'lapsed') && sm2.dueDate
+              ? (() => { const diff = Math.ceil((new Date(sm2.dueDate) - new Date()) / 86400000); return diff <= 0 ? `<span style="font-size:10px;color:var(--state-lapsed);font-weight:600;">Due now</span>` : `<span style="font-size:10px;color:var(--muted);">Due in ${diff}d</span>`; })()
+              : '';
+            return `<div class="lib-list-card card-vocab" onclick="openDetailPopup(${idx})">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
           <div style="flex:1;min-width:0;">
-            <div class="lib-card-word">${item.word}</div>
-            <span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:var(--muted);background:#F3F4F6;padding:3px 10px;border-radius:999px;margin-top:4px;">${typeStr}</span>
+            <div class="lib-card-word" style="font-family:var(--font-serif);">${item.word}</div>
+            ${item.phonetic ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:2px;">${item.phonetic}</div>` : ''}
+            <span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg-2);padding:2px 8px;border-radius:999px;margin-top:4px;">${typeStr}</span>
           </div>
-          <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:${stateBg};color:${stateText};border:1px solid ${stateBorder};white-space:nowrap;">${stateLabel}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            ${statePill}
+            <span style="font-size:12px;font-weight:700;color:${sm2Color};">${score}%</span>
+          </div>
         </div>
         <div class="lib-card-preview">${item.definition || ''}</div>
         <div class="lib-card-foot">
-          <div class="lib-card-score" aria-label="${score}% mastered">
-            <svg width="38" height="38">
-              <circle class="score-track" cx="19" cy="19" r="${R}"/>
-              <circle class="score-val" cx="19" cy="19" r="${R}" stroke="${stateColor}" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${dashoffset}"/>
-            </svg>
-            <div class="lib-card-score-label">${score}</div>
-          </div>
+          ${dueChip}
           ${badge}
           <button class="lib-review-btn" onclick="event.stopPropagation();openPracticeView('flashcards')">
             Review
@@ -9554,6 +10042,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (scrollArea) scrollArea.scrollTop = savedScroll;
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSDetailPopup
+      // ──────────────────────────────────────────────────────────────
       // ── DETAIL POPUP ──
 
       let detailPopupIdx = 0;
@@ -9646,6 +10137,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSAddSection
+      // ──────────────────────────────────────────────────────────────
       // ── ADD SECTION ──
 
       let attachedFiles = [];
@@ -9773,15 +10267,15 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
             updatedAt: new Date().toISOString().split('T')[0]
           };
           ALL_NOTES.push(note);
-          lsSet('lexicon_notes', ALL_NOTES);
-          syncToCloud({ lexicon_notes: ALL_NOTES });
+          lsSet('nexora_notes', ALL_NOTES);
+          syncToCloud({ nexora_notes: ALL_NOTES });
         } else if (type === 'flashcard') {
           const newCard = { id: 'cc_' + Date.now(), isCustom: true, front: text || 'Front', back: '(back)', projectId: deckId };
           ALL_CUSTOM_CARDS.push(newCard);
-          const cards = lsGet('lexicon_custom_cards', []);
+          const cards = lsGet('nexora_custom_cards', []);
           cards.push(newCard);
-          lsSet('lexicon_custom_cards', cards);
-          syncToCloud({ lexicon_custom_cards: cards });
+          lsSet('nexora_custom_cards', cards);
+          syncToCloud({ nexora_custom_cards: cards });
         }
 
         card.classList.add('accepted');
@@ -9860,6 +10354,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       // Keep legacy addWordInput for compatibility — hidden element
       // (addWords() reads from #addWordInput)
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSDeckDashboard
+      // ──────────────────────────────────────────────────────────────
       // ── DECK DASHBOARD ──
 
       function showDeckHome() {
@@ -9875,16 +10372,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
         const vocabCount = ALL_VOCAB.filter(w => w.projectId === currentProjectId).length;
         const flashCount = ALL_CUSTOM_CARDS.filter(c => c.projectId === currentProjectId).length;
-        const notesData = lsGet('lexicon_notes', []);
+        const notesData = lsGet('nexora_notes', []);
         const notesCount = notesData.filter(n => n.deckId === currentProjectId).length;
         const masteryPct = _masteryPercent(currentProjectId);
-
-        const deckVocab = ALL_VOCAB.filter(w => w.projectId === currentProjectId);
-        let quizAttempts = 0;
-        deckVocab.forEach(w => {
-          const p = perf[w.id];
-          if (p) quizAttempts += (p.quiz.c || 0) + (p.quiz.w || 0) + (p.flash.c || 0) + (p.flash.w || 0);
-        });
 
         function _itemTs(item, type) {
           if (type === 'vocab') return new Date(item.addedOn || '2000-01-01').getTime();
@@ -9892,50 +10382,62 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           if (type === 'flash') return parseInt((item.id || '').replace('cc_', '')) || 0;
           return 0;
         }
+        const _esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
         const recentItems = [
-          ...ALL_VOCAB.filter(w => w.projectId === currentProjectId).map(w => ({ type: 'vocab', ts: _itemTs(w, 'vocab'), label: w.word })),
-          ...notesData.filter(n => n.deckId === currentProjectId).map(n => ({ type: 'note', ts: _itemTs(n, 'note'), label: n.title || 'Untitled' })),
-          ...ALL_CUSTOM_CARDS.filter(c => c.projectId === currentProjectId).map(c => ({ type: 'flash', ts: _itemTs(c, 'flash'), label: c.front }))
+          ...ALL_VOCAB.filter(w => w.projectId === currentProjectId).map(w => ({
+            type: 'vocab', ts: _itemTs(w, 'vocab'), id: w.id, label: w.word,
+            phonetic: w.phonetic || '', def: (w.definition || '').slice(0, 90)
+          })),
+          ...notesData.filter(n => n.deckId === currentProjectId).map(n => ({
+            type: 'note', ts: _itemTs(n, 'note'), id: n.id, label: n.title || 'Untitled',
+            phonetic: '', def: (n.content || '').slice(0, 90)
+          })),
+          ...ALL_CUSTOM_CARDS.filter(c => c.projectId === currentProjectId).map(c => ({
+            type: 'flash', ts: _itemTs(c, 'flash'), id: c.id, label: c.front,
+            phonetic: '', def: (c.back || '').slice(0, 90)
+          }))
         ].sort((a, b) => b.ts - a.ts).slice(0, 6);
 
         const badgeText = { vocab: 'Vocab', note: 'Note', flash: 'Flashcard' };
         const badgeClass = { vocab: 'badge-vocab', note: 'badge-note', flash: 'badge-flash' };
 
         const recentHTML = recentItems.length
-          ? recentItems.map(({ type, label, ts }) => {
-              const dateStr = ts > 946684800000
-                ? new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-                : '';
-              return `<div class="deck-recent-card">
+          ? recentItems.map(({ type, label, id, phonetic, def }) => {
+              return `<div class="deck-recent-card" onclick="openRecentItem('${type}','${_esc(id)}')" role="button" tabindex="0">
                 <span class="deck-recent-badge ${badgeClass[type]}">${badgeText[type]}</span>
-                <div class="deck-recent-title" title="${String(label).replace(/"/g, '&quot;')}">${String(label).replace(/</g, '&lt;')}</div>
-                ${dateStr ? `<div class="deck-recent-date">${dateStr}</div>` : ''}
+                <div class="deck-recent-word" title="${_esc(label)}">${_esc(label)}</div>
+                ${phonetic ? `<div class="deck-recent-phonetic">${_esc(phonetic)}</div>` : ''}
+                ${def ? `<div class="deck-recent-def">${_esc(def)}</div>` : ''}
               </div>`;
             }).join('')
           : `<p style="color:var(--muted);font-size:0.85rem;">Nothing added yet.</p>`;
 
+        const svgNotes = `<svg width="36" height="36" viewBox="0 0 40 40" fill="none"><rect x="7" y="5" width="22" height="28" rx="3" fill="var(--amber-100)" stroke="var(--amber)" stroke-width="1.5"/><line x1="12" y1="13" x2="24" y2="13" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="18" x2="24" y2="18" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="23" x2="19" y2="23" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/><circle cx="30" cy="30" r="7" fill="var(--amber)"/><line x1="28" y1="30" x2="32" y2="30" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="30" y1="28" x2="30" y2="32" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+        const svgFlash = `<svg width="36" height="36" viewBox="0 0 40 40" fill="none"><rect x="4" y="9" width="24" height="16" rx="3" fill="var(--purple-50)" stroke="var(--purple)" stroke-width="1.5"/><rect x="12" y="15" width="24" height="16" rx="3" fill="var(--surface)" stroke="var(--purple)" stroke-width="1.5"/><line x1="17" y1="21" x2="31" y2="21" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round"/><line x1="17" y1="26" x2="27" y2="26" stroke="var(--purple)" stroke-width="1" stroke-linecap="round" opacity="0.6"/></svg>`;
+        const svgVocab = `<svg width="36" height="36" viewBox="0 0 40 40" fill="none"><path d="M6 9 C6 9 16 7 20 11 C24 7 34 9 34 9 L34 29 C34 29 24 27 20 31 C16 27 6 29 6 29 Z" fill="var(--emerald-50)" stroke="var(--emerald)" stroke-width="1.5"/><line x1="20" y1="11" x2="20" y2="31" stroke="var(--emerald)" stroke-width="1.5"/><line x1="23" y1="16" x2="31" y2="16" stroke="var(--emerald)" stroke-width="1" stroke-linecap="round" opacity="0.7"/><line x1="23" y1="20" x2="30" y2="20" stroke="var(--emerald)" stroke-width="1" stroke-linecap="round" opacity="0.5"/><line x1="23" y1="24" x2="28" y2="24" stroke="var(--emerald)" stroke-width="1" stroke-linecap="round" opacity="0.35"/></svg>`;
+
         el.innerHTML = `
           <div style="text-align:center; margin-bottom:28px;">
-            <h2 style="font-family:var(--font-sans); font-size:2.4rem; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.2;">${String(deckName).replace(/</g,'&lt;')}</h2>
-            <p style="color:var(--muted); font-size:0.875rem;">Your personal study deck</p>
+            <h2 style="font-family:var(--font-sans); font-size:2.4rem; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.2;">${_esc(deckName)}</h2>
+            <p style="color:var(--muted); font-size:0.875rem;">${masteryPct > 0 ? `${masteryPct}% mastered · ` : ''}Your personal study deck</p>
           </div>
 
-          <button class="deck-home-cta-btn" onclick="openAddModal()">+ Add Content to ${String(deckName).replace(/</g,'&lt;')}</button>
+          <button class="deck-home-cta-btn" onclick="openAddModal()">+ Add Content to ${_esc(deckName)}</button>
 
           <div class="deck-section-grid">
             <div class="deck-section-card" onclick="showDeckSection('notes', null)">
-              <div class="deck-card-icon">📝</div>
+              <div class="deck-card-icon">${svgNotes}</div>
               <div class="deck-card-title">Notes</div>
               <div class="deck-card-count">${notesCount} note${notesCount !== 1 ? 's' : ''}</div>
             </div>
             <div class="deck-section-card" onclick="showDeckSection('flashcards', null)">
-              <div class="deck-card-icon">🃏</div>
+              <div class="deck-card-icon">${svgFlash}</div>
               <div class="deck-card-title">Flashcards</div>
               <div class="deck-card-count">${flashCount} card${flashCount !== 1 ? 's' : ''}</div>
             </div>
             <div class="deck-section-card" onclick="showDeckSection('vocab', null)">
-              <div class="deck-card-icon">📖</div>
+              <div class="deck-card-icon">${svgVocab}</div>
               <div class="deck-card-title">Vocabulary</div>
               <div class="deck-card-count">${vocabCount} word${vocabCount !== 1 ? 's' : ''}</div>
             </div>
@@ -9944,37 +10446,6 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           <div style="margin-top:32px;">
             <div class="deck-home-section-label">Recently Added</div>
             <div class="deck-recent-grid">${recentHTML}</div>
-          </div>
-
-          <div>
-            <div class="deck-home-section-label">Deck Stats</div>
-            <div class="deck-stats-row">
-              <div class="deck-stat-card">
-                <div class="deck-stat-number">${vocabCount}</div>
-                <div class="deck-stat-label">Vocab words</div>
-              </div>
-              <div class="deck-stat-card">
-                <div class="deck-stat-number">${notesCount}</div>
-                <div class="deck-stat-label">Notes</div>
-              </div>
-              <div class="deck-stat-card">
-                <div class="deck-stat-number">${flashCount}</div>
-                <div class="deck-stat-label">Flashcards</div>
-              </div>
-              <div class="deck-stat-card">
-                <div class="deck-stat-number">${quizAttempts}</div>
-                <div class="deck-stat-label">Practice reps</div>
-              </div>
-            </div>
-            <div class="deck-mastery-bar-wrap">
-              <div class="deck-mastery-bar-label">
-                <span>Mastery</span>
-                <span>${masteryPct}%</span>
-              </div>
-              <div class="deck-mastery-bar-track">
-                <div class="deck-mastery-bar-fill" style="width:${masteryPct}%"></div>
-              </div>
-            </div>
           </div>
         `;
       }
@@ -9987,10 +10458,31 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         showLibraryList(section);
       }
 
+      function openRecentItem(type, id) {
+        if (type === 'vocab') {
+          openModal(id);
+        } else if (type === 'note') {
+          const items = ALL_NOTES.filter(n => n.deckId === currentProjectId);
+          currentLibListItems = items;
+          currentLibListType = 'notes';
+          const idx = items.findIndex(n => n.id === id);
+          openDetailPopup(idx >= 0 ? idx : 0);
+        } else if (type === 'flash') {
+          const items = ALL_CUSTOM_CARDS.filter(c => c.projectId === currentProjectId);
+          currentLibListItems = items;
+          currentLibListType = 'flashcards';
+          const idx = items.findIndex(c => c.id === id);
+          openDetailPopup(idx >= 0 ? idx : 0);
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSNotes
+      // ──────────────────────────────────────────────────────────────
       // ── NOTES ──
 
       function renderNotes() {
-        ALL_NOTES = lsGet('lexicon_notes', []);
+        ALL_NOTES = lsGet('nexora_notes', []);
         const deckNotes = ALL_NOTES.filter(n => n.deckId === currentProjectId);
         const container = document.getElementById('notesList');
         if (!container) return;
@@ -10022,8 +10514,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           updatedAt: new Date().toISOString().split('T')[0]
         };
         ALL_NOTES.push(note);
-        lsSet('lexicon_notes', ALL_NOTES);
-        syncToCloud({ lexicon_notes: ALL_NOTES });
+        lsSet('nexora_notes', ALL_NOTES);
+        syncToCloud({ nexora_notes: ALL_NOTES });
         openNoteEditor(note.id);
       }
 
@@ -10045,8 +10537,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         note.title = title || 'Untitled';
         note.content = content;
         note.updatedAt = new Date().toISOString().split('T')[0];
-        lsSet('lexicon_notes', ALL_NOTES);
-        syncToCloud({ lexicon_notes: ALL_NOTES });
+        lsSet('nexora_notes', ALL_NOTES);
+        syncToCloud({ nexora_notes: ALL_NOTES });
         document.getElementById('noteEditorOverlay').classList.remove('open');
         renderLibrary();
       }
@@ -10054,8 +10546,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       function deleteNote(noteId) {
         if (!confirm('Delete this note?')) return;
         ALL_NOTES = ALL_NOTES.filter(n => n.id !== noteId);
-        lsSet('lexicon_notes', ALL_NOTES);
-        syncToCloud({ lexicon_notes: ALL_NOTES });
+        lsSet('nexora_notes', ALL_NOTES);
+        syncToCloud({ nexora_notes: ALL_NOTES });
         renderLibrary();
       }
 
@@ -10065,6 +10557,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }
       }
 
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSAddModal
+      // ──────────────────────────────────────────────────────────────
       // ── ADD MODAL ──
 
       let _addModalFile = null;
@@ -10233,17 +10728,17 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
                 updatedAt: new Date().toISOString().split('T')[0]
               };
               ALL_NOTES.push(note);
-              lsSet('lexicon_notes', ALL_NOTES);
-              syncToCloud({ lexicon_notes: ALL_NOTES });
+              lsSet('nexora_notes', ALL_NOTES);
+              syncToCloud({ nexora_notes: ALL_NOTES });
             }
             if (selectedTypes.includes('flashcard')) {
               const back = lines.length > 1 ? lines.slice(1).join(' ') : firstLine;
               const newCard = { id: 'cc_' + (Date.now() + 1), isCustom: true, front: firstLine, back, projectId: deckId };
               ALL_CUSTOM_CARDS.push(newCard);
-              const cards = lsGet('lexicon_custom_cards', []);
+              const cards = lsGet('nexora_custom_cards', []);
               cards.push(newCard);
-              lsSet('lexicon_custom_cards', cards);
-              syncToCloud({ lexicon_custom_cards: cards });
+              lsSet('nexora_custom_cards', cards);
+              syncToCloud({ nexora_custom_cards: cards });
             }
           };
 
@@ -10277,8 +10772,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
               updatedAt: new Date().toISOString().split('T')[0]
             };
             ALL_NOTES.push(note);
-            lsSet('lexicon_notes', ALL_NOTES);
-            syncToCloud({ lexicon_notes: ALL_NOTES });
+            lsSet('nexora_notes', ALL_NOTES);
+            syncToCloud({ nexora_notes: ALL_NOTES });
           };
           _showAddModalPreview([{ type: 'note', title: title || 'Untitled', content }], deckId);
         } else if (type === 'flashcard') {
@@ -10286,12 +10781,12 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           const back = document.getElementById('addCardBack').value.trim();
           if (!front || !back) { alert('Please fill in both sides of the flashcard.'); return; }
           _pendingAddModalSaveFn = async () => {
-            const newCard = { id: 'cc_' + Date.now(), isCustom: true, front, back, projectId: deckId };
+            const newCard = { id: 'cc_' + Date.now(), isCustom: true, front, back, projectId: deckId, sm2: defaultSM2() };
             ALL_CUSTOM_CARDS.push(newCard);
-            const cards = lsGet('lexicon_custom_cards', []);
+            const cards = lsGet('nexora_custom_cards', []);
             cards.push(newCard);
-            lsSet('lexicon_custom_cards', cards);
-            syncToCloud({ lexicon_custom_cards: cards });
+            lsSet('nexora_custom_cards', cards);
+            syncToCloud({ nexora_custom_cards: cards });
           };
           _showAddModalPreview([{ type: 'flashcard', front, back }], deckId);
         }
@@ -10406,22 +10901,138 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }
         if (e.key === 'Escape') {
           closeAddModal();
+          closeSearch();
         }
         if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
           if (document.getElementById('addModal').classList.contains('open')) {
             handleAddModalGenerate();
           }
         }
+
+        // Flashcard practice shortcuts (Space, 1, 2) — only when practice overlay is visible
+        const practiceEl = document.getElementById('practiceOverlay');
+        const flashContent = document.getElementById('flashPracticeContent');
+        const flipActionsEl = document.getElementById('flipActions');
+        if (practiceEl && practiceEl.style.display !== 'none' && flashContent && flashContent.style.display !== 'none') {
+          if (e.key === ' ' && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            if (!isFlipped) { flipCard(); _hideFlashKbHint(); }
+          }
+          if (e.key === '1' && flipActionsEl && flipActionsEl.style.display !== 'none') {
+            e.preventDefault();
+            rateCard(false);
+          }
+          if (e.key === '2' && flipActionsEl && flipActionsEl.style.display !== 'none') {
+            e.preventDefault();
+            rateCard(true);
+          }
+        }
       });
 
+      function _hideFlashKbHint() {
+        const hint = document.getElementById('flashKbHint');
+        if (hint) { hint.style.display = 'none'; localStorage.setItem('nexora_kb_hint_seen', '1'); }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSInit
+      // ──────────────────────────────────────────────────────────────
       // ── INIT ──
       // Auth-aware init: if Firebase is loaded, it will call loadVocab via handleAuthState.
       // If Firebase keys are not set (config stub), show login screen for guest skip or sign-in attempt.
       // The login screen is shown by default (see HTML). Guest skip calls loadVocab directly.
-      // Stub for Phase 3 search — prevents errors from Cmd+K wiring
+      let _searchCursor = -1;
+
       function openSearch() {
-        alert('Search (⌘K) is coming in Phase 3!');
-        return;
+        const modal = document.getElementById('searchModal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        const input = document.getElementById('searchInput');
+        if (input) { input.value = ''; input.focus(); }
+        document.getElementById('searchResults').innerHTML = '';
+        _searchCursor = -1;
+      }
+
+      function closeSearch() {
+        const modal = document.getElementById('searchModal');
+        if (modal) modal.style.display = 'none';
+        _searchCursor = -1;
+      }
+
+      function handleSearchKey(e) {
+        const items = document.querySelectorAll('.search-result-item');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          _searchCursor = Math.min(_searchCursor + 1, items.length - 1);
+          items.forEach((el, i) => el.classList.toggle('active', i === _searchCursor));
+          if (items[_searchCursor]) items[_searchCursor].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          _searchCursor = Math.max(_searchCursor - 1, 0);
+          items.forEach((el, i) => el.classList.toggle('active', i === _searchCursor));
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (_searchCursor >= 0 && items[_searchCursor]) items[_searchCursor].click();
+        } else if (e.key === 'Escape') {
+          closeSearch();
+        }
+      }
+
+      function runSearch(q) {
+        _searchCursor = -1;
+        const query = (q || '').toLowerCase().trim();
+        if (!query) { document.getElementById('searchResults').innerHTML = ''; return; }
+
+        const vocabHits = ALL_VOCAB.filter(w =>
+          w.word.toLowerCase().includes(query) || (w.definition || '').toLowerCase().includes(query)
+        ).slice(0, 5);
+
+        const noteHits = ALL_NOTES.filter(n =>
+          (n.title || '').toLowerCase().includes(query) || (n.content || '').toLowerCase().includes(query)
+        ).slice(0, 5);
+
+        const cardHits = ALL_CUSTOM_CARDS.filter(c =>
+          c.front.toLowerCase().includes(query) || (c.back || '').toLowerCase().includes(query)
+        ).slice(0, 5);
+
+        renderSearchResults(vocabHits, noteHits, cardHits);
+      }
+
+      function renderSearchResults(vocabHits, noteHits, cardHits) {
+        const container = document.getElementById('searchResults');
+        if (!vocabHits.length && !noteHits.length && !cardHits.length) {
+          container.innerHTML = '<div class="search-empty">No results found.</div>';
+          return;
+        }
+        let html = '';
+        if (vocabHits.length) {
+          html += '<div class="search-group-label">Vocab</div>';
+          html += vocabHits.map(w => `<div class="search-result-item" onclick="closeSearch();openModal('${w.id}')">
+            <div class="search-result-icon">📖</div>
+            <div><div class="search-result-title">${w.word}</div><div class="search-result-sub">${w.definition || ''}</div></div>
+          </div>`).join('');
+        }
+        if (noteHits.length) {
+          html += '<div class="search-group-label">Notes</div>';
+          html += noteHits.map(n => {
+            const noteIdx = ALL_NOTES.indexOf(n);
+            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('notes');setTimeout(()=>openDetailPopup(${noteIdx}),50)">
+              <div class="search-result-icon">📝</div>
+              <div><div class="search-result-title">${n.title || 'Untitled'}</div><div class="search-result-sub">${(n.content || '').slice(0, 80)}</div></div>
+            </div>`;
+          }).join('');
+        }
+        if (cardHits.length) {
+          html += '<div class="search-group-label">Flashcards</div>';
+          html += cardHits.map(c => {
+            const cardIdx = ALL_CUSTOM_CARDS.indexOf(c);
+            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('flashcards');setTimeout(()=>openDetailPopup(${cardIdx}),50)">
+              <div class="search-result-icon">🃏</div>
+              <div><div class="search-result-title">${c.front}</div><div class="search-result-sub">${c.back || ''}</div></div>
+            </div>`;
+          }).join('');
+        }
+        container.innerHTML = html;
       }
 
       if (window._fbAuth === undefined) {
@@ -10442,6 +11053,20 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       }
     </script>
 
+  <!-- @@SECTION: SearchModal -->
+  <!-- ── SEARCH COMMAND PALETTE ── -->
+  <div id="searchModal" class="search-modal-overlay" onclick="if(event.target===this)closeSearch()" style="display:none;">
+    <div class="search-modal-panel">
+      <div class="search-input-row">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="searchInput" class="search-input" type="text" placeholder="Search vocab, notes, flashcards…" autocomplete="off" oninput="runSearch(this.value)" onkeydown="handleSearchKey(event)">
+        <kbd style="font-size:11px;color:var(--muted);background:var(--bg-2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;" onclick="closeSearch()">Esc</kbd>
+      </div>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </div>
+
+  <!-- @@SECTION: AddModal -->
   <!-- ── ADD MODAL ── -->
   <div id="addModal" onclick="if(event.target===this)closeAddModal()">
     <div class="add-modal-panel">
@@ -10540,6 +11165,13 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         <button class="add-modal-submit" id="addModalSubmitBtn" onclick="handleAddModalGenerate()">Generate →</button>
       </div>
     </div>
+  </div>
+
+  <!-- ── GUEST SAVE BANNER ── -->
+  <div id="guestSaveBanner" class="guest-save-banner" style="display:none;">
+    <span>Your data is saved locally only.</span>
+    <button onclick="document.getElementById('loginScreen').style.display='flex';document.getElementById('app').style.display='none';">Sign in to keep →</button>
+    <button class="guest-banner-dismiss" onclick="sessionStorage.setItem('guest_banner_dismissed','1');this.parentElement.style.display='none';">✕</button>
   </div>
 
 </body>
