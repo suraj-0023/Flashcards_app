@@ -6890,6 +6890,12 @@
       }
 
       function skipLogin() {
+        // Always start guests in light mode regardless of OS preference
+        document.documentElement.dataset.theme = 'light';
+        localStorage.setItem('nexora_theme', 'light');
+        const themeBtn = document.getElementById('themeToggleBtn');
+        if (themeBtn) themeBtn.textContent = '☾ Dark';
+
         document.getElementById('loginScreen').style.display = 'none';
         if (!document.getElementById('app') || document.getElementById('app').style.display === 'none') {
           // App not loaded yet, load it in guest mode
@@ -7352,13 +7358,19 @@
     <div class="project-item-sidebar ${allActive ? 'active' : ''}" onclick="switchProject('all')">
       <i>📚</i> <span>Complete Library</span>
     </div>
-    ${projects.map(p => `
+    ${projects.map(p => {
+      const isSample = ['p_atomic','p_climate','p_alchemist','p_science10'].includes(p.id);
+      const nameHtml = isSample
+        ? `${p.name} <span style="font-weight:400;opacity:0.55;font-size:0.78em;">(sample)</span>`
+        : p.name;
+      return `
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
-        <i>🗂️</i> <span>${p.name}</span>
+        <i>🗂️</i> <span>${nameHtml}</span>
         <div class="project-actions">
            <button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>
         </div>
-      </div>`).join('')}
+      </div>`;
+    }).join('')}
   `;
 
         // Update Title (legacy element may not exist in new layout)
@@ -7533,9 +7545,8 @@
         input.disabled = false;
         const textarea = document.getElementById('addContentTextarea');
         if (textarea) textarea.value = '';
-        if (!window._silentAdd) {
-          if (added > 0) alert(`Successfully added ${added} new word(s)!`);
-          else alert('No valid new words were found or added. They might already exist or are not in the dictionary API.');
+        if (!window._silentAdd && added === 0) {
+          alert('No valid new words were found or added. They might already exist or are not in the dictionary API.');
         }
       }
 

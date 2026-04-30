@@ -1,5 +1,17 @@
 # Project Evolution Log
 
+## 2026-04-30 — Three UX fixes: sample deck labels, guest light mode, remove word-added alert
+
+**What**: (1) Sample decks in the sidebar now show a non-bold "(sample)" label at reduced opacity. (2) Clicking "Continue without signing in" now always starts in light mode regardless of OS dark-mode preference. (3) Removed the browser alert popup that appeared after adding a vocab word successfully.
+
+**Why**: Sample deck labels help users distinguish built-in content from their own decks. Guest dark mode was jarring for users whose OS is set to dark. The word-added alert was Chrome-native and felt out of place.
+
+**Impact**: Cleaner sidebar, better first-run experience for guests, quieter add-word flow.
+
+**Technical Detail**: Sidebar renderer checks `['p_atomic','p_climate','p_alchemist','p_science10'].includes(p.id)` to inject the label. `skipLogin()` now sets `document.documentElement.dataset.theme = 'light'` and writes to `localStorage`. Removed `alert('Successfully added N word(s)!')` from `addWords()`; kept the failure-case alert.
+
+---
+
 ## 2026-04-30 — Fix Flashcards section card navigating to practice instead of list
 
 **What**: Fixed `showDeckSection('flashcards')` which was calling `openPracticeView('flashcards')` (launching full-screen practice mode) instead of showing the flashcard items list like Notes and Vocab do.
