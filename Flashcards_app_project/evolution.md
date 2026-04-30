@@ -1,5 +1,17 @@
 # Project Evolution Log
 
+## 2026-04-30 — App Renamed to Nexora + Code Navigation System
+
+**What:** Renamed app from Smritikosha/Lexicon to Nexora across all project files. Added a code navigation system with @@SECTION markers and CODE_MAP.md index.
+
+**Why:** New brand identity (Nexora). Navigation system introduced to allow agents to jump directly to the right code section without reading the full 10,500-line app.html.
+
+**Impact:** All display names, localStorage keys (`nexora_*`), taglines, and documentation now reflect the Nexora brand. Future code changes are faster and more precise with the section map.
+
+**Technical Detail:** 170+ text replacements across 13 files. 42 `@@SECTION` markers added to app.html. CODE_MAP.md created with 40 section entries. CLAUDE.md updated with navigation rules and push-time map refresh instructions.
+
+---
+
 ## 2026-04-30 — SM-2 spaced repetition, daily queue, search palette, keyboard shortcuts, UX polish (Phases 4–8)
 
 **What**: Implemented SM-2 spaced repetition algorithm with four pure functions (`defaultSM2`, `applyRating`, `getDueCount`, `updateDailyBadge`) to track word mastery intervals and due dates. Added daily review queue badge in sidebar showing breakdown of lapsed/review/new items (lapsed → review → new priority order). Built Cmd+K search/command palette modal (`#searchModal`) with real-time results filtering and navigation. Keyboard shortcuts wired: Space (flip flashcard), 1 (wrong), 2 (correct) with visual hint element. Context sentence now flows from add modal through preview step and displays on flashcard back. SM-2 state badge added to word detail modal showing colored dot + state text + due date. Post-rating toast (`showFlashToast`) appears below flip actions for feedback. Guest banner updated with strategy banner hint. Onboarding simplified to 1 profile step + 2-slide tour. Typography polish: `.flip-word` set to serif font, `.modal-def` line-height 1.7, `.project-item-sidebar` font-weight 500. Smooth border-color transitions on lib cards and modal panels. CODE_MAP.md refreshed with all 43 sections' current line numbers and new SearchModal entry added.

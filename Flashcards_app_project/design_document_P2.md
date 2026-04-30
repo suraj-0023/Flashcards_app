@@ -1,4 +1,4 @@
-# Smritikosha — Full UI/UX Redesign Plan
+# Nexora — Full UI/UX Redesign Plan
 
 **Role:** Senior UI/UX Designer  
 **File to edit:** `Flashcards_app_project/app.html` (~5800 lines)  
@@ -121,7 +121,7 @@ Replace the current `:root` block entirely. Introduce a `[data-theme="dark"]` bl
 --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.35);
 ```
 
-**Implementation:** Add `data-theme` to `<html>`. Toggle via JS: `document.documentElement.dataset.theme = 'dark'`. Persist in `localStorage('smritikosha_theme')`. On load, read system preference as default: `window.matchMedia('(prefers-color-scheme: dark)').matches`.
+**Implementation:** Add `data-theme` to `<html>`. Toggle via JS: `document.documentElement.dataset.theme = 'dark'`. Persist in `localStorage('nexora_theme')`. On load, read system preference as default: `window.matchMedia('(prefers-color-scheme: dark)').matches`.
 
 ---
 
@@ -149,7 +149,7 @@ Keep **Plus Jakarta Sans** for all UI. Add **serif** for vocabulary words only.
 ### New Structure (top to bottom):
 ```
 ┌─────────────────────────────┐
-│  [S]  Smritikosha           │  ← logo (smaller mark, 28px)
+│  [N]  Nexora               │  ← logo (smaller mark, 28px)
 │                             │
 │  ┌─────────────────────┐    │
 │  │  🔥 8 cards due     │    │  ← NEW: Daily Queue Badge
@@ -434,7 +434,7 @@ When a guest user has added ≥ 1 item, show a persistent bottom banner:
 **Behaviour:**
 ```js
 const root = document.documentElement;
-const saved = localStorage.getItem('smritikosha_theme');
+const saved = localStorage.getItem('nexora_theme');
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const theme = saved || (prefersDark ? 'dark' : 'light');
 root.dataset.theme = theme;
@@ -442,7 +442,7 @@ root.dataset.theme = theme;
 function toggleTheme() {
   const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
   root.dataset.theme = next;
-  localStorage.setItem('smritikosha_theme', next);
+  localStorage.setItem('nexora_theme', next);
   updateToggleLabel();
 }
 ```
@@ -499,7 +499,7 @@ function toggleTheme() {
 
 ### Phase 5 — Search Command Palette (Cmd+K) (~1.5 hours)
 1. Build `#searchModal` HTML
-2. Build `openSearch()` / fuzzy search across `ALL_VOCAB`, `ALL_NOTES`, `lexicon_custom_cards`
+2. Build `openSearch()` / fuzzy search across `ALL_VOCAB`, `ALL_NOTES`, `nexora_custom_cards`
 3. Wire Cmd+K + ghost input click
 4. Keyboard navigation (arrow keys + enter)
 

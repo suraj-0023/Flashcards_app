@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-04-30 (Phases 4–8: SM-2 spaced repetition, daily queue, search palette, keyboard shortcuts, UX polish)
+**Last Updated**: 2026-04-30 (App renamed to Nexora, code navigation system with @@SECTION markers and CODE_MAP.md added)
 
 ---
 
@@ -15,7 +15,7 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 ## 2. Current Layout & UX (M3 Warm/Gamified Design)
 
 ### Sidebar (M3 White + Green-Tinted Gradient, 220px width)
-- **Logo**: "S" mark in emerald (#10B981)
+- **Logo**: "N" mark in emerald (#10B981) (Nexora)
 - **New Deck** button → pill-shaped, emerald, creates a named deck
 - **Deck list** → emerald pill active state, white/muted default; each deck shows 4-dot mastery quartile indicator (based on word accuracy ≥75% across ≥3 attempts)
 - **Daily Queue Badge** → placeholder (hidden, reserved for Phase 4 SM-2 spaced repetition engine)
@@ -178,7 +178,27 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 
 ---
 
-## 6. Tech Stack
+## 6. Code Navigation System
+
+The app.html file contains 42 `@@SECTION` markers that divide the code into logical, named regions (~100–300 lines each). This allows future development agents to quickly jump to relevant sections without reading the entire 11,180-line file.
+
+**How to use:**
+1. Find the section name in `Flashcards_app_project/CODE_MAP.md`
+2. Run: `grep -n "@@SECTION: SectionName" app.html` to get the line number
+3. Read only that section in the editor
+
+**Key sections by feature:**
+- **Onboarding**: JSOnboarding (6539), JSHelpPanel (6859), JSAuthStateHandler (6998)
+- **Data & Storage**: JSStorage (6437), JSDemoData (7273), JSLoadJSON (7421)
+- **Learning Features**: JSFlashcards (8845), JSQuiz (9142), JSStats (9373), JSVocabPractice (9773)
+- **UI & Modals**: JSModalDialog (8172), JSAddModal (10561), JSImageVocab (8515)
+- **Navigation**: JSLibrary (9850), JSLibraryListView (9884), JSPracticeOverlay (9524)
+
+See `CODE_MAP.md` for the complete index.
+
+---
+
+## 7. Tech Stack
 
 - Single HTML file (`app.html`) — ~11,180 lines
 - Firebase Auth (Google + email) via CDN
@@ -197,7 +217,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 
 ---
 
-## 7. Guest Mode & Sample Decks
+## 8. Guest Mode & Sample Decks
 
 - **Guest Users**: See 4 pre-seeded example decks on first visit:
   1. Atomic Habits
@@ -210,7 +230,7 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 
 ---
 
-## 8. Roadmap
+## 9. Roadmap
 
 1. **AI Generation Backend** — Wire Generate → button to actual AI (Gemini/Claude) for auto-creating notes, flashcards, quiz questions from pasted text or uploaded images
 2. **Quiz Card Type** — Add `nexora_quiz_cards` data model; display in Library and generate via AI
@@ -221,4 +241,4 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
 7. **Social Features** — Deck sharing, collaborative learning, leaderboards
 
 ---
-*Last Updated: April 30, 2026* (Phases 4–8: SM-2 spaced repetition with daily queue badge, Cmd+K search palette, keyboard shortcuts Space/1/2, context sentences, post-rating toast, guest banner, 1-step onboarding + 2-slide tour, typography polish, smooth transitions, CODE_MAP.md refreshed with 43 sections and SearchModal entry)
+*Last Updated: April 30, 2026* (App renamed to Nexora, @@SECTION markers and CODE_MAP.md code navigation system added)

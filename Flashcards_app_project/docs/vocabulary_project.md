@@ -147,7 +147,7 @@ Each word in `vocabulary.json` follows this schema:
 ## Notes
 
 - `unsanity` (original input) is not a standard English word — saved as **insanity** with a note in the dictionary entry
-- The app name **Lexicon** is a placeholder — rename pending user preference
+- The app name **Nexora** is the current branding
 - Performance data resets if browser storage is cleared
 
 ---

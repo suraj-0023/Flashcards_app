@@ -1,4 +1,4 @@
-# Lexicon Flashcards — Claude Code Instructions
+# Nexora Flashcards — Claude Code Instructions
 
 ## GitHub Push Process
 
@@ -26,7 +26,13 @@ Before committing, update these two files following the rules in `Flashcards_app
 
 2. **`Flashcards_app_project/comprehensive_project_summary.md`** — Update any sections that are now outdated due to the changes (features list, architecture, roadmap, "Last Updated" date).
 
-Include both files in the same commit as the code changes.
+3. **`Flashcards_app_project/CODE_MAP.md`** — Refresh line numbers by running:
+   ```bash
+   grep -n "@@SECTION" Flashcards_app_project/app.html
+   ```
+   Compare the output against the current CODE_MAP.md table. Update any line numbers that have shifted and add rows for any new `@@SECTION` markers not yet in the table. Include this file in the same commit.
+
+Include all three files in the same commit as the code changes.
 
 ### Step 1 — Commit & Push
 
@@ -139,3 +145,20 @@ chore:    tooling, config, deps
 Single-file app (`Flashcards_app_project/app.html`) backed by Firebase Auth + Firestore.  
 Vocabulary sourced from `vocabulary.json` and `quiz_words.json`.  
 User data (notes, custom cards, vocab, decks) stored in namespaced localStorage and synced to Firestore.
+
+## Code Navigation (app.html)
+
+`app.html` is a single 10,500+ line file. Before reading or editing it:
+
+1. Check [CODE_MAP.md](Flashcards_app_project/CODE_MAP.md) for the section you need.
+2. Run `grep -n "@@SECTION: SectionName" Flashcards_app_project/app.html` to get the exact line number.
+3. Read only that section (typically 100–300 lines) instead of the full file.
+4. If you need JS for a feature, look for the matching `JS*` section (e.g., `JSFlashcards` for flashcard study logic).
+
+**Never read the full app.html unless the task explicitly spans the entire file.**
+
+### Keeping the map up to date
+- **When adding a new section** (new UI block, new feature, new JS function group): place a `<!-- @@SECTION: Name -->` (HTML) or `// @@SECTION: Name` (JS) marker at the top of it, then add a new row to `Flashcards_app_project/CODE_MAP.md`.
+- **When modifying an existing section**: no marker change needed — the existing marker stays.
+- **Naming convention**: PascalCase, no spaces (e.g. `JSThemeManager`, `SettingsPanel`).
+- This ensures every new section is discoverable without reading the full file.

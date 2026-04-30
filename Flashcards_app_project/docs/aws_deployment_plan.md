@@ -1,4 +1,4 @@
-# Lexicon App — AWS Deployment Plan
+# Nexora App — AWS Deployment Plan
 
 ## The Key Insight
 
@@ -36,7 +36,7 @@ AWS S3 (stores your HTML file)  ← static hosting, ~$0.01/month
 - **AWS Route 53** — convenient (everything in one place), ~$13/year for `.com`
 - `.app` domains require HTTPS (which you'll have anyway via ACM)
 
-Suggested names: `lexiconapp.io`, `studylexicon.com`
+Suggested names: `nexora.io`, `nexora.app`
 
 ---
 

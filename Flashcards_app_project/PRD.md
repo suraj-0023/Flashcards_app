@@ -1,4 +1,4 @@
-# Product Requirements Document — Lexicon
+# Product Requirements Document — Nexora
 
 **Version**: 1.0  
 **Date**: April 26, 2026  
@@ -8,7 +8,7 @@
 
 ## 1. Product Overview
 
-Lexicon is a browser-based vocabulary learning and note-taking app that combines flashcards, AI-powered word acquisition, and personal knowledge management into a single gamified experience. Users build decks of vocabulary, notes, and flashcards — organized around books, subjects, or topics they are actively studying.
+Nexora is a browser-based vocabulary learning and note-taking app that combines flashcards, AI-powered word acquisition, and personal knowledge management into a single gamified experience. Users build decks of vocabulary, notes, and flashcards — organized around books, subjects, or topics they are actively studying.
 
 The app works entirely in the browser (no install required), syncs across devices via Firebase, and requires no API keys from the user.
 
@@ -16,7 +16,7 @@ The app works entirely in the browser (no install required), syncs across device
 
 ## 2. Problem Statement
 
-Learners who read frequently encounter unfamiliar words but have no frictionless way to capture, define, and retain them. Existing tools (Anki, Quizlet) require manual data entry. Dictionary apps provide definitions but no retention mechanism. Lexicon bridges this gap by combining:
+Learners who read frequently encounter unfamiliar words but have no frictionless way to capture, define, and retain them. Existing tools (Anki, Quizlet) require manual data entry. Dictionary apps provide definitions but no retention mechanism. Nexora bridges this gap by combining:
 
 - One-tap or image-scan word capture
 - Automatic definition, IPA, and usage enrichment
@@ -41,7 +41,7 @@ Learners who read frequently encounter unfamiliar words but have no frictionless
 
 | Goal | Metric |
 |---|---|
-| Reduce word capture friction | Time from seeing a word → saved to Lexicon < 30 seconds |
+| Reduce word capture friction | Time from seeing a word → saved to Nexora < 30 seconds |
 | Drive retention | Average quiz accuracy improves ≥ 15% after 5 sessions per word |
 | Increase daily engagement | Users return on 3+ days per week (streak system) |
 | Zero-friction onboarding | New user completes first word add within 2 minutes of landing |
@@ -198,7 +198,7 @@ All AI calls are proxied through a Cloudflare Worker — the API key is never ex
 
 ### Near-term (next 4 weeks)
 - [ ] **Mobile / PWA** — Responsive layout, service worker, iOS/Android home screen install
-- [ ] **Quiz Card Type** — `lexicon_quiz_cards` data model; create and display quiz cards in the library
+- [ ] **Quiz Card Type** — `nexora_quiz_cards` data model; create and display quiz cards in the library
 - [ ] **Spaced Repetition** — SM-2 scheduling algorithm for flashcard and vocab review sessions
 
 ### Mid-term (1–3 months)

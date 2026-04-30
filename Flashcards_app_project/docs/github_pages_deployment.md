@@ -1,4 +1,4 @@
-# GitHub Pages Deployment — Lexicon App
+# GitHub Pages Deployment — Nexora App
 
 ## Live URL
 `https://suraj-0023.github.io/Flashcards_app/`

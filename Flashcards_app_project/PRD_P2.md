@@ -1,4 +1,4 @@
-# Lexicon — PRD Analysis & Review
+# Nexora — PRD Analysis & Review
 
 **Version:** 2.0  
 **Date:** April 27, 2026  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-Lexicon has strong bones: frictionless word capture, AI enrichment, a clean design system, and a meaningful insight that "read → capture → retain" is broken in existing tools. The core loop is defensible.
+Nexora has strong bones: frictionless word capture, AI enrichment, a clean design system, and a meaningful insight that "read → capture → retain" is broken in existing tools. The core loop is defensible.
 
 But the product is shipping a learning app without its most important ingredient: spaced repetition. Without it, the retention promise is unsubstantiated. Additionally, the technical architecture (5800-line single HTML file) is approaching a wall, and the retention mechanics (streaks, daily review queue, progress visibility) are thin for a habit-forming product.
 
@@ -84,7 +84,7 @@ The Scan Page Modal and the Generate → Image flow both extract words from imag
 
 #### 7. No Context Capture
 
-When a user adds a word from a book, there's nowhere to store the sentence it appeared in. Context is the most powerful memory hook. Anki users do this manually; Lexicon could make it automatic via the image scan.
+When a user adds a word from a book, there's nowhere to store the sentence it appeared in. Context is the most powerful memory hook. Anki users do this manually; Nexora could make it automatic via the image scan.
 
 #### 8. Quiz Covers Vocabulary Only
 
@@ -122,7 +122,7 @@ There's no deck-level mastery %, no "words learned this week" trend, no "you're 
 
 ### R1 — Ship SM-2 Before Anything Else
 
-Implement the SM-2 algorithm with the existing "Got It / Need Practice" binary mapped to ease factor (2.5 for correct, penalty for incorrect). Add card states: New / Learning / Review / Lapsed. Surface a "Due Today" count on the sidebar. This single change transforms Lexicon from a tool to a system.
+Implement the SM-2 algorithm with the existing "Got It / Need Practice" binary mapped to ease factor (2.5 for correct, penalty for incorrect). Add card states: New / Learning / Review / Lapsed. Surface a "Due Today" count on the sidebar. This single change transforms Nexora from a tool to a system.
 
 **Implementation:** Each vocab/flashcard entry gains: interval, ease, dueDate, repetitions, state. The daily review queue is just `allCards.filter(c => c.dueDate <= today)`.
 
@@ -152,7 +152,7 @@ Before clearing guest data, show a modal: "You've added 7 words. Sign in to save
 
 ### R8 — Cache Quiz Distractors
 
-Generate distractors when a word is first quizzed, store in `lexicon_vocab` as `distractors: [...]`. Regenerate only when the user manually requests it. Eliminates per-question latency.
+Generate distractors when a word is first quizzed, store in `nexora_vocab` as `distractors: [...]`. Regenerate only when the user manually requests it. Eliminates per-question latency.
 
 ### R9 — Deck-Level Progress Dashboard
 
@@ -206,7 +206,7 @@ Not a user-facing change, but critical. At 5800 lines, a single bug can break ev
 
 ## 6. PRD Version 2
 
-### Product Requirements Document — Lexicon
+### Product Requirements Document — Nexora
 
 **Version:** 2.0  
 **Date:** April 26, 2026  
@@ -217,7 +217,7 @@ Not a user-facing change, but critical. At 5800 lines, a single bug can break ev
 
 ### 6.1 Product Vision
 
-Lexicon turns the words you encounter while reading into knowledge you actually keep. It combines zero-friction word capture, AI-powered enrichment, and science-backed spaced repetition into a single, beautiful tool — so every word you encounter becomes a word you own.
+Nexora turns the words you encounter while reading into knowledge you actually keep. It combines zero-friction word capture, AI-powered enrichment, and science-backed spaced repetition into a single, beautiful tool — so every word you encounter becomes a word you own.
 
 **North Star:** A user who adds a word on Monday should be tested on it at exactly the right moment on Wednesday, Saturday, and two weeks later — without thinking about it.
 
@@ -230,7 +230,7 @@ Readers encounter 10–20 unfamiliar words per hour. Existing tools force a choi
 - **Quizlet:** easy to use but no intelligent scheduling and no word capture from reading.
 - **Kindle Vocabulary Builder:** captures words but is locked to Kindle and has no active recall.
 
-No single tool connects the moment of encounter to long-term retention with zero friction. Lexicon fills this gap.
+No single tool connects the moment of encounter to long-term retention with zero friction. Nexora fills this gap.
 
 ### 6.3 Target Users
 
@@ -248,7 +248,7 @@ No single tool connects the moment of encounter to long-term retention with zero
 |---|---|---|
 | Retention via spaced repetition | % of cards in "Review" or "Mature" state after 14 days | ≥ 60% |
 | Daily habit formation | % of users active 3+ days/week after week 2 | ≥ 35% |
-| Frictionless capture | Time from seeing word → saved to Lexicon | < 30 seconds |
+| Frictionless capture | Time from seeing word → saved to Nexora | < 30 seconds |
 | Quiz accuracy improvement | Quiz accuracy after 5 sessions per word vs. baseline | ≥ 20% improvement |
 | Onboarding activation | % of new users adding first word within 2 minutes | ≥ 70% |
 | Retention (D7) | % of users returning on Day 7 | ≥ 25% |
