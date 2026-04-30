@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-04-30 — Bug-finder agent sweep: 7 new bugs fixed
+
+**What:** Two automated Haiku bug-finder agents scanned all remaining sections of app.html and found 7 bugs that were then fixed.
+
+**Why:** Post-issue-sweep automated audit to catch bugs not covered by the existing issue tracker.
+
+**Impact:**
+- lsGet() no longer crashes on corrupted localStorage (affects all app data reads)
+- Guest-to-user data migration no longer crashes on malformed localStorage during sign-in
+- showLoginError() no longer crashes when loginError element is absent from DOM
+- showLibraryList() no longer crashes when libListSort element is absent
+- _daysAgo() shows empty string instead of "NaN d ago" for invalid date strings
+- vfRateCard() (vocab flip practice) no longer crashes when called past end of queue
+- Custom card IDs now include random suffix preventing same-millisecond ID collisions
+
+**Technical Detail:**
+- `lsGet()`: JSON.parse now in try-catch, returns fallback on SyntaxError
+- `handleAuthState()`: introduced `_parseSafe()` helper for guest localStorage migration
+- `showLoginError()`: added `if (!el) return;` guard
+- `showLibraryList()`: wrapped sortSel access in `if (sortSel) {}`
+- `_daysAgo()`: `isNaN(ts)` check before date arithmetic
+- `vfRateCard()`: `if (!w) return;` guard added
+- Card IDs: `'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)` in 3 places
+
+---
+
 ## 2026-04-30 — Bulk Issue Resolution: 30+ Bug Fixes Across All Sections
 
 **What:** Resolved 30+ open GitHub issues spanning CSS dark mode, JS null-check crashes, async race conditions, UX bugs, and data sync issues.

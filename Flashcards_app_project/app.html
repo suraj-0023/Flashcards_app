@@ -6413,7 +6413,9 @@
       function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
       function _daysAgo(dateStr) {
         if (!dateStr) return '';
-        const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+        const ts = new Date(dateStr).getTime();
+        if (isNaN(ts)) return '';
+        const diff = Math.floor((Date.now() - ts) / 86400000);
         if (diff === 0) return 'today';
         if (diff === 1) return '1d ago';
         return diff + 'd ago';
@@ -6446,7 +6448,8 @@
 
       function lsGet(key, fallback) {
         const val = localStorage.getItem(getUserDataKey(key));
-        return val ? JSON.parse(val) : fallback;
+        if (!val) return fallback;
+        try { return JSON.parse(val); } catch { return fallback; }
       }
 
       function lsSet(key, value) {
@@ -7030,10 +7033,11 @@
           pullFromCloud().then(async (isNewUser) => {
             if (isNewUser) {
               // Migrate any data the user created as a guest into their UID namespace
-              const guestVocab = JSON.parse(localStorage.getItem('custom_vocab') || '[]');
-              const guestCards = JSON.parse(localStorage.getItem('nexora_custom_cards') || '[]');
-              const guestNotes = JSON.parse(localStorage.getItem('nexora_notes') || '[]');
-              const guestDeleted = JSON.parse(localStorage.getItem('deleted_vocab') || '[]');
+              const _parseSafe = (s, fb) => { try { return JSON.parse(s || '[]'); } catch { return fb; } };
+              const guestVocab   = _parseSafe(localStorage.getItem('custom_vocab'), []);
+              const guestCards   = _parseSafe(localStorage.getItem('nexora_custom_cards'), []);
+              const guestNotes   = _parseSafe(localStorage.getItem('nexora_notes'), []);
+              const guestDeleted = _parseSafe(localStorage.getItem('deleted_vocab'), []);
               if (guestVocab.length || guestCards.length || guestNotes.length) {
                 lsSet('custom_vocab', guestVocab);
                 lsSet('nexora_custom_cards', guestCards);
@@ -7135,6 +7139,7 @@
 
       function showLoginError(msg) {
         const el = document.getElementById('loginError');
+        if (!el) return;
         el.textContent = msg;
         el.style.display = 'block';
       }
@@ -8866,7 +8871,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
         const customCards = lsGet('nexora_custom_cards', []);
         const newCard = {
-          id: 'cc_' + Date.now(),
+          id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
           isCustom: true,
           front,
           back,
@@ -9892,6 +9897,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
       function vfRateCard(correct) {
         const w = vfQueue[vfIdx];
+        if (!w) return;
         if (!perf[w.id]) perf[w.id] = { quiz: { c: 0, w: 0 }, flash: { c: 0, w: 0 } };
         if (correct) { perf[w.id].flash.c++; vfCorrect++; }
         else { perf[w.id].flash.w++; vfWrong++; }
@@ -9966,12 +9972,14 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         document.getElementById('libListTitle').textContent = titles[type] || type;
 
         const sortSel = document.getElementById('libListSort');
-        if (type === 'vocab') {
-          sortSel.innerHTML = `<option value="time">Time Added</option><option value="alpha">Alphabetical</option><option value="pos">Part of Speech</option>`;
-        } else {
-          sortSel.innerHTML = `<option value="time">Time Added</option><option value="alpha">Alphabetical</option>`;
+        if (sortSel) {
+          if (type === 'vocab') {
+            sortSel.innerHTML = `<option value="time">Time Added</option><option value="alpha">Alphabetical</option><option value="pos">Part of Speech</option>`;
+          } else {
+            sortSel.innerHTML = `<option value="time">Time Added</option><option value="alpha">Alphabetical</option>`;
+          }
+          sortSel.value = 'time';
         }
-        sortSel.value = 'time';
 
         renderLibraryList();
       }
@@ -10335,7 +10343,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           lsSet('nexora_notes', ALL_NOTES);
           syncToCloud({ nexora_notes: ALL_NOTES });
         } else if (type === 'flashcard') {
-          const newCard = { id: 'cc_' + Date.now(), isCustom: true, front: text || 'Front', back: '(back)', projectId: deckId };
+          const newCard = { id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), isCustom: true, front: text || 'Front', back: '(back)', projectId: deckId };
           ALL_CUSTOM_CARDS.push(newCard);
           const cards = lsGet('nexora_custom_cards', []);
           cards.push(newCard);
@@ -10850,7 +10858,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           const back = document.getElementById('addCardBack').value.trim();
           if (!front || !back) { alert('Please fill in both sides of the flashcard.'); return; }
           _pendingAddModalSaveFn = async () => {
-            const newCard = { id: 'cc_' + Date.now(), isCustom: true, front, back, projectId: deckId, sm2: defaultSM2() };
+            const newCard = { id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), isCustom: true, front, back, projectId: deckId, sm2: defaultSM2() };
             ALL_CUSTOM_CARDS.push(newCard);
             const cards = lsGet('nexora_custom_cards', []);
             cards.push(newCard);
