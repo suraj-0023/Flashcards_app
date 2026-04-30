@@ -157,3 +157,7 @@ app.html
 **Last updated:** April 30, 2026  
 **File size:** ~11,230 lines  
 **Sections:** 43 major code regions
+
+---
+
+**Latest changes (Apr 30, 2026):** Resolved 30+ GitHub issues; all section line numbers verified and consistent with previous mapping.

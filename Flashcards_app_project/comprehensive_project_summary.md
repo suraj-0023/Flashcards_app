@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-04-30 (Context-aware definition selection via Gemini, synonyms & antonyms enrichment added)
+**Last Updated**: 2026-04-30 (Bulk bug fix sweep: 30+ issues resolved — dark mode, null-checks, async guards, branding)
 
 ---
 

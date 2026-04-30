@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-04-30 — Bulk Issue Resolution: 30+ Bug Fixes Across All Sections
+
+**What:** Resolved 30+ open GitHub issues spanning CSS dark mode, JS null-check crashes, async race conditions, UX bugs, and data sync issues.
+
+**Why:** Systematic bug sweep of all open GitHub issues to improve app stability, dark mode fidelity, and data integrity.
+
+**Impact:**
+- App no longer crashes on edge cases (out-of-bounds arrays, null word lookups, stale IDs)
+- Dark mode now renders correctly across all major UI surfaces (login, flashcards, quiz, stats, help panel)
+- "Nexora" branding complete — old "Smritikosha" text removed from profile setup screen
+- Escape key now universally closes all modals (detail popup, image scan, custom card)
+- Sync failures in notes/custom cards now show error feedback instead of silent stuck state
+- Quiz score display no longer shows NaN when zero questions answered
+- Search results now resolve item index at click time, preventing stale-index crashes
+
+**Technical Detail:**
+- CSS: Replaced `#fff`/hardcoded hex with `var(--surface)`, `var(--emerald-700)`, `var(--red)`, `color-mix()` design tokens in 15+ rules
+- JS: Added `if (!w) return` / `if (!item) return` guards in `rateCard`, `openModal`, `_renderNqCard`, `moveWordToProject`
+- JS: Wrapped `_addWordsFromText` in try/finally to guarantee `currentProjectId` restore
+- JS: Added `AbortController` 10s timeout to `_callAnthropicDistractors` fetch
+- JS: `_checkSectionDone` now checks `isConnected` and filters out `.tile-collapsing` tiles
+- JS: `renderSearchResults` now uses `findIndex(x => x.id === ...)` at click time
+- JS: `syncToCloud` fire-and-forget calls in notes/custom cards now have `.catch(() => {})`
+- JS: `nextQuiz()` bounds-check calls `showQuizDone()` instead of overrunning array
+- JS: `selectQuizOption()` now null-checks `perf[w.id]` and `w.usage[0]`
+- JS: `finishProfileSetup()` validates `_profileGoal` when not skipping
+- JS: `handleAddModalGenerate()` closes Add modal before opening image modal to prevent overlap
+- JS: `startNotesQuiz()` uses crypto-safe fallback ID instead of `Math.random()`
+
+---
+
 ## 2026-04-30 — Context-Aware Definition Selection + Synonyms & Antonyms Enrichment
 
 **What:** Added Tier 1.5 context-aware definition selection via Gemini (`_selectRelevantDefs`), which picks the 2–3 most relevant definitions for a word based on the deck's title and vocabulary sample. Extended Tier 3 Gemini gap-fill to also fetch 2 synonyms and 2 antonyms per word when missing.

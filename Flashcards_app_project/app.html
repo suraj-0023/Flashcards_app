@@ -327,7 +327,7 @@
     }
 
     .new-project-btn:hover {
-      background: #0EA271;
+      background: var(--emerald-700);
       transform: translateY(-1px);
     }
 
@@ -428,7 +428,7 @@
       justify-content: space-between;
       padding: 12px 36px;
       border-bottom: 1.5px solid var(--border);
-      background: rgba(245, 240, 232, 0.92);
+      background: color-mix(in srgb, var(--bg-2) 92%, transparent);
       backdrop-filter: blur(6px);
       position: sticky;
       top: 0;
@@ -875,7 +875,7 @@
     .mode-btn {
       padding: 8px 16px;
       border: 1px solid var(--border-2);
-      background: #fff;
+      background: var(--surface);
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: 13px;
       font-weight: 700;
@@ -1058,7 +1058,7 @@
       inset: 0;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 18px;
       padding: 36px 40px;
@@ -1153,7 +1153,7 @@
     .action-btn {
       padding: 11px 24px;
       border: 1px solid var(--border-2);
-      background: #fff;
+      background: var(--surface);
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: 13.5px;
       font-weight: 700;
@@ -1179,12 +1179,12 @@
     }
 
     .action-btn.correct:hover {
-      background: #059669;
+      background: var(--emerald-700);
       transform: translateY(-1px);
     }
 
     .action-btn.wrong:hover {
-      background: #DC2626;
+      background: var(--red);
       transform: translateY(-1px);
     }
 
@@ -1200,7 +1200,7 @@
 
     /* ── QUIZ VIEW ── M3 */
     .quiz-card {
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 18px;
       padding: 36px;
@@ -1250,7 +1250,7 @@
     .quiz-option {
       padding: 14px 18px;
       border: 1px solid var(--border-2);
-      background: #fff;
+      background: var(--surface);
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: 14px;
       font-weight: 600;
@@ -1355,7 +1355,7 @@
     }
 
     .stat-card {
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 16px;
       padding: 20px 22px;
@@ -1437,7 +1437,7 @@
       align-items: center;
       gap: 14px;
       padding: 12px 16px;
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 12px;
       box-shadow: 0 2px 6px rgba(17, 24, 39, 0.03);
@@ -1534,7 +1534,7 @@
       width: 100%;
       max-width: 300px;
       padding: 20px;
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 16px;
       cursor: pointer;
@@ -1630,7 +1630,7 @@
     }
 
     .login-card {
-      background: #fff;
+      background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: 22px;
       padding: 44px 38px;
@@ -1698,7 +1698,7 @@
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       font-size: 14px;
       font-weight: 500;
-      background: #fff;
+      background: var(--surface);
       color: var(--text);
       margin-bottom: 10px;
       transition: border-color 0.14s, box-shadow 0.14s;
@@ -1730,13 +1730,13 @@
     }
 
     .login-btn-primary:hover {
-      background: #0EA271;
+      background: var(--emerald-700);
       transform: translateY(-1px);
     }
 
     .login-btn-google {
-      background: white;
-      color: #3c4043;
+      background: var(--surface);
+      color: var(--text);
       border: 1px solid var(--border-2) !important;
       border-radius: 999px;
       display: flex;
@@ -2879,7 +2879,7 @@
       right: 0;
       bottom: 0;
       width: min(480px, 90vw);
-      background: #fff;
+      background: var(--surface);
       border-left: 1px solid var(--border-2);
       box-shadow: -8px 0 32px rgba(17, 24, 39, 0.1);
       z-index: 9990;
@@ -5268,7 +5268,7 @@
   <!-- ── PROFILE SETUP SCREEN ── -->
   <div id="profileSetupScreen" style="display:none;">
     <div class="profile-setup-card">
-      <div class="profile-setup-logo">Smriti<span>kosha</span></div>
+      <div class="profile-setup-logo">Nexora</div>
       <div class="profile-setup-subtitle">Let's personalise your experience</div>
       <!-- Progress bar -->
       <div class="profile-progress-wrap">
@@ -5474,7 +5474,7 @@
       </div>
 
       <div class="help-sidebar-divider"></div>
-      <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">☾ Dark</button>
+      <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle dark mode">☾ Dark</button>
       <button id="helpSidebarItem" onclick="openHelpPanel()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
@@ -6137,10 +6137,10 @@
         flex-shrink: 0;
       }
 
-      .difficulty-easy   { color: #059669; background: rgba(5,150,105,0.08); }
-      .difficulty-medium { color: #2563EB; background: rgba(37,99,235,0.08); }
-      .difficulty-hard   { color: #D97706; background: rgba(217,119,6,0.08); }
-      .difficulty-vhard  { color: #DC2626; background: rgba(220,38,38,0.08); }
+      .difficulty-easy   { color: var(--state-review);   background: var(--emerald-50); }
+      .difficulty-medium { color: var(--amber);          background: var(--amber-50); }
+      .difficulty-hard   { color: var(--amber);          background: var(--amber-50); }
+      .difficulty-vhard  { color: var(--state-new);      background: var(--red-50); }
       .difficulty-loading { color: var(--muted); background: transparent; border-color: var(--border-2); }
 
       /* ── IMAGE VOCAB TILE ANIMATIONS ── */
@@ -6150,13 +6150,13 @@
       }
 
       .img-vocab-tile.tile-accepted {
-        background: #f0fdf4;
-        border-color: #059669;
+        background: var(--emerald-50);
+        border-color: var(--emerald);
       }
 
       .img-vocab-tile.tile-declined {
-        background: #fef2f2;
-        border-color: #DC2626;
+        background: var(--red-50);
+        border-color: var(--red);
         opacity: 0;
       }
 
@@ -6603,6 +6603,10 @@
       }
 
       function finishProfileSetup(skipped) {
+        if (!skipped && !_profileGoal) {
+          alert('Please select a primary goal to continue.');
+          return;
+        }
         let profile = { goal: _profileGoal, dailyTarget: _profileTarget };
         if (!skipped) {
           const name = document.getElementById('profileName')?.value.trim();
@@ -8190,7 +8194,7 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
       function renderDict() {
         const grid = document.getElementById('dictGrid');
         grid.innerHTML = VOCAB.map(w => {
-          const p = perf[w.id];
+          const p = perf[w.id] || { quiz: { c: 0, w: 0 }, flash: { c: 0, w: 0 } };
           const totalC = p.quiz.c + p.flash.c;
           const totalW = p.quiz.w + p.flash.w;
           const total = totalC + totalW;
@@ -8218,6 +8222,7 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
       function openModal(id) {
         _openModalWordId = id;
         const w = VOCAB.find(x => x.id === id);
+        if (!w) return;
         document.getElementById('mWord').textContent = w.word;
         document.getElementById('mType').textContent = w.type.join(' · ');
         document.getElementById('mDef').textContent = w.definition;
@@ -8355,6 +8360,7 @@ Return ONLY a JSON object with keys: {${fieldList}}. No markdown, no extra text.
         const wordId = document.getElementById('modalProjectSelect').getAttribute('data-word-id');
         const word = ALL_VOCAB.find(x => x.id === wordId);
         const quizWord = ALL_QUIZ_VOCAB.find(x => x.id === wordId);
+        if (!word && !quizWord) return;
 
         if (word) word.projectId = projectId;
         if (quizWord) quizWord.projectId = projectId;
@@ -8712,6 +8718,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           const gData = await gRes.json();
           const raw = (gData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().replace(/```json\n?|\n?```/g, '');
           const results = JSON.parse(raw);
+          if (!Array.isArray(results)) throw new Error('AI response is not an array');
 
           const byWord = {};
           results.forEach(r => { if (r.word) byWord[r.word.toLowerCase()] = r; });
@@ -8783,7 +8790,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       function _checkSectionDone(section) {
         if (!section || !_imgVocabStats[section]) return;
         const tilesEl = document.getElementById(`img-tiles-${section}`);
-        if (!tilesEl || tilesEl.querySelectorAll('.img-vocab-tile').length > 0) return;
+        if (!tilesEl || !tilesEl.isConnected) return;
+        if (tilesEl.querySelectorAll('.img-vocab-tile:not(.tile-collapsing)').length > 0) return;
         const { accepted, declined } = _imgVocabStats[section];
         tilesEl.innerHTML = `<div class="img-vocab-summary-row">
           <span class="summary-accepted">✓ ${accepted} accepted</span>
@@ -8868,7 +8876,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         customCards.push(newCard);
         ALL_CUSTOM_CARDS.push(newCard);
         lsSet('nexora_custom_cards', customCards);
-        syncToCloud({ nexora_custom_cards: customCards });
+        syncToCloud({ nexora_custom_cards: customCards }).catch(() => {});
 
         closeCustomCardModalBtn();
         applyProjectFilter();
@@ -8880,7 +8888,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         customCards = customCards.filter(c => c.id !== id);
         lsSet('nexora_custom_cards', customCards);
         ALL_CUSTOM_CARDS = ALL_CUSTOM_CARDS.filter(c => c.id !== id);
-        syncToCloud({ nexora_custom_cards: customCards });
+        syncToCloud({ nexora_custom_cards: customCards }).catch(() => {});
         initFlash();
       }
 
@@ -8919,8 +8927,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
 
       function flashShuffle() {
         const done = flashQueue.slice(0, flashIdx);
-        const remaining = shuffle(flashQueue.slice(flashIdx));
-        flashQueue = [...done, ...remaining];
+        const remaining = flashQueue.slice(flashIdx);
+        if (!remaining.length) return;
+        flashQueue = [...done, ...shuffle(remaining)];
         showFlashCard();
       }
 
@@ -9124,6 +9133,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       function rateCard(correct) {
         _clearAutoFlipTimer();
         const w = flashQueue[flashIdx];
+        if (!w) return;
         if (!perf[w.id]) perf[w.id] = { quiz: { c: 0, w: 0 }, flash: { c: 0, w: 0 } };
 
         if (correct) { perf[w.id].flash.c++; flashCorrect++; }
@@ -9347,16 +9357,19 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         const correct = selectedId === correctId;
         track.correct = correct;
 
+        if (!perf[w.id]) perf[w.id] = { quiz: { c: 0, w: 0 }, flash: { c: 0, w: 0 } };
+
         document.querySelectorAll('.quiz-option').forEach(b => {
           b.disabled = true;
           if (b.id === `opt-${correctId}`) b.classList.add('reveal-correct');
         });
 
         const btn = document.getElementById(`opt-${selectedId}`);
+        const usageExample = w.usage?.[0] ? `"${w.usage[0]}"` : '';
         if (correct) {
           btn.classList.add('selected-correct');
           perf[w.id].quiz.c++; quizCorrect++;
-          document.getElementById('quizFeedback').textContent = `✓ Correct! "${w.usage[0]}"`;
+          document.getElementById('quizFeedback').textContent = `✓ Correct!${usageExample ? ' ' + usageExample : ''}`;
           document.getElementById('quizFeedback').className = 'quiz-feedback correct';
         } else {
           btn.classList.add('selected-wrong');
@@ -9377,6 +9390,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }
       }
       function nextQuiz() {
+        if (quizIdx >= quizQueue.length - 1) { showQuizDone(); return; }
         quizIdx++;
         showQuizCard();
       }
@@ -9395,7 +9409,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         document.getElementById('quizArea').style.display = 'none';
         document.getElementById('quizDone').style.display = 'block';
         const total = quizCorrect + quizWrong;
-        const pct = Math.round((quizCorrect / total) * 100);
+        const pct = total ? Math.round((quizCorrect / total) * 100) : 0;
         document.getElementById('quizFinalScore').textContent = `${quizCorrect}/${total} (${pct}%)`;
         document.getElementById('quizFinalMsg').textContent = pct >= 80 ? 'Excellent work! 🎉' : pct >= 60 ? 'Good effort — keep going!' : 'Keep practicing, you\'ll get there!';
       }
@@ -9627,12 +9641,16 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           : `You are a quiz generator. Given a correct answer and its context, generate exactly 3 wrong answer options that are plausible, in the same domain, medium-to-hard difficulty, and varied. Return ONLY a JSON array of 3 strings. No explanation, no markdown. Correct answer: ${correctAnswer}. Context: ${context}`;
 
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
           const res = await fetch(GEMINI_PROXY_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+              signal: controller.signal
             }
           );
+          clearTimeout(timeoutId);
           if (!res.ok) throw new Error('API ' + res.status);
           const data = await res.json();
           const text = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
@@ -9672,7 +9690,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         });
         ALL_NOTES.forEach(note => {
           const text = (note.content || '').replace(/<[^>]+>/g, '').trim();
-          if (note.title && text.length > 20) pool.push({ id: 'no_' + (note.id || note.ts || Math.random()), q: note.title, a: text.slice(0, 200) });
+          if (note.title && text.length > 20) pool.push({ id: 'no_' + (note.id || note.ts || Date.now().toString(36) + Math.random().toString(36).slice(2)), q: note.title, a: text.slice(0, 200) });
         });
         if (pool.length < 2) {
           alert('You need at least 2 notes or flashcards to start this quiz. Add some first!');
@@ -9702,6 +9720,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (_nqIdx >= _nqQueue.length) { _showNqDone(); return; }
         const cardIdx = _nqIdx;
         const item = _nqQueue[cardIdx];
+        if (!item) return;
         const total = _nqQueue.length;
 
         document.getElementById('quizCounter').textContent = `${cardIdx + 1} / ${total}`;
@@ -10101,8 +10120,9 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       }
 
       function closeDetailPopup(e) {
-        if (!e || e.target === document.getElementById('detailPopupOverlay')) {
-          document.getElementById('detailPopupOverlay').classList.remove('open');
+        const overlay = document.getElementById('detailPopupOverlay');
+        if (!e || (overlay && e.target === overlay)) {
+          if (overlay) overlay.classList.remove('open');
         }
       }
 
@@ -10297,6 +10317,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
               card.classList.add('accepted');
               card.querySelector('.ai-preview-card-actions').innerHTML = '<span style="font-size:12px;font-weight:700;color:var(--emerald-700);">✓ Saved</span>';
               _previewVocabWord = null;
+            }).catch(() => {
+              card.querySelector('.ai-preview-card-actions').innerHTML = '<span style="font-size:12px;font-weight:700;color:var(--red);">✗ Save failed</span>';
             });
           }
           return;
@@ -10389,8 +10411,11 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (deckId && deckId !== currentProjectId) {
           currentProjectId = deckId;
         }
-        await addWords();
-        currentProjectId = origProjectId;
+        try {
+          await addWords();
+        } finally {
+          currentProjectId = origProjectId;
+        }
         document.getElementById('addContentTextarea').value = '';
       }
 
@@ -10581,7 +10606,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         note.content = content;
         note.updatedAt = new Date().toISOString().split('T')[0];
         lsSet('nexora_notes', ALL_NOTES);
-        syncToCloud({ nexora_notes: ALL_NOTES });
+        syncToCloud({ nexora_notes: ALL_NOTES }).catch(() => {});
         document.getElementById('noteEditorOverlay').classList.remove('open');
         renderLibrary();
       }
@@ -10590,7 +10615,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (!confirm('Delete this note?')) return;
         ALL_NOTES = ALL_NOTES.filter(n => n.id !== noteId);
         lsSet('nexora_notes', ALL_NOTES);
-        syncToCloud({ nexora_notes: ALL_NOTES });
+        syncToCloud({ nexora_notes: ALL_NOTES }).catch(() => {});
         renderLibrary();
       }
 
@@ -10722,17 +10747,18 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (isImagePdf) {
           if (!_addModalFile) { alert('Please choose a file first.'); return; }
           if (btn) { btn.textContent = 'Scanning…'; btn.disabled = true; }
+          const fileToScan = _addModalFile;
+          _addModalFile = null;
+          document.getElementById('addModalFileName').textContent = '';
+          const fi = document.getElementById('addModalFileInput');
+          if (fi) fi.value = '';
+          closeAddModal();
           try {
             if (typeof _imageVocabDeckId !== 'undefined') _imageVocabDeckId = deckId;
-            await generateVocabFromImage(_addModalFile, deckId);
+            await generateVocabFromImage(fileToScan, deckId);
           } finally {
             if (btn) { btn.textContent = 'Scan File →'; btn.disabled = false; }
-            _addModalFile = null;
-            document.getElementById('addModalFileName').textContent = '';
-            const fi = document.getElementById('addModalFileInput');
-            if (fi) fi.value = '';
           }
-          closeAddModal();
           return;
         }
 
@@ -10945,6 +10971,11 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (e.key === 'Escape') {
           closeAddModal();
           closeSearch();
+          closeDetailPopup();
+          const imgOverlay = document.getElementById('imageVocabModalOverlay');
+          if (imgOverlay && imgOverlay.classList.contains('open')) closeImageVocabModal();
+          const customOverlay = document.getElementById('customCardModalOverlay');
+          if (customOverlay && customOverlay.classList.contains('open')) closeCustomCardModalBtn();
         }
         if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
           if (document.getElementById('addModal').classList.contains('open')) {
@@ -11058,8 +11089,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (noteHits.length) {
           html += '<div class="search-group-label">Notes</div>';
           html += noteHits.map(n => {
-            const noteIdx = ALL_NOTES.indexOf(n);
-            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('notes');setTimeout(()=>openDetailPopup(${noteIdx}),50)">
+            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('notes');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${n.id}');if(idx>=0)openDetailPopup(idx);},50)">
               <div class="search-result-icon">📝</div>
               <div><div class="search-result-title">${n.title || 'Untitled'}</div><div class="search-result-sub">${(n.content || '').slice(0, 80)}</div></div>
             </div>`;
@@ -11068,8 +11098,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (cardHits.length) {
           html += '<div class="search-group-label">Flashcards</div>';
           html += cardHits.map(c => {
-            const cardIdx = ALL_CUSTOM_CARDS.indexOf(c);
-            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('flashcards');setTimeout(()=>openDetailPopup(${cardIdx}),50)">
+            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('flashcards');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${c.id}');if(idx>=0)openDetailPopup(idx);},50)">
               <div class="search-result-icon">🃏</div>
               <div><div class="search-result-title">${c.front}</div><div class="search-result-sub">${c.back || ''}</div></div>
             </div>`;
