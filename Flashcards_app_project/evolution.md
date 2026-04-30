@@ -1,4 +1,23 @@
-# Project Evolution Log
+# Nexora — Project Evolution Log
+
+> Reverse-chronological changelog. Each entry covers what changed, why, and the impact.
+
+---
+
+## 2026-04-30 — Context-Aware Definition Selection + Synonyms & Antonyms Enrichment
+
+**What:** Added Tier 1.5 context-aware definition selection via Gemini (`_selectRelevantDefs`), which picks the 2–3 most relevant definitions for a word based on the deck's title and vocabulary sample. Extended Tier 3 Gemini gap-fill to also fetch 2 synonyms and 2 antonyms per word when missing.
+
+**Why:** Words often have many definitions; showing the most context-relevant ones improves study effectiveness. Synonyms and antonyms provide richer vocabulary context and deepen understanding beyond a single definition.
+
+**Impact:** Word detail cards now surface definitions most relevant to the deck being studied. Users see up to 2 synonyms and 2 antonyms on enriched word cards, strengthening vocabulary connections.
+
+**Technical Detail:**
+- `_selectRelevantDefs(word, allDefs, deckTitle, deckVocab)` — sends all definitions + deck context to Gemini proxy; parses a JSON array of 1-based indices; returns top 3 matching `allDefs` entries
+- Tier 1.5 inserted in `addWords()` pipeline: fires after Free Dict succeeds and `wordData.allDefs.length > 2`
+- `_haikuEnrichWord` extended: `needsSynonyms` / `needsAntonyms` flags added; prompt now requests `"synonyms": [string, string]` and `"antonyms": [string, string]`; results stored as `wordData.synonyms` and `wordData.antonyms` (sliced to 2)
+
+---
 
 ## 2026-04-30 — App Renamed to Nexora + Code Navigation System
 
@@ -8,531 +27,347 @@
 
 **Impact:** All display names, localStorage keys (`nexora_*`), taglines, and documentation now reflect the Nexora brand. Future code changes are faster and more precise with the section map.
 
-**Technical Detail:** 170+ text replacements across 13 files. 42 `@@SECTION` markers added to app.html. CODE_MAP.md created with 40 section entries. CLAUDE.md updated with navigation rules and push-time map refresh instructions.
+**Technical Detail:** 170+ text replacements across 13 files. 42 `@@SECTION` markers added to app.html. CODE_MAP.md created with 40 section entries.
 
 ---
 
-## 2026-04-30 — SM-2 spaced repetition, daily queue, search palette, keyboard shortcuts, UX polish (Phases 4–8)
+## 2026-04-30 — SM-2 Spaced Repetition, Daily Queue, Search Palette, Keyboard Shortcuts, UX Polish
 
-**What**: Implemented SM-2 spaced repetition algorithm with four pure functions (`defaultSM2`, `applyRating`, `getDueCount`, `updateDailyBadge`) to track word mastery intervals and due dates. Added daily review queue badge in sidebar showing breakdown of lapsed/review/new items (lapsed → review → new priority order). Built Cmd+K search/command palette modal (`#searchModal`) with real-time results filtering and navigation. Keyboard shortcuts wired: Space (flip flashcard), 1 (wrong), 2 (correct) with visual hint element. Context sentence now flows from add modal through preview step and displays on flashcard back. SM-2 state badge added to word detail modal showing colored dot + state text + due date. Post-rating toast (`showFlashToast`) appears below flip actions for feedback. Guest banner updated with strategy banner hint. Onboarding simplified to 1 profile step + 2-slide tour. Typography polish: `.flip-word` set to serif font, `.modal-def` line-height 1.7, `.project-item-sidebar` font-weight 500. Smooth border-color transitions on lib cards and modal panels. CODE_MAP.md refreshed with all 43 sections' current line numbers and new SearchModal entry added.
+**What:** Implemented SM-2 spaced repetition algorithm with four pure functions (`defaultSM2`, `applyRating`, `getDueCount`, `updateDailyBadge`) to track word mastery intervals and due dates. Added daily review queue badge in sidebar with breakdown (lapsed → review → new priority order). Built Cmd+K search/command palette modal with real-time filtering. Keyboard shortcuts wired: Space (flip), 1 (wrong), 2 (correct). Context sentences now flow from add modal through preview and display on flashcard back. SM-2 state badge added to word detail modal. Post-rating toast appears below flip actions. Onboarding simplified to 1 profile step + 2-slide tour.
 
-**Why**: SM-2 delivers scientifically-proven spacing algorithm for long-term retention. Daily queue badge gives users quick visibility into study load and due items. Search palette (Cmd+K pattern) improves content discoverability. Keyboard shortcuts reduce friction during study sessions. Context sentences help users remember word usage in real scenarios. Simplified onboarding reduces drop-off. Polish (typography, transitions, guest banner) improves perceived quality and first-run experience.
+**Why:** SM-2 delivers scientifically-proven spacing algorithm for long-term retention. Daily queue badge gives quick visibility into study load. Search palette improves discoverability. Keyboard shortcuts reduce friction during study. Context sentences anchor memory to real usage.
 
-**Impact**: Users see SM-2 intervals (shown as colored state pills) and due dates on every word, enabling intelligent study planning. Daily queue badge encourages consistent review by showing work backlog at a glance. Cmd+K search makes finding specific words fast. Keyboard-first study flow (Space+1/2) speeds up flashcard sessions. Context sentences create stronger memory anchors. Simplified onboarding reduces friction for first-time users. Better typography and smooth transitions elevate the overall app feel.
+**Impact:** Users see SM-2 intervals and due dates on every word, enabling intelligent study planning. Daily queue badge encourages consistent review. Cmd+K search makes finding words fast. Keyboard-first study (Space+1/2) speeds up sessions. Simplified onboarding reduces friction.
 
-**Technical Detail**: 
-- `defaultSM2()` returns `{interval: 1, easiness: 2.5, repetitions: 0, dueDate: today}` initial state
-- `applyRating(sm2, correct)` computes new interval/easiness/reps based on SM-2 formula; returns updated sm2 object
-- `getDueCount()` filters ALL_VOCAB + ALL_CUSTOM_CARDS for `sm2.dueDate <= today` or `state === 'new'`; returns `{new, review, lapsed, total}`
-- `updateDailyBadge()` called from `applyProjectFilter()`; shows/hides `#dailyQueueBadge` with breakdown div + dismiss ✕ button
-- `_renderLibListHTML()` rewritten: vocab cards show SM-2 state pill (colored) + "Due in Xd" chip; flashcard cards show SM-2 state pill; note cards show italic preview + "edited Xd ago"
-- `updateProjectUI()` injects 4 mastery dots per deck in sidebar (filled count = masteryPercent / 25)
-- `#searchModal` HTML: full `.search-modal-overlay` / `.search-modal-panel` CSS block; functions `openSearch()`, `closeSearch()`, `handleSearchKey()`, `runSearch()`, `renderSearchResults()`
-- Cmd+K and Escape key wiring in global keydown handler
-- `.flip-word` CSS: `font-family: var(--font-serif)`
-- Keyboard hints: Space flip, 1 wrong, 2 correct with `#flashKbHint` element
-- `addWords()` reads `#addContextSentence` value; `showFlashCard()` injects `#flashContextBlock` on card back; `openModal()` injects `#mContextSec` section
-- `openModal()` dynamically creates `#mSM2Badge` (colored dot + state + due date)
-- `showFlashToast(msg)` creates `.flash-toast` div below `#flipActions`, fades after 1.8s
-- `updateGuestBanner()` called from `renderLibrary()`; updates guest save strategy hint
-- Profile setup simplified to 1 step; tour cut from 4 to 2 slides
-- Typography: `.modal-word` → serif 2rem; `.modal-def` → line-height 1.7; `.project-item-sidebar` → font-weight 500
-- Smooth transitions on `.lib-list-card` and `.add-modal-panel` border-color
-- CODE_MAP.md: all 43 section line numbers refreshed, SearchModal section added, file size updated to ~11,180 lines
+**Technical Detail:**
+- SM-2 state stored per word in localStorage with `{interval, easiness, repetitions, dueDate}`
+- `_renderLibListHTML()` rewritten to show SM-2 state pills with "Due in Xd" chips
+- `openSearch()`, `closeSearch()`, `runSearch()` manage the search modal; Cmd+K/Escape wired in global keydown handler
 
 ---
 
-## 2026-04-30 — Three UX fixes: sample deck labels, guest light mode, remove word-added alert
+## 2026-04-30 — Three UX Fixes: Sample Deck Labels, Guest Light Mode, Remove Word-Added Alert
 
-**What**: (1) Sample decks in the sidebar now show a non-bold "(sample)" label at reduced opacity. (2) Clicking "Continue without signing in" now always starts in light mode regardless of OS dark-mode preference. (3) Removed the browser alert popup that appeared after adding a vocab word successfully.
+**What:** (1) Sample decks now show a non-bold "(sample)" label at reduced opacity. (2) "Continue without signing in" now starts in light mode regardless of OS preference. (3) Removed browser alert after adding vocab words successfully.
 
-**Why**: Sample deck labels help users distinguish built-in content from their own decks. Guest dark mode was jarring for users whose OS is set to dark. The word-added alert was Chrome-native and felt out of place.
+**Why:** Sample deck labels distinguish built-in content from user decks. Guest dark mode was jarring. The alert felt out of place.
 
-**Impact**: Cleaner sidebar, better first-run experience for guests, quieter add-word flow.
-
-**Technical Detail**: Sidebar renderer checks `['p_atomic','p_climate','p_alchemist','p_science10'].includes(p.id)` to inject the label. `skipLogin()` now sets `document.documentElement.dataset.theme = 'light'` and writes to `localStorage`. Removed `alert('Successfully added N word(s)!')` from `addWords()`; kept the failure-case alert.
+**Impact:** Cleaner sidebar, better first-run experience for guests, quieter add-word flow.
 
 ---
 
-## 2026-04-30 — Fix Flashcards section card navigating to practice instead of list
+## 2026-04-30 — Fix Flashcards Section Card Navigating to Practice Instead of List
 
-**What**: Fixed `showDeckSection('flashcards')` which was calling `openPracticeView('flashcards')` (launching full-screen practice mode) instead of showing the flashcard items list like Notes and Vocab do.
+**What:** Fixed `showDeckSection('flashcards')` which was launching practice mode instead of displaying the flashcard items list.
 
-**Why**: User reported clicking the Flashcards card in the deck home sent them to practice mode rather than displaying the list of flashcard items.
+**Why:** User reported clicking the Flashcards card sent them to practice mode rather than showing the item list like Notes and Vocab.
 
-**Impact**: Clicking Flashcards in the deck home now correctly opens the library list of flashcard items. Practice mode is still reachable from the sidebar.
-
-**Technical Detail**: Simplified `showDeckSection()` — removed the special-case branch for `flashcards`; all three section types now uniformly hide deck home, show the library section, and call `showLibraryList(section)`.
+**Impact:** Clicking Flashcards in the deck home now correctly opens the library list of flashcard items.
 
 ---
 
-## 2026-04-29 — Fix Notes/Vocab section navigation (deck-specific mode)
+## 2026-04-29 — Fix Notes/Vocab Section Navigation (Deck-Specific Mode)
 
-**What:** Fixed three bugs that caused Notes and Vocab tiles to do nothing when clicked from a specific deck's home panel, and fixed the ← Back button restoring the wrong view.
+**What:** Fixed Notes and Vocab tiles doing nothing when clicked from a specific deck's home, and fixed the Back button restoring the wrong view.
 
-**Why:** `showDeckSection` was a no-op for 'notes' and 'vocab' — only 'flashcards' routed to the practice view. When in deck-specific mode, the library section is hidden and the deck home is shown instead, so clicking Notes/Vocab did nothing visually.
+**Why:** `showDeckSection` did not route for 'notes' and 'vocab' in deck-specific mode; the library section was hidden so nothing appeared.
 
-**Impact:** Notes, Flashcards, and Vocab tiles in the deck home panel now correctly navigate to their filtered list views. The ← Back button correctly restores the deck home (not the tile grid) when in deck-specific mode. Tiles briefly highlight green on click for visual feedback.
-
-**Technical Detail:** `showDeckSection()` now calls `showLibraryList(section)` for notes/vocab after unhiding `.library-section`. `hideLibraryList()` now restores `#deck-home-content` when `currentProjectId !== 'all'`. Added `.lib-summary-tile.active` CSS class and applied it in `showLibraryList` via `tileMap` index lookup.
+**Impact:** Notes, Flashcards, and Vocab tiles now correctly navigate to filtered list views. Back button correctly restores the deck home.
 
 ---
 
-## 2026-04-29 — Add Modal text-input preview/review step
+## 2026-04-29 — Add Modal Text-Input Preview/Review Step
 
-**What**: Added a confirm-before-save preview step in the +Add modal for Vocab, Note, and Flashcard types. After clicking "Generate →", a preview card is shown with the content (word + live dictionary definition for vocab, title/content for notes, front/back for flashcards). Buttons change to "← Edit" (go back) and "✓ Save" (commit to storage). Multi-type selections show all preview cards stacked. Image/PDF flow unchanged.
+**What:** Added a confirm-before-save preview step in the +Add modal for Vocab, Note, and Flashcard types. After generating, a preview card is shown. Buttons change to "← Edit" and "✓ Save". Multi-type selections show all previews stacked.
 
-**Why**: User requested the same accept/decline UX that image scan already provides, applied to typed text input.
+**Why:** User requested the same accept/decline UX that image scan already provided, applied to typed text input.
 
-**Impact**: Users can review and confirm (or back out and edit) before any typed content is persisted.
-
-**Technical Detail**: New functions `_showAddModalPreview()`, `_fetchAddModalVocabPreview()`, `_saveAddModalPreview()`, `_discardAddModalPreview()`. State held in `_pendingAddModalSaveFn`. New HTML elements: `#addModalPreview`, `#addModalPreviewCards`, `#addModalDiscardBtn`, `#addModalSaveBtn` inside `.add-modal-panel`.
+**Impact:** Users can review and confirm (or back out and edit) before any typed content is persisted.
 
 ---
 
 ## 2026-04-28 — Add Modal Multi-Select, PRD/Design Docs, Brand Review
 
-**What:** Upgraded `app.html` Add Modal from radio-style type pills to multi-select checkboxes; added Phase 2 planning documents and brand review.
-- Add Modal now supports multi-select content types: Vocab + Note + Flashcard can be checked simultaneously, or Image/PDF (exclusive mode) for file-based vocab scanning
-- `updateAddModalTypes()` manages checkbox state, shows/hides per-type panels, and updates submit button label ("Generate →" / "Save All →" / "Scan File →")
-- `handleAddModalGenerate()` refactored: dispatches to multi-type path (saves all selected types from a single text input), image/PDF scan path, or single-type path
-- `handleAddModalFileChange()` added: validates file size (5 MB max), stores file reference in `_addModalFile`, shows filename and error text
-- Legacy `switchAddType()` kept as a no-op shim for safety
-- Image/PDF panel wired directly into the modal (no separate scan modal needed for basic flow)
-- Sidebar logo name given emerald gradient (`linear-gradient(90deg, var(--emerald), #34D399)`) + bumped to 18px
-- Submit button padding/size increased (9px 20px, 14.5px)
-- New CSS: `.deck-home-cta-btn`, `.deck-recent-grid/.deck-recent-card`, `.deck-stats-row/.deck-stat-card`, `.deck-mastery-bar-wrap` — Deck Home dashboard scaffolding for Phase 3
-- `PRD_analysis.md` deleted; replaced by `PRD_P2.md` (Phase 2 PRD) and `design_document_P2.md` (full UI/UX redesign spec)
-- `Brand_consultant_review.md` added at repo root
+**What:** Upgraded Add Modal from radio-style type pills to multi-select checkboxes. Vocab + Note + Flashcard can be checked simultaneously; Image/PDF exclusive. Added Phase 2 planning documents.
 
-**Why:** Type pills were mutually exclusive and required switching mode before typing. Multi-select lets users create a vocab entry, a note, and a flashcard from a single text block in one submit. Image/PDF scan is now accessible directly from the modal without an extra trigger. PRD_P2 and design doc capture the next phase plan in a structured format.
+**Why:** Type pills were mutually exclusive. Multi-select lets users create a vocab entry, note, and flashcard from a single text block in one submit.
 
-**Impact:** Content creation is more flexible — a single "Save All →" action can populate three content types at once. The modal is now self-contained for all add flows including file scan. Deck Home CSS scaffolding is in place for the upcoming dashboard widget (Phase 3).
-
-**Technical Detail:** `updateAddModalTypes()` is the single source of truth for modal UI state — called on every checkbox `onchange`. `_addModalFile` module-level variable stores the selected file between `handleAddModalFileChange` and `handleAddModalGenerate`. Multi-type path splits raw textarea by newline; first line → vocab word and flashcard front; full text → note body.
+**Impact:** Content creation is more flexible. The modal is self-contained for all add flows including file scan. Deck Home CSS scaffolding in place for Phase 3.
 
 ---
 
 ## 2026-04-28 — Phase 2 — Sidebar Redesign, Add Modal (Cmd+N), Header Actions, Scroll Fix
 
-**What:** Implemented Phase 2 of the Nexora production upgrade across `app.html`:
-- Sidebar narrowed to 220px; mastery dots (4-dot quartile indicator) added to each deck entry using existing perf data
-- Daily Queue Badge placeholder added in sidebar (hidden until Phase 4 SM-2 engine)
-- Deck header bar redesigned: ⌘K Search ghost pill + "+ Add" emerald button added with keyboard shortcut wiring
-- Add Modal built from scratch: 3 content types (Vocab/Note/Flashcard), per-type fields, deck selector, Cmd+N/Escape/Cmd+Enter keyboard support
-- Inline `.add-section-card` hidden (preserving hidden file inputs for image scan compatibility)
-- Scroll position bug fixed: `_renderLibListHTML()` now saves/restores `.main-scroll-area` scrollTop before and after re-render
+**What:** Narrowed sidebar to 220px; added mastery dots (4-dot quartile indicator) to each deck. Added Daily Queue Badge placeholder. Redesigned deck header: Cmd+K Search ghost pill + "+ Add" emerald button. Built Add Modal with Cmd+N/Escape/Cmd+Enter support. Fixed scroll position bug: `_renderLibListHTML()` now saves/restores scroll position.
 
-**Why:** The inline add section was cluttered and broke scroll position after every add. The modal gives a clean, focused creation flow. Mastery dots give instant deck health visibility in the sidebar.
+**Why:** Inline add section was cluttered and broke scroll position. Modal gives a clean, focused creation flow. Mastery dots give instant deck health visibility.
 
-**Impact:** All content creation (vocab, notes, flashcards) now goes through a focused modal. Scroll position is preserved after adds. Sidebar shows per-deck mastery at a glance.
-
-**Technical Detail:** `handleAddModalGenerate()` routes to `_addWordsFromText()` for vocab enrichment, creates note/card objects directly for other types. `_masteryPercent(deckId)` computes mastery as words with ≥75% accuracy across ≥3 attempts. Keyboard listener added for Cmd+N, Cmd+K, Escape, Cmd+Enter.
+**Impact:** All content creation flows through a focused modal. Scroll position preserved after adds. Sidebar shows per-deck mastery at a glance.
 
 ---
 
 ## 2026-04-26 — App Rebranding: Lexicon/Smritikosha → Nexora
 
-**What:** Renamed the app to Nexora. Updated page title, login screen branding, login tagline, profile setup branding, sidebar logo mark and name, and updated all documentation references.
+**What:** Renamed app to Nexora. Updated page title, login screen, sidebar logo, and all documentation.
 
-**Why:** User requested a fresh, modern name that is easier to pronounce and remember while maintaining the app's identity as a powerful vocabulary learning tool.
+**Why:** User requested a fresh, modern name that is easier to pronounce and remember.
 
-**Impact:** All visible branding refreshed — login screen now displays "Nexora — Your Vocabulary Universe" with modern design; sidebar logo changed to "N" mark; page `<title>` updated; profile setup branding updated; all documentation updated. User experience remains unchanged; focus purely on visual and textual rebranding.
-
-**Technical Detail:** Updated `app.html`, `index.html`, all `.md` documentation files, and localStorage keys from `lexicon_*` to `nexora_*` naming convention.
+**Impact:** All visible branding refreshed. User experience remains unchanged.
 
 ---
 
 ## 2026-04-28 — Batch AI Tile Preview & Multi-Source Word Enrichment
 
-**What**: 
-- Replaced per-word Free Dictionary API calls in image scan popup with single batch Gemini call
-- New `_saveWordWithEnrichment` function: saves immediately with AI seed data, then enriches async (Free Dict → Wordnik → Gemini gap-fill)
-- Added `_mergeWordSources` helper to merge data from multiple APIs with dedup logic
-- Added `dataSources[]` field to track which APIs contributed to each word
-- Added source attribution display in word card modal ("Sources: Free Dictionary, AI")
-- Added `_openModalWordId` tracker for auto-refresh after background enrichment
-- Removed alert popups on word accept
+**What:** Replaced per-word Free Dictionary API calls in image scan with single batch Gemini call. New `_saveWordWithEnrichment` function saves immediately with AI seed, then enriches async (Free Dict → Wordnik → Gemini). Added `dataSources[]` field to track contributing APIs. Removed alert popups on word accept.
 
-**Why**: 
-The old image scan flow was wasteful — it called Free Dictionary API once per word just for tile preview, then called it again (plus other APIs) on accept. Users also complained about alert popups appearing on every word acceptance. The new flow uses a single batch Gemini call for tile preview (no wasted API calls on declined words), then enriches only accepted words asynchronously without blocking the UI.
+**Why:** Old image scan was wasteful—called Free Dictionary once per word for preview, then again on accept. Single batch Gemini call for preview is faster; enrichment happens in background without blocking UI.
 
-**Impact**: 
-- Significant reduction in API call count (from 2N to ~N + M where M < N)
-- Faster tile preview (single batch call instead of N sequential calls)
-- Faster word acceptance (immediate save with AI seed, enrichment happens in background)
-- Better user experience (no alert popups, real-time data enrichment feedback in modal)
-- Full transparency on data sources via attribution display
+**Impact:** Reduced API call count significantly. Faster tile preview and word acceptance. No alert popups. Full data source transparency.
 
-**Technical Detail**: 
-- `_batchFetchTileDefinitions(words)` — Single Gemini batch call replaces N Free Dict tile calls
-- `window._tileWordData` — Per-tile-index cache for AI-generated definitions (reused on accept)
-- `_saveWordWithEnrichment(word)` — New save flow: synchronously saves with cached AI data, then async enrichment via Free Dict → Wordnik → Gemini gap-fill
-- `_mergeWordSources(freeDict, wordnik, aiData)` — Pure helper merging multiple sources with dedup (5 max synonyms/antonyms each, best non-circular definition)
-- `dataSources[]` — Words now track contributing APIs as array of strings
-- Word card modal — Shows "Sources: <list>" at bottom
-- `_openModalWordId` tracker — Auto-refreshes modal when enrichment completes for the displayed word
-- `acceptImageWord()` — Now bypasses `addWords()` entirely, eliminating popup alerts
+**Technical Detail:** `_saveWordWithEnrichment()` saves with cached AI data, then async enrichment via Free Dict → Wordnik → Gemini gap-fill. `_mergeWordSources()` merges multiple sources with dedup.
 
-## 2026-04-27 — feat: rich image-scan popup with tiles, definitions, and difficulty system
+---
 
-**What:** Redesigned the image vocabulary scan popup to display extracted words as styled tiles with async-fetched dictionary definitions. Added a difficulty scoring system (Easy/Medium/Hard/Very Hard) computed from API data richness. Introduced visual difficulty indicators: coloured difficulty badges in word tiles and word detail modals; small coloured difficulty dots on library cards. Two labelled sections ("📖 Underlined Words" / "✨ AI-Suggested Words") separated by a divider for clarity. All definitions stored and grouped by part of speech in word detail modals.
+## 2026-04-27 — Rich Image-Scan Popup with Tiles, Definitions, Difficulty System
 
-**Why:** Previous image scan popup listed words as plain text with no enrichment. Users couldn't see word definitions before accepting them, and there was no difficulty metadata to help prioritize learning. The feature request was to preview definitions inline and visually indicate word difficulty at a glance.
+**What:** Redesigned image vocabulary scan popup to display extracted words as styled tiles with async-fetched definitions. Added difficulty scoring system (Easy/Medium/Hard/Very Hard). Two labelled sections ("📖 Underlined Words" / "✨ AI-Suggested Words") separated by divider.
 
-**Impact:** Image scanning now shows full dictionary definitions (phonetic, parts of speech, usage examples) for each word before the user accepts them. Difficulty badges provide quick visual cues for study planning. Synonyms section renamed to "Synonyms" from "Related Words" for accuracy.
+**Why:** Previous scan listed words as plain text with no enrichment. Users couldn't see definitions before accepting. No difficulty metadata for prioritization.
 
-**Technical Detail:**
-- **CSS additions**: `.img-vocab-tile`, `.img-vocab-section-label`, `.img-vocab-section-divider`, `.difficulty-badge` (4 variants: easy/medium/hard/vhard), `.dict-diff-dot` (coloured dot on library cards)
-- **`showImageVocabModal(underlined, suggested)`**: Rewritten to accept separate arrays; renders two labelled sections with divider; each word as a tile that async-fetches definition on modal open
-- **`_buildVocabTile(word, idx)`**: New helper builds tile HTML with placeholder definition state
-- **`_fetchTileDefinition(word, idx)`**: New async helper fetches Free Dict API and fills part-of-speech, phonetic, definition; calls `_scoreDifficulty()` to compute badge
-- **`_parseFreeDictEntry(data)`**: Enhanced to capture `allDefs` array (all definitions across all parts of speech, up to 8)
-- **`_scoreDifficulty(wordData)`**: New helper scores 1–4 (Easy→Very Hard) based on audio presence, synonym count, and word length; used in `addWords()` instead of hardcoded difficulty
-- **`addWords()`**: Now calls `_scoreDifficulty(wordData)` and stores `allDefinitions: wordData.allDefs || []`
-- **`openModal()`**: Renders difficulty badge (coloured pill next to word); "All Definitions" section (grouped by part of speech, hidden if only 1 def)
-- **Library cards (dict-card)**: Small coloured dot bottom-right indicating difficulty (green=easy, blue=medium, orange=hard, red=very hard)
-- **Word detail modal HTML**: Added `id="mDiffBadge"` span, `id="mAllDefsSec"` / `id="mAllDefs"` section, renamed "Related Words" → "Synonyms"
-- **`generateVocabFromImage()`**: Changed `showImageVocabModal(all)` to `showImageVocabModal(parsed.underlined_words, parsed.suggested_words)` to pass separate arrays
-- File changed: `Flashcards_app_project/app.html` (~7000+ lines)
+**Impact:** Image scanning shows full dictionary definitions before acceptance. Difficulty badges provide visual cues for study planning.
 
-## 2026-04-27 — docs: add PRD and reformat PRD analysis with proper markdown
+**Technical Detail:** New CSS classes for tiles and difficulty badges. `_fetchTileDefinition()` async helper fetches Free Dict and computes difficulty via `_scoreDifficulty()`.
+
+---
+
+## 2026-04-27 — Docs: Add PRD and Reformat PRD Analysis with Proper Markdown
 
 **What:** Added `PRD.md` (new product requirements document) and reformatted `PRD_analysis.md` with proper markdown structure (headers, tables, lists).
 
-**Why:** `PRD_analysis.md` had plain text tables and lists that didn't render correctly in markdown viewers; `PRD.md` was missing entirely.
+**Why:** `PRD_analysis.md` had plain text tables that didn't render; `PRD.md` was missing.
 
-**Impact:** Project documentation is now complete and readable in any markdown viewer. Clear PRD establishes product vision, features, and roadmap. Analysis document provides critical feature gaps and recommendations.
-
-**Technical Detail:** `PRD.md` created fresh covering product vision, features, user flows, tech stack, and roadmap. `PRD_analysis.md` rewritten with proper `##`/`###` headers, `| table |` syntax, and `- list` formatting for all content previously in plain text blocks. Both files now follow consistent markdown conventions.
-
-## 2026-04-26 — fix: show real API error instead of silent "no words found" on image scan
-
-**What:** Fixed error handling in both image processing functions in app.html. Previously when the Cloudflare Worker forwarded a Gemini API 429/error response with HTTP 200, the app silently fell back to empty arrays and displayed "No words found in image."
-
-**Why:** User reported image upload always returned "no words" despite the prompt working correctly in Gemini web. Root cause was the API key hitting its free-tier quota; secondary cause was the app not checking `data.error` in the response.
-
-**Impact:** Image scanning now shows the actual API error (e.g. "quota exceeded") instead of silently failing. Users get actionable feedback.
-
-**Technical Detail:** Both `processImage()` (~line 7062) and `generateVocabFromImage()` (~line 7194) in app.html now check `!res.ok || data.error` after parsing the response JSON, and throw if `candidates` is absent.
-
-## 2026-04-26 — feat: secure Gemini API key via Cloudflare Worker proxy
-
-### What
-- Removed hardcoded `GEMINI_API_KEY` constant from client-side HTML (`app.html`)
-- Replaced all 4 direct Gemini API fetch calls (word enrichment, distractor generation, image scanning, image vocab modal enrichment) with calls to a Cloudflare Worker proxy endpoint (`https://gemini-proxy.suraj-kunuku23.workers.dev`)
-- API key now stored securely as a Cloudflare Worker secret, never exposed to the browser
-- Constant renamed from `GEMINI_API_KEY` to `GEMINI_PROXY_URL`
-
-### Why
-Hardcoded API key in client-side HTML was being detected and restricted by Google. The key was discoverable in browser DevTools, causing Google to flag the account for quota abuse and disable the API. Moving the key to a Cloudflare Worker secret ensures it never reaches the client and eliminates the security risk.
-
-### Impact
-API key is now secured behind a server-side proxy. Image scanning, word enrichment, distractor generation, and all Gemini-powered features work reliably without quota abuse risk. Users experience no change to functionality.
-
-### Technical Detail
-- File: `Flashcards_app_project/app.html`
-- Replaced `const GEMINI_API_KEY = 'AIzaSy...'` with `const GEMINI_PROXY_URL = 'https://gemini-proxy.suraj-kunuku23.workers.dev'`
-- Updated 4 fetch calls (word enrichment ~line 6851, distractor generation ~line 7051, image scanning ~line 7183, image vocab modal enrichment ~line 7988) to route through proxy
-- Fetch requests now POST to proxy endpoint instead of directly to `generativelanguage.googleapis.com`
-- Proxy authenticates with Google API using server-stored key, then returns response to client
-
-## 2026-04-25 — fix: replace expired Gemini API key with new AI Studio key
-
-### What
-- Replaced the expired Gemini API key (`AIzaSyDxRsKIMYM10TGIix7IXkNY25DR9skH6tw`) with a new key from Google AI Studio (`AIzaSyC8BMwruBk1ybFSk3p2P6xW_ew_0wWsOdA`)
-- Updated `GEMINI_API_KEY` constant at line 5447 in `app.html`
-
-### Why
-The previous API key had exhausted its free tier quota (limit: 0 error), causing image scanning and all Gemini-powered features (word enrichment, distractor generation, image vocab extraction) to fail with "quota exceeded" errors. A new key was generated from Google AI Studio to restore service.
-
-### Impact
-Image upload/scan feature and all AI-powered functionality restored. Users can now scan images, enrich words, and generate quiz distractors without errors.
-
-### Technical Detail
-- File: `Flashcards_app_project/app.html` line 5447
-- Changed `const GEMINI_API_KEY = 'AIzaSyDxRsKIMYM10TGIix7IXkNY25DR9skH6tw'` to `const GEMINI_API_KEY = 'AIzaSyC8BMwruBk1ybFSk3p2P6xW_ew_0wWsOdA'`
-- All 4 Gemini fetch calls automatically use the updated key: word enrichment, distractor generation, image scanning, image vocab modal enrichment
-
-## 2026-04-25 — fix: upgrade Gemini model from gemini-1.5-flash to gemini-2.0-flash
-
-### What
-- Updated all 4 Gemini API endpoint URLs in `app.html` from deprecated `gemini-1.5-flash` model to `gemini-2.0-flash`
-- Affected 4 fetch calls: word enrichment, distractor generation, image scanning, image vocab modal enrichment
-
-### Why
-`gemini-1.5-flash` model was retired and returning "model not found" errors when users tried to upload/scan images or generate enrichment data. The newer `gemini-2.0-flash` model provides the same vision and text capabilities with improved stability.
-
-### Impact
-Image scanning/upload feature is now fully functional again. All AI-powered features (word enrichment, image vocab extraction, quiz distractor generation) working without errors.
-
-### Technical Detail
-- Updated URL strings in fetch calls at lines ~6851, ~7051, ~7183, ~7988 in `app.html`
-- Changed `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent` to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
-- No function signatures or API request/response formats changed; direct model ID substitution only
-
-## 2026-04-25 — refactor: replace Anthropic with Gemini Flash, hardcode API key
-
-### What
-- Replaced all Anthropic/Claude Haiku API calls with Gemini 1.5 Flash (4 fetch sites: word enrichment, distractor generation, image scanning, image vocab modal enrichment)
-- Added `GEMINI_API_KEY` constant at top of `<script>` block — single source of truth for all Gemini calls
-- Word enrichment (IPA, definition, usage) now always runs via Gemini 1.5 Flash; no longer requires user to provide an Anthropic key
-- Quiz distractor generation switched from Anthropic to Gemini Flash
-- Removed Gemini and Anthropic API key input fields from UI (Gemini input removed from Scan Page AI modal; Anthropic input removed from Quiz section)
-- Removed all localStorage reads/writes for `gemini_key` and `anthropic_key`; verified zero remaining refs
-- Code quality fixes: `_previewVocabWord` moved from `window` to module-level; stale event handler cleanup in `editImageWord` and `showImageVocabModal`; `.catch()` added to `acceptImageWord`
-
-### Why
-User requested the app work out-of-the-box without manual API key entry. Temporary solution: developer's Gemini API key hardcoded as a constant (TODO: migrate to Cloudflare Workers for true security). Unified all AI calls under a single provider (Gemini) to simplify maintenance and improve reliability.
-
-### Impact
-App now fully functional without users entering any API keys. Word enrichment, image scanning, and quiz distractors all powered by Gemini Flash automatically. Reduced cognitive load and improved first-time user experience.
-
-### Technical Detail
-- `const GEMINI_API_KEY` declared at top of `<script>` block; used in 4 fetch URLs: `_haikuEnrichWord()`, `_callAnthropicDistractors()`, `processImage()`, `generateVocabFromImage()`
-- `_haikuEnrichWord()`: Anthropic fetch replaced with Gemini fetch; function signature and output unchanged (`{phonetic, definition, usage}`)
-- `_callAnthropicDistractors()`: Anthropic fetch replaced with Gemini fetch; fallback to `_fallbackDistractors()` preserved
-- `addWords()`: removed `if (anthropicKey)` gate that blocked Tier 3 enrichment; now enrichment always runs
-- `processImage()`: removed `localStorage.getItem('gemini_key')` and `localStorage.setItem('gemini_key', ...)` calls; uses `GEMINI_API_KEY` constant
-- `generateVocabFromImage()`: removed `localStorage.getItem('gemini_key')` and "no key found" alert; uses `GEMINI_API_KEY` constant
-- Deleted `#geminiApiKey` input from AI modal (Scan Page)
-- Deleted `#anthropicApiKey` input from Quiz section
-- `_previewVocabWord` moved from `window._previewVocabWord` to module-level `let`; prevents namespace pollution
-- Event handler cleanup: `editImageWord()` removes old click listener before adding new one; `showImageVocabModal()` cleanup before modal display
-- File changed: `Flashcards_app_project/app.html`
-
-## 2026-04-25 — feat: word preview before saving and image vocab review modal
-
-### What
-- Generate flow: text word + Vocab now shows AI Preview card with fetched definition before saving
-- Generate flow: image + Vocab now opens a popup modal listing all extracted words (underlined + AI-suggested) with per-word Accept / Edit / Decline buttons
-- Removed shortcircuit that was bypassing the preview and adding words directly
-
-### Why
-User reported that (1) typing a word and clicking Generate added it immediately without showing the definition, and (2) attaching an image and clicking Generate showed a generic placeholder card instead of the actual extracted words
-
-### Impact
-Users can now review word definitions before accepting them into their library; image scans via the main Generate flow are fully functional with a clean review modal
-
-### Technical Detail
-- `handleGenerate()`: removed vocab+text shortcircuit; added image+vocab branch calling `generateVocabFromImage()`
-- New `_loadVocabPreview(word, deckId)`: fetches from Free Dictionary API, updates preview card content in-place
-- `acceptPreview('vocab', deckId)`: now async, shows Saving… state, calls `_addWordsFromText()` on Accept
-- New `generateVocabFromImage(file, deckId)`: Gemini 1.5 Flash API call, parses underlined_words + suggested_words, opens modal
-- New modal: `#imageVocabModalOverlay` with `.img-vocab-row` / `.img-vocab-word` CSS; functions `showImageVocabModal`, `acceptImageWord`, `editImageWord`, `declineImageWord`
-- File changed: `Flashcards_app_project/app.html`
-
-## 2026-04-25 — Fix: Onboarding funnel bug fixes (5 issues)
-
-**What**: Fixed five bugs in the onboarding funnel:
-1. Step 2 disappeared after slide-in animation (missing `active` class post-`animationend`)
-2. `applyProfileToUI()` silently no-oped — `#sidebarProfileName`/`#sidebarProfileGoal` never existed in HTML; injected both into `renderSidebarProfile()` template and call `applyProfileToUI()` after render
-3. Swipe gesture on tour fired on diagonal scrolls — added vertical-drift guard (`|dx| > |dy|`)
-4. `showHint()` flip used hardcoded 80px height — replaced with measured `getBoundingClientRect().height`
-5. Progress label `Step X of 2` had no clamp — added `Math.min(to + 1, 2)`
-
-**Why**: Haiku audit surfaced 2 critical and 3 medium/low bugs that broke step navigation and silently swallowed profile data.
-
-**Impact**: Step 2 of profile setup now stays visible; sidebar correctly shows the user's name and goal after onboarding; tour no longer skips slides on scroll; hints position correctly near viewport edges.
-
-**Technical Detail**: `_setProfileStep()` in app.html line 3782; `renderSidebarProfile()` / `applyProfileToUI()` lines 4262–4287 / 4018–4027; swipe handler lines 3939–3951; `showHint()` lines 4031–4057; progress label line 3787.
-
-## 2026-04-24 — feat: redesign user onboarding experience
-
-**What:** Overhauled all onboarding screens — Profile Setup (animated progress bar replacing step dots, gradient step icons, goal validation with shake animation, directional slide transitions, trust micro-copy, mobile bottom-sheet), Welcome Tour (4 CSS-animated hero illustrations per slide: floating deck cards, 3D flip card, cascading quiz bars, typewriter notepad; per-slide accent badge, swipe gestures, goal-aware copy), and Onboarding Completion (first-word ceremony overlay: serif typewriter, word-by-word definition stagger, Day 1 streak badge).
-
-**Why:** User requested a premium, design-elevated onboarding flow. Existing onboarding used basic emoji icons and step dots with no animation or visual hierarchy. Opus 4.7 and Sonnet 4.6 collaborated to design the approach.
-
-**Impact:** First-time users now experience a warm, premium onboarding that matches the app's literate aesthetic. Mobile users get bottom-sheet layouts. Goal selection data now surfaces in the UI via applyProfileToUI(). Hints no longer overflow viewport.
-
-**Technical Detail:** New CSS keyframes (onboardSlideUp, cardFlip, deckFloat, barGrow, cursorBlink, wordType, wordFadeUp, sheetRise, shake); CSS tokens --tour-c-decks/cards/quiz/notes, --onboard-shadow; JS: _setProfileStep(), renderTourSlide() rewrite with fade+hero swap, showOnboardComplete() with GOAL_FIRST_WORDS map, applyProfileToUI(), hint viewport clamp; new HTML: #onboardCompleteOverlay, .tour-hero with 4 CSS illustration variants. All in Flashcards_app_project/app.html.
-
-## 2026-04-23 - Bug Fixes: Onboarding — Firestore Upsert, Hint Onclick Safety, Z-Index Conflict
-
-- **What**: Fixed 3 bugs in onboarding code: Firestore upsert in `finishProfileSetup` (changed `_fbUpdateDoc` to `_fbSetDoc` with `{merge:true}`), unsafe inline onclick in `showHint` replaced with `addEventListener` for safe closure-based handling, z-index conflict on `.file-dropdown` resolved (9999→9996).
-- **Why**: Bug audit by two parallel agents after the onboarding feature was shipped; identified after feature review.
-- **Impact**: Profile data now reliably persists to Firestore on first login (no silent failure if doc doesn't exist); hint system is safe regardless of storageKey content (no quote escaping issues); dropdown stacking is deterministic.
-- **Technical Detail**: 
-  - `finishProfileSetup()` now uses `_fbSetDoc(userRef, profileData, {merge:true})` instead of `_fbUpdateDoc`, which safely upserts on first login when the Firestore document may not exist yet.
-  - `showHint()` uses closure-based `addEventListener('click', ...)` instead of inline `onclick="dismissHint(this,'${storageKey}')"`, preventing quote escaping vulnerabilities.
-  - `.file-dropdown` z-index lowered to 9996 to resolve stacking ambiguity with `#loginScreen` (both at 9999).
-
-## 2026-04-23 - User Onboarding Journey, Profile Setup, Welcome Tour, and Help Panel
-
-- **What**: Added full user onboarding journey — 2-step profile setup screen (`#profileSetupScreen`), 4-card welcome tour modal (`#welcomeTourModal`), contextual hint tooltip system (4 hints for Flashcards, Quiz, deck switch), and Help & Guide sidebar panel (`#helpPanel`) with 4 tabs (Getting Started quickstart, Features accordion, Tips & Shortcuts with keyboard shortcuts, Replay Tour).
-- **Why**: New users had no guidance after login; no in-app help or reference. Onboarding dropoff was high due to blank-slate app with zero orientation.
-- **Impact**: First-time users now receive a personalized 2-step setup flow (name from Google, goal selection, optional daily target/age/city/mobile) and a 4-card feature walkthrough. All users can access comprehensive help at any time via the sidebar. Contextual hints guide users through core workflows on first use.
-- **Technical Detail**:
-  - **Profile Setup** (`showProfileSetup()`, `finishProfileSetup()`): Step 1 shows Google name + goal chips (Daily Goal, Test Prep, Casual Learning, Passionate Interest, etc.); Step 2 collects optional daily target, age, city, mobile. Data saved to `localStorage('nexora_profile')` and synced to Firestore at `users/{uid}.profile`. Controlled by `nexora_profile_complete` flag.
-  - **Welcome Tour** (`startWelcomeTour()`, `closeTour()`, `tourNav()`): 4 paginated cards (Decks, Flashcards, Quiz, Notes) with animated progress dots, Back/Skip/"Let's go!" nav. Stored state: `nexora_tour_complete` flag. Accessed via `handleAuthState` after login (unless flag set) or `skipLogin` for guests.
-  - **Contextual Hints** (`showHint()`, `dismissHint()`): Non-blocking tooltips shown once per session per context (flashcards, quiz, deck selection, notes). Auto-dismiss after 6s or on manual close. Flags: `nexora_hint_flashcards`, `nexora_hint_quiz`, `nexora_hint_deck`, `nexora_hint_notes`.
-  - **Help Panel** (`openHelpPanel()`, `closeHelpPanel()`, `switchHelpTab()`): Right-sliding panel with tabs: Getting Started (3-step quickstart), Features (accordion per feature), Tips & Shortcuts (keyboard shortcuts + pro tips), Replay Tour (resets and restarts welcome tour).
-  - **Sidebar item**: "? Help & Guide" added at bottom of sidebar above profile section.
-  - All integrated into `handleAuthState` and `skipLogin` flows.
-
-## 2026-04-23 - Bug Fixes: Third Pass — Wordnik Usage Undefined, opposites Null, Timer Leak, Quiz Race Condition (Issues #26–#29)
-
-- **What**: Fixed 4 MAJOR bugs found in a third Haiku 4.5 review: undefined values in Wordnik usage array, `w.opposites` null crash in modal, stale autoflip timer on new flashcard session, and `_renderNqCard()` race condition storing distractors at wrong index
-- **Why**: GitHub issues #26–#29 documented silent data corruption (undefined usage sentences), a modal crash for Haiku-enriched words, timer bleed between sessions, and wrong quiz options appearing when navigating rapidly
-- **Impact**: Wordnik usage sentences are always valid strings; word modal opens reliably for all word types; starting a new flashcard session always clears the previous timer; quiz distractors are always stored at the card that requested them
-- **Technical Detail**:
-  - `_fetchWordnik()` ~3826: `.map(e => e.text).filter(Boolean)` — drops undefined entries
-  - `openModal()` ~3932: `(w.opposites || []).length` and `(w.opposites || []).map(...)` — null guard
-  - `startFlashWithSelectedDecks()` ~4798: `_clearAutoFlipTimer()` added before resetting state
-  - `_renderNqCard()` ~4962: captured `const cardIdx = _nqIdx` at function entry; all `_nqTrack[_nqIdx]` inside async block replaced with `_nqTrack[cardIdx]`
-
-## 2026-04-23 - Bug Fixes: Second Pass — Timer Leak, Index Bounds, Stats Null Guard (Issues #20–#24)
-
-- **What**: Fixed 5 bugs found in a second Haiku 4.5 review pass: null array guard on `wordData.usage`, undefined guard on `wordData.types`, auto-flip timer leak on overlay close, quiz next-button index overflow, and missing perf null guard in `renderStats()`
-- **Why**: GitHub issues #20–#24 documented crashes in `addWords()` when Haiku enrichment returned null usage/types; a background timer firing after the practice overlay was closed; quiz index growing unbounded; and stats crashing on words loaded before perf tracking was initialised
-- **Impact**: Word addition no longer crashes on enrichment edge cases; closing practice stops all timers; quiz navigation is bounds-safe; stats render correctly for all words
-- **Technical Detail**:
-  - `addWords()` ~3745: `!wordData.usage.length` → `!Array.isArray(wordData.usage) || !wordData.usage.length`
-  - `addWords()` ~3750: `wordData.types.length` → `(wordData.types || []).length`
-  - `closePracticeOverlay()`: `_clearAutoFlipTimer()` added as first line
-  - `_showNewQuizArea()` ~4923–4924: next-arrow/btn onclick guards with `if (_nqIdx < _nqQueue.length)`
-  - `renderStats()` ~4681: `perf[w.id] = perf[w.id] || { quiz: {c:0,w:0}, flash: {c:0,w:0} }` before access
-
-## 2026-04-23 - Bug Fixes: Null-Safety, Async/Await Race Conditions (Issues #16–#19)
-
-- **What**: Fixed 10 null-safety and async race condition bugs across dictionary waterfall, word modal, quiz navigation, and stats filter
-- **Why**: GitHub issues #16–#19 documented crashes when API responses were empty, `mAudioBtn` was missing from DOM, quiz navigation fired before async options loaded, and stats accessed `.flash` on words added before perf tracking existed
-- **Impact**: Word addition, quiz flow, and stats view no longer crash under edge-case data; quiz options always fully loaded before display
-- **Technical Detail**:
-  - `addWords()`: guard `data[0]` with `if (!data || !data.length) throw`; guard `usage[0].startsWith` with existence check
-  - `_parseFreeDictEntry()`: `(m.definitions || []).forEach()`
-  - `_fetchWordnik()`: `if (Array.isArray(rel)) rel.forEach()`
-  - `_haikuEnrichWord()`: wrap `JSON.parse(text)` in try-catch
-  - `openModal()`: early-return guard after `getElementById('mAudioBtn')`
-  - `_showNewQuizArea()`: quiz nav onclick handlers made `async`, `await _renderNqCard()`
-  - `restartCurrentQuiz()`: made `async`, `await startNotesQuiz()` / `await startVocabQuizDirect()`
-  - `_getFilteredBase()`: add `perf[w.id].flash &&` before accessing `.flash.c`/`.flash.w` in unseen filter
-  - `selectNqOption()`: guard `if (!track || track.answered) return`
-
-## 2026-04-23 - Dictionary Waterfall + AI Gap-Fill + Web Speech Audio Fallback
-
-- **What**: Replaced single-tier Free Dictionary API call in `addWords()` with a 4-tier waterfall: (1) Free Dictionary API, (2) Wordnik fallback (optional key), (3) Claude Haiku 4.5 gap-fill for missing IPA/definition/usage, (4) Web Speech API audio fallback at playback time. Audio button in word modal now uses `speechSynthesis` when no audio URL is stored.
-- **Why**: Core vocabulary entries and obscure words often returned incomplete data (missing IPA, no audio, vague definition). The waterfall progressively enriches each word at near-zero cost.
-- **Impact**: Words added via the vocab input now receive IPA phonetics, audio, and usage examples from the best available source. All existing words gain Web Speech API pronunciation via the modal audio button even without a stored URL.
-- **Technical Detail**: `addWords()` refactored with three new helpers: `_parseFreeDictEntry()` (extracts structured data from Free Dict response), `_fetchWordnik()` (definitions + examples + related words via Wordnik API; key in `localStorage('wordnik_key')`), `_haikuEnrichWord()` (targeted Haiku 4.5 call — only requests fields that are still missing; reuses `anthropic_key` pattern). Audio button handler updated: `new Audio(url)` if URL present, else `speechSynthesis.speak()` if available, else hidden.
-
-## 2026-04-23 - Dropdown Clipping Fix & AI Image Word Review UI
-
-- **What**: Fixed the `+` file-attach button dropdown being clipped by parent containers. Upgraded the AI "Scan Page" image flow from a crude `window.confirm()` dialog to a full in-modal word review UI with two toggleable chip sections.
-- **Why**: The dropdown was being cut off at the `.add-section-card` boundary due to `overflow: hidden` on that container and `overflow-y: auto` on `.main-scroll-area`, making it unusable. The old confirm dialog gave no control over which words to add. User wanted to accept/reject individual words and also receive AI-suggested hard words beyond just the underlined ones.
-- **Impact**: The `+` dropdown now renders fully visible regardless of scroll position. The Scan Page flow now shows underlined words and up to 8 AI-suggested hard words as toggleable chips — users can deselect any word before adding to Nexora. A "← Scan Another Image" link resets the modal for a second scan.
-- **Technical Detail**:
-  - `.file-dropdown` CSS changed from `position: absolute` to `position: fixed` with `z-index: 9999`
-  - `toggleFileDropdown()` now calls `e.currentTarget.getBoundingClientRect()` and sets `menu.style.top`/`left` dynamically, bypassing all overflow clipping
-  - Gemini Vision prompt updated to return `{ "underlined_words": [...], "suggested_words": [...] }` (up to 8 hardest non-underlined words)
-  - `processImage()` parses both arrays with backward-compat fallback to legacy `words` key
-  - New `#aiReviewSection` HTML block added inside `#aiModal` with two chip group divs, "Add Selected Words" button, and reset link
-  - New CSS: `.ai-word-chip` pill (toggle selected/deselected via `.deselected` class), `.ai-review-add-btn`, `.ai-review-reset-link`
-  - New functions: `showWordReview(underlined, suggested)`, `confirmWordSelection()`, `resetAiModal()`
-  - `CLAUDE.md` updated to add Step 0 (update `evolution.md` + `comprehensive_project_summary.md` before every push)
-
-## 2026-04-22 - M3 Warm/Gamified Design Implementation
-
-- **What**: Applied a complete Material Design 3 (M3) warm/gamified aesthetic inspired by Duolingo and Brainscape across the entire app. Replaced all fonts (Playfair Display / DM Mono / DM Sans) with Plus Jakarta Sans. Converted the dark ChatGPT-inspired sidebar to white with a green-tinted gradient (#F0FDF4), emerald pill-shaped nav with SVG icons, and "L" logo mark. Redesigned cards with 14px radius, color-coded 4px left borders (green for mastered, amber for learning, red for new), circular SVG score rings, and color-coded top borders on flashcards (amber for learning, emerald for mastered). Updated all buttons to pill-shaped with emerald primary and drop-shadow. Changed app background to warm #FFF7ED. Applied M3 rounded aesthetic (18px radius) to the Add panel, flashcards, modals, quiz, and stats views. Login screen now displays as a warm card with emerald CTA buttons.
-- **Why**: To create a more engaging, gamified, and visually cohesive user experience that encourages learning through warm colors and playful design language.
-- **Impact**: The app now feels modern, cohesive, and premium. The warm palette and M3 design system make vocabulary learning feel more rewarding and less sterile.
-- **Technical Detail**: Font changed to Plus Jakarta Sans throughout; palette includes #FFF7ED (warm bg), #10B981 (emerald), #F59E0B (amber), #EF4444 (red), #F0FDF4 (sidebar gradient). All components (sidebar, cards, buttons, modals, flashcards, quiz) updated to M3 specifications.
-
-## 2026-04-21 - Per-User Data Isolation & Sample Decks for All Users
-
-- **What**: Fixed demo deck seeding for logged-in users: `seedDemoData` is now guest-only; new `mergeDemoDataForUser()` runs after `pullFromCloud` resolves to merge demo decks without overwriting real user data (triggered once per account via `nexora_demo_seeded` flag). Added delete button (🗑️) for every sidebar deck; deletion moves items to the first remaining deck instead of hardcoded General. Replaced Library list view with a 2-column card grid showing content preview and deck-name badge per card.
-- **Why**: Users wanted to see example decks even after signing in, and the previous approach (seeding before cloud pull) meant existing users never got the demo content. Also improved library browsing with a visual card-based grid.
-- **Impact**: All users (guest and signed-in) see curated example decks with sample content. Any deck can be deleted without data loss.
-- **Technical Detail**: Added `mergeDemoDataForUser()` with `nexora_demo_seeded` guard flag (user-namespaced, per-account). Library grid now renders 2 columns of cards with preview content and deck badge.
-
-## 2026-04-21 - GitHub Push Process & Project Conventions
-
-- **What**: Added `CLAUDE.md` at project root documenting the mandatory 3-step GitHub workflow (commit → create issue → close issue), curl-based GitHub API approach (since gh CLI is not installed), commit message conventions (feat/fix/docs/refactor), and project overview for future Claude Code sessions.
-- **Why**: To establish a repeatable, documented process for pushing code and creating issue records without relying on third-party CLI tools.
-- **Impact**: Future development sessions have a clear, copy-paste-ready workflow for all GitHub interactions.
-
-## 2026-04-21 - Example Decks with Full Content & Complete Library Rename
-
-- **What**: Seeded 4 example decks for first-time guests: "Atomic Habits", "How to Avoid a Climate Disaster" (Bill Gates), "The Alchemist", and "Class 10 Science". Each deck contains 6–7 notes, 7 flashcards, and 6–7 vocabulary items. Renamed "All Words" aggregate view to "Complete Library" across 5 locations (HTML, sidebar, deck header, quiz selector, JS logic). Added `nexora_demo_seeded` guard flag to prevent re-seeding on return visits.
-- **Why**: To give new users immediate, engaging content to explore and learn from, reducing the blank-slate friction.
-- **Impact**: First-time users see a rich, pre-populated library with diverse learning material. The Complete Library branding is more descriptive and premium.
-- **Technical Detail**: Example deck data added to seedDemoData(); guard flag prevents re-seeding unless user clears browser storage or signs out.
-
-## 2026-04-21 - Enforce Per-User Data Isolation & Clear Guest State
-
-- **What**: Removed un-namespaced localStorage reads at global init and sign-out; reset all in-memory arrays (ALL_VOCAB, ALL_NOTES, perf, etc.) on sign-out; clear un-namespaced guest localStorage keys on sign-out. `pullFromCloud` now returns true for brand-new users. On first login, migrate any guest-created data into the user's UID namespace, then clear guest keys. Firestore security rules enforce server-side that each user can only read/write their own document.
-- **Why**: Previous sessions leaked data between different email accounts on the same browser because `localStorage` was not namespaced and Firestore had no server-side access control.
-- **Impact**: Multi-user security is now enforced. Guest data no longer persists between sessions and doesn't leak to logged-in users.
-- **Technical Detail**: All localStorage keys now scoped by userId; Firestore rules check uid == request.auth.uid; guest data migrated on first sign-in via `migrateGuestData()`.
-
-## 2026-04-20 - Single-Page Layout Restructure & Notes/Deck Pivot
-
-- **What**: Replaced the tab-based navigation with a single scrollable main page. Renamed "Projects" to "Decks". Added a sidebar Practice section. Introduced a Library grid combining all content types (Vocab, Notes, Flashcards). Added Notes as a first-class content type. Added an Add Section card with type pills, file attachment, and a Generate → AI preview flow.
-- **Why**: The user pivoted the app's purpose from a vocabulary-only tool to a full note-taking + flashcards + vocab learning platform. The tab layout was limiting and the single-page approach with a unified Library makes all content types accessible at a glance.
-- **Impact**:
-    - Main area is now a single scrollable page with: Deck Header → Add Section → AI Preview → Library
-    - Flashcards, Quiz, Stats are accessed via a "Practice" section in the sidebar (shown as a full-area overlay with ← Library back button)
-    - Library has filter pills: All / Notes / Flashcards / Quizzes / Vocab
-    - Add Section toolbar: [+] file attach (Image/PDF/File) | type pills (Vocab/Notes/Flashcard/Quiz) | deck select | Generate → button
-    - Generate → shows a per-type AI preview panel with Accept / Edit / Discard per card
-    - Deck header updates dynamically (dot + name + item count) when decks are switched from sidebar
-- **Technical Detail**:
-    - Added `renderLibrary(filter)` replacing `renderDict()` — combines vocab, notes, custom cards in one grid
-    - Added `openPracticeView(type)` / `closePracticeOverlay()` for the practice session overlay
-    - Added `setLibFilter(filter)`, `toggleTypePill()`, `toggleFileDropdown()`, `handleGenerate()`, `acceptPreview()`, `discardPreview()`
-    - `applyProjectFilter()` now calls `renderLibrary()` and updates the deck header count
-    - `switchProject()` closes the practice overlay and refreshes the page header
-    - Existing flashcard/quiz/stats JS logic is completely unchanged; only their container moved to `#practiceOverlay`
-    - `nexora_notes` data added to cloud sync payload
-
-## 2026-04-20 - Deck System & Notes (Previous Session)
-
-- **What**: Renamed "Projects" → "Decks" throughout the UI. Added a Notes section per deck. Added a deck dashboard view (replaced by the single-page layout in the same session). Added a dual-nav system (all-words vs deck mode), later superseded by the single-page layout.
-- **Why**: Preparation for the full pivot to a notes+learning platform.
-- **Impact**: Notes stored in `nexora_notes` localStorage key, synced to Firestore. Note editor modal added.
+**Impact:** Project documentation is now complete and readable in any markdown viewer.
 
 ---
 
-## 2026-04-09 - Performance Optimization & Optimistic UI
-- **What**: Implemented parallel fetching for core data and migrated the authentication state handler to an "Optimistic UI" pattern (loading from cache first, syncing in background).
-- **Why**: To eliminate long loading screens ("Loading vocabulary...") caused by sequential network requests to Firebase and local storage.
-- **Impact**: Application startup is now near-instant. Users see their data immediately from local cache, while cloud synchronization happens silently in the background.
-- **Technical Detail**: 
-    - Replaced sequential `fetch()` calls with `Promise.all()`.
-    - Removed `await` from the cloud pull in `handleAuthState` to prevent network latency from blocking the UI.
+## 2026-04-26 — Fix: Show Real API Error Instead of Silent "No Words Found" on Image Scan
 
-## 2026-04-09 - Firebase Google Authentication
-- **What**: Integrated Firebase Authentication with Google Sign-In using the script-tag (CDN) approach. Established a functional login/logout flow.
-- **Why**: To enable user-specific data persistence and progress tracking across devices, fulfilling a core roadmap objective.
-- **Impact**: Transitioned from a local-only application to a cloud-authenticated ecosystem. Users can now securely identify themselves via Google.
-- **Challenges & Solutions**:
-    - *Localhost/Domain Constraints*: Configured Firebase authorized domains to handle local development environment.
-    - *Popup Management*: Resolved issues with authentication popups closing prematurely by properly handling the `signInWithPopup` promise and state transitions.
+**What:** Fixed error handling in image processing functions. Previously when API returned error with HTTP 200, app silently fell back to empty arrays and displayed "No words found."
+
+**Why:** User reported image upload always returned "no words" despite the prompt working. Root cause was API hitting free-tier quota; secondary cause was app not checking `data.error`.
+
+**Impact:** Image scanning now shows the actual API error instead of silently failing. Users get actionable feedback.
 
 ---
 
-## 2026-03-30 - UI Restructure & Sidebar Navigation
-- **What**: Reorganized the application to feature a ChatGPT-inspired dark sidebar for project management. Unified vocabulary loading to support both core files and custom `localStorage` projects. Implemented an "All Words" global view.
-- **Why**: To improve navigation and organization. The user requested a more professional, sidebar-based layout where projects are easily accessible on the left, similar to modern AI chat interfaces.
-- **Impact**: Enhanced project-based organization and a more premium, scalable user interface. Users can now seamlessly switch between specific books/topics and a holistic view of all their vocabulary.
+## 2026-04-26 — Feat: Secure Gemini API Key via Cloudflare Worker Proxy
+
+**What:** Removed hardcoded `GEMINI_API_KEY` from client-side HTML. Replaced all 4 direct Gemini API fetch calls with calls to a Cloudflare Worker proxy endpoint. API key now stored securely as Cloudflare Worker secret.
+
+**Why:** Hardcoded API key was being detected and restricted by Google. Key was discoverable in browser DevTools, causing quota abuse flags. Moving to Cloudflare ensures it never reaches the client.
+
+**Impact:** API key is now secured behind server-side proxy. All Gemini-powered features work reliably without quota abuse risk.
 
 ---
 
-## 2026-03-25 - Project Organization System
-- **What**: Introduced `projects.json` for metadata management and scoped `localStorage` keys (e.g., `nexora_perf_{projectId}`) for project-specific performance tracking.
-- **Why**: The user wanted to categorize vocabulary by book or topic (e.g., "BOOK_Name") without mixing results and statistics.
-- **Impact**: Enabled multiple isolated study paths within the same application, allowing for focused learning on specific texts or subjects.
+## 2026-04-25 — Refactor: Replace Anthropic with Gemini Flash, Hardcode API Key
+
+**What:** Replaced all Anthropic/Claude Haiku API calls with Gemini 1.5 Flash across 4 fetch sites (word enrichment, distractor generation, image scanning, image vocab modal enrichment). Removed API key input fields from UI.
+
+**Why:** User requested app work out-of-the-box without manual API key entry. Unified all AI calls under single provider (Gemini) to simplify maintenance.
+
+**Impact:** App fully functional without users entering any API keys. Reduced cognitive load and improved first-time UX.
+
+**Technical Detail:** `_haikuEnrichWord()` replaced with Gemini fetch; function signature unchanged. `_callAnthropicDistractors()` replaced with Gemini fetch; fallback preserved.
 
 ---
 
-## 2026-03-17 - Separating Quiz Words
-- **What**: Split the flat vocabulary file into `vocabulary.json` (core dictionary) and `quiz_words.json` (additional words for testing). Modified the loading logic to merge them for quizzes but keep the dictionary clean.
-- **Why**: To keep the main dictionary focused on primary words while allowing a broader range of vocabulary for practice sessions.
-- **Impact**: Cleaner dictionary UI and more diverse quiz content.
+## 2026-04-25 — Feat: Word Preview Before Saving and Image Vocab Review Modal
+
+**What:** Generate flow now shows AI Preview card with fetched definition before saving. Image + Vocab opens popup modal with all extracted words (underlined + AI-suggested) with per-word Accept/Edit/Decline buttons.
+
+**Why:** Typing a word and clicking Generate added it immediately without showing definition. Attaching image showed generic placeholder instead of actual extracted words.
+
+**Impact:** Users can now review word definitions before accepting them. Image scans fully functional with clean review modal.
 
 ---
 
-## 2026-03-14 - Project Inception
-- **What**: Initial creation of the Flashcards app with `vocabulary.json` (Source of Truth) and interactive study modes (Flashcards, Quiz).
-- **Why**: The user needed a personal tool to track and study new English words they encounter.
-- **Impact**: Established a functional, local-first vocabulary learning platform with persistent progress tracking.
+## 2026-04-25 — Fix: Onboarding Funnel Bug Fixes (5 Issues)
+
+**What:** Fixed five bugs: (1) Step 2 disappeared post-animation (missing `active` class), (2) profile name/goal fields never injected into HTML, (3) swipe gesture fired on diagonal scrolls, (4) hint height hardcoded at 80px, (5) progress label had no clamp on step count.
+
+**Why:** Haiku audit surfaced critical and medium bugs breaking step navigation and silently swallowing profile data.
+
+**Impact:** Step 2 stays visible. Sidebar correctly shows user's name and goal. Tour no longer skips on scroll. Hints position correctly near viewport edges.
+
+---
+
+## 2026-04-24 — Feat: Redesign User Onboarding Experience
+
+**What:** Overhauled all onboarding—Profile Setup (animated progress bar, gradient icons, goal validation with shake, directional slides), Welcome Tour (4 CSS-animated hero illustrations per slide), and Onboarding Completion (serif typewriter ceremony, word-by-word definition stagger, Day 1 streak badge).
+
+**Why:** User requested premium, design-elevated onboarding. Existing flow used basic emoji icons and step dots with no animation.
+
+**Impact:** First-time users experience warm, premium onboarding matching the app's literate aesthetic. Mobile users get bottom-sheet layouts.
+
+**Technical Detail:** New CSS keyframes for animations (slide, flip, cascade, typewriter, etc.). Goal data now surfaces in UI via `applyProfileToUI()`.
+
+---
+
+## 2026-04-23 — Bug Fixes: Null-Safety, Async Race Conditions, Timer Leaks (Issues #16–#29)
+
+**What:** Fixed 19 bugs across three passes: null-safety in dictionary waterfall and word modal; async race conditions in quiz navigation and stats filter; auto-flip timer leaks; undefined values in Wordnik usage array; `w.opposites` null crash; quiz distractors stored at wrong index.
+
+**Why:** Three sequential Haiku 4.5 reviews surfaced crashes when API responses were empty, modal missing from DOM, quiz navigation firing before async loads, stats accessing nonexistent fields, and background timers firing after modal close.
+
+**Impact:** Word addition, quiz flow, and stats view no longer crash under edge-case data. Quiz options always fully loaded before display. Timer state properly managed across sessions.
+
+**Technical Detail:** Guards added throughout: `if (!data || !data.length)` in fetch paths, `(array || [])` null checks, `clearAutoFlipTimer()` called before state resets, captured index snapshot in async blocks to avoid race conditions.
+
+---
+
+## 2026-04-23 — Dictionary Waterfall + AI Gap-Fill + Web Speech Audio Fallback
+
+**What:** Replaced single-tier Free Dictionary API call with 4-tier waterfall: (1) Free Dictionary API, (2) Wordnik fallback, (3) Claude Haiku 4.5 gap-fill for missing IPA/definition/usage, (4) Web Speech API audio fallback at playback time.
+
+**Why:** Core vocabulary and obscure words often returned incomplete data (missing IPA, no audio, vague definition). Waterfall progressively enriches each word at near-zero cost.
+
+**Impact:** Words receive IPA phonetics, audio, and usage examples from best available source. All words gain Web Speech API pronunciation even without stored URL.
+
+**Technical Detail:** `addWords()` refactored with `_parseFreeDictEntry()`, `_fetchWordnik()`, `_haikuEnrichWord()` helpers. Audio button: uses URL if present, else `speechSynthesis.speak()`.
+
+---
+
+## 2026-04-23 — Dropdown Clipping Fix & AI Image Word Review UI
+
+**What:** Fixed `+` file-attach button dropdown being clipped by parent overflow. Upgraded "Scan Page" image flow from `window.confirm()` dialog to full in-modal word review UI with two toggleable chip sections.
+
+**Why:** Dropdown cut off at `.add-section-card` boundary due to `overflow: hidden`. Old confirm dialog gave no control over word selection. User wanted to accept/reject individual words and receive AI-suggested hard words beyond underlined ones.
+
+**Impact:** Dropdown renders fully visible. Scan flow shows underlined and up to 8 AI-suggested hard words as toggleable chips. Users can deselect any word before adding.
+
+**Technical Detail:** `.file-dropdown` changed from `position: absolute` to `position: fixed` with z-index 9999. Gemini prompt updated to return `{underlined_words, suggested_words}`.
+
+---
+
+## 2026-04-22 — M3 Warm/Gamified Design Implementation
+
+**What:** Applied complete Material Design 3 warm/gamified aesthetic (inspired by Duolingo, Brainscape). Replaced all fonts with Plus Jakarta Sans. Converted dark sidebar to white with green-tinted gradient. Added emerald pill-shaped nav with SVG icons. Redesigned cards with 14px radius and color-coded left borders (green/amber/red). Updated buttons to pill-shaped with emerald primary and drop-shadow.
+
+**Why:** To create engaging, gamified, visually cohesive user experience encouraging learning through warm colors and playful design language.
+
+**Impact:** App now feels modern, cohesive, and premium. Warm palette and M3 design make vocabulary learning feel more rewarding.
+
+**Technical Detail:** Palette includes #FFF7ED (warm bg), #10B981 (emerald), #F59E0B (amber), #EF4444 (red). All components updated to M3 specifications.
+
+---
+
+## 2026-04-21 — Per-User Data Isolation & Sample Decks for All Users
+
+**What:** Fixed demo deck seeding for logged-in users: `seedDemoData` now guest-only. New `mergeDemoDataForUser()` merges demo decks after `pullFromCloud` without overwriting real data (triggered once via `nexora_demo_seeded` flag). Added delete button for every sidebar deck; deletion moves items to first remaining deck instead of hardcoded General.
+
+**Why:** Users wanted example decks even after signing in. Previous approach meant existing users never got demo content.
+
+**Impact:** All users (guest and signed-in) see curated example decks. Any deck can be deleted without data loss.
+
+**Technical Detail:** `mergeDemoDataForUser()` with per-account guard flag. Library grid renders 2 columns of cards with preview content and deck badge.
+
+---
+
+## 2026-04-21 — GitHub Push Process & Project Conventions
+
+**What:** Added `CLAUDE.md` documenting mandatory 3-step GitHub workflow (commit → create issue → close issue) and curl-based GitHub API approach (gh CLI not installed).
+
+**Why:** To establish repeatable, documented process for pushing code without relying on third-party CLI tools.
+
+**Impact:** Future development sessions have clear, copy-paste-ready workflow for all GitHub interactions.
+
+---
+
+## 2026-04-21 — Example Decks with Full Content & Complete Library Rename
+
+**What:** Seeded 4 example decks for first-time guests: "Atomic Habits", "How to Avoid a Climate Disaster", "The Alchemist", "Class 10 Science" (each with 6–7 notes, 7 flashcards, 6–7 vocab items). Renamed "All Words" to "Complete Library" across 5 locations.
+
+**Why:** To give new users immediate, engaging content and reduce blank-slate friction.
+
+**Impact:** First-time users see rich, pre-populated library with diverse learning material. Complete Library branding is more descriptive and premium.
+
+---
+
+## 2026-04-21 — Enforce Per-User Data Isolation & Clear Guest State
+
+**What:** Removed un-namespaced localStorage reads at init and sign-out. Reset all in-memory arrays on sign-out. Clear guest keys on sign-out. Migrate guest-created data into user's UID namespace on first login. Firestore rules enforce server-side access control.
+
+**Why:** Previous sessions leaked data between different email accounts on same browser because localStorage was not namespaced.
+
+**Impact:** Multi-user security now enforced. Guest data no longer persists between sessions and doesn't leak to logged-in users.
+
+---
+
+## 2026-04-20 — Single-Page Layout Restructure & Notes/Deck Pivot
+
+**What:** Replaced tab-based navigation with single scrollable main page. Renamed "Projects" to "Decks". Added sidebar Practice section. Introduced Library grid combining all content types (Vocab, Notes, Flashcards). Added Notes as first-class content type. Added Add Section card with type pills, file attachment, and AI preview flow.
+
+**Why:** Tab layout was limiting. Single-page approach with unified Library makes all content types accessible at a glance. User pivoted app's purpose to full note-taking + flashcards + vocab platform.
+
+**Impact:** Main area is single scrollable page. Flashcards, Quiz, Stats accessed via "Practice" overlay. Library has filter pills: All/Notes/Flashcards/Quizzes/Vocab. Generate → shows per-type AI preview.
+
+---
+
+## 2026-04-09 — Performance Optimization & Optimistic UI
+
+**What:** Implemented parallel fetching for core data and migrated auth handler to "Optimistic UI" pattern (cache first, sync in background).
+
+**Why:** To eliminate long loading screens caused by sequential network requests.
+
+**Impact:** Application startup is now near-instant. Users see data immediately from cache while cloud sync happens silently.
+
+---
+
+## 2026-04-09 — Firebase Google Authentication
+
+**What:** Integrated Firebase Authentication with Google Sign-In using script-tag CDN. Established functional login/logout flow.
+
+**Why:** To enable user-specific data persistence and progress tracking across devices.
+
+**Impact:** Transitioned from local-only to cloud-authenticated ecosystem. Users can securely identify via Google.
+
+---
+
+## 2026-03-30 — UI Restructure & Sidebar Navigation
+
+**What:** Reorganized application with ChatGPT-inspired dark sidebar for project management. Unified vocabulary loading to support core files and custom localStorage projects. Implemented "All Words" global view.
+
+**Why:** To improve navigation and organization with professional, sidebar-based layout similar to modern AI chat interfaces.
+
+**Impact:** Enhanced project organization and premium, scalable user interface. Users seamlessly switch between specific decks and holistic "All Words" view.
+
+---
+
+## 2026-03-25 — Project Organization System
+
+**What:** Introduced `projects.json` for metadata and scoped `localStorage` keys (e.g., `nexora_perf_{projectId}`) for project-specific performance tracking.
+
+**Why:** User wanted to categorize vocabulary by book or topic without mixing results and statistics.
+
+**Impact:** Multiple isolated study paths within same application, enabling focused learning on specific texts.
+
+---
+
+## 2026-03-17 — Separating Quiz Words
+
+**What:** Split vocabulary file into `vocabulary.json` (core dictionary) and `quiz_words.json` (additional for testing). Modified loading logic to merge for quizzes but keep dictionary clean.
+
+**Why:** To keep main dictionary focused on primary words while allowing broader vocabulary for practice.
+
+**Impact:** Cleaner dictionary UI and more diverse quiz content.
+
+---
+
+## 2026-03-14 — Project Inception
+
+**What:** Initial creation of Flashcards app with `vocabulary.json` (Source of Truth) and interactive study modes (Flashcards, Quiz).
+
+**Why:** User needed personal tool to track and study new English words.
+
+**Impact:** Established functional, local-first vocabulary learning platform with persistent progress tracking.

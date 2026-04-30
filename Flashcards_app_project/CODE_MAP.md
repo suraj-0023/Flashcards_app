@@ -21,8 +21,8 @@
 | Main App Container | `MainAppContainer` | 5416 | Root app div (sidebar + main) |
 | Practice Overlay | `PracticeOverlay` | 5502 | Flashcard/quiz/stats practice UI (decks, cards, scoring) |
 | Main Page | `MainPage` | 5771 | Main library view (deck browser, search, add section) |
-| Search Modal | `SearchModal` | 11056 | Cmd+K command palette (search vocab, notes, flashcards) |
-| Add Modal | `AddModal` | 11069 | Modal for adding vocab/notes/flashcards to decks |
+| Search Modal | `SearchModal` | 11099 | Cmd+K command palette (search vocab, notes, flashcards) |
+| Add Modal | `AddModal` | 11112 | Modal for adding vocab/notes/flashcards to decks |
 | **JavaScript – Core** | | | |
 | Main Script Setup | `MainScript` | 6374 | Script block opener, Gemini proxy URL config |
 | State Variables | `JSState` | 6379 | Global state (VOCAB, QUIZ_VOCAB, projects, currentUser, etc.) |
@@ -38,31 +38,31 @@
 | Demo Data Seed | `JSDemoData` | 7273 | Seed data for new users (vocab, notes, custom cards) |
 | Load from JSON | `JSLoadJSON` | 7421 | Load vocabulary from JSON files (vocabulary.json, quiz_words.json) |
 | **JavaScript – UI & Modals** | | | |
-| Dictionary | `JSDictionary` | 8144 | Render vocabulary grid with scores (dict view) |
-| Modal Dialog | `JSModalDialog` | 8172 | Word detail popup (definition, usage, SM-2 badge, edit, delete) |
-| AI Modal | `JSAIModal` | 8368 | Gemini AI modal for generating vocab from text/images |
-| Vocab Preview | `JSVocabPreview` | 8489 | Preview definition before saving vocab word |
-| Image Vocab Modal | `JSImageVocab` | 8515 | OCR/Gemini image scanning, word extraction and grid UI |
+| Dictionary | `JSDictionary` | 8187 | Render vocabulary grid with scores (dict view) |
+| Modal Dialog | `JSModalDialog` | 8215 | Word detail popup (definition, usage, SM-2 badge, edit, delete) |
+| AI Modal | `JSAIModal` | 8411 | Gemini AI modal for generating vocab from text/images |
+| Vocab Preview | `JSVocabPreview` | 8532 | Preview definition before saving vocab word |
+| Image Vocab Modal | `JSImageVocab` | 8558 | OCR/Gemini image scanning, word extraction and grid UI |
 | **JavaScript – Cards & Practice** | | | |
-| Custom Flashcards | `JSCustomFlashcards` | 8794 | Create and manage custom front/back flashcards |
-| Flashcards | `JSFlashcards` | 8845 | Flashcard study mode (SM-2 rating, flip, keyboard shortcuts, toast) |
-| Quiz | `JSQuiz` | 9142 | Quiz mode with multiple choice and difficulty levels |
-| Stats | `JSStats` | 9373 | Performance stats (total, correct, accuracy per word) |
+| Custom Flashcards | `JSCustomFlashcards` | 8837 | Create and manage custom front/back flashcards |
+| Flashcards | `JSFlashcards` | 8888 | Flashcard study mode (SM-2 rating, flip, keyboard shortcuts, toast) |
+| Quiz | `JSQuiz` | 9185 | Quiz mode with multiple choice and difficulty levels |
+| Stats | `JSStats` | 9416 | Performance stats (total, correct, accuracy per word) |
 | **JavaScript – Navigation & Views** | | | |
-| Flashcard Deck Selection | `JSFlashcardDeckSelection` | 9429 | Deck picker for practice (checkboxes, start practice) |
-| Practice Overlay | `JSPracticeOverlay` | 9524 | Practice view switcher (flashcards/quiz/stats) |
-| New Quiz System | `JSNewQuizSystem` | 9568 | Multiple choice quiz engine with wrong answer review |
-| Vocab Practice (Flip) | `JSVocabPractice` | 9773 | Flip card vocab review mode (vocabulary.json words) |
-| Library | `JSLibrary` | 9850 | Main library render (decks, vocab, notes, cards sections) |
-| Library List View | `JSLibraryListView` | 9884 | Filtered list display (vocab, notes, flashcards) with SM-2 state pills |
-| Detail Popup | `JSDetailPopup` | 10046 | Item detail view in list (flip for cards, edit, delete) |
+| Flashcard Deck Selection | `JSFlashcardDeckSelection` | 9472 | Deck picker for practice (checkboxes, start practice) |
+| Practice Overlay | `JSPracticeOverlay` | 9567 | Practice view switcher (flashcards/quiz/stats) |
+| New Quiz System | `JSNewQuizSystem` | 9611 | Multiple choice quiz engine with wrong answer review |
+| Vocab Practice (Flip) | `JSVocabPractice` | 9816 | Flip card vocab review mode (vocabulary.json words) |
+| Library | `JSLibrary` | 9893 | Main library render (decks, vocab, notes, cards sections) |
+| Library List View | `JSLibraryListView` | 9927 | Filtered list display (vocab, notes, flashcards) with SM-2 state pills |
+| Detail Popup | `JSDetailPopup` | 10089 | Item detail view in list (flip for cards, edit, delete) |
 | **JavaScript – Add Section & Management** | | | |
-| Add Section | `JSAddSection` | 10141 | Add vocab/notes UI (text textarea, file uploads, type pills) |
-| Deck Dashboard | `JSDeckDashboard` | 10358 | Deck home page (stats, section tiles, actions, mastery dots) |
-| Notes | `JSNotes` | 10480 | Notes editor and list (create, edit, delete, search) |
-| Add Modal | `JSAddModal` | 10561 | Advanced add modal (multi-select types, preview, save) |
+| Add Section | `JSAddSection` | 10184 | Add vocab/notes UI (text textarea, file uploads, type pills) |
+| Deck Dashboard | `JSDeckDashboard` | 10401 | Deck home page (stats, section tiles, actions, mastery dots) |
+| Notes | `JSNotes` | 10523 | Notes editor and list (create, edit, delete, search) |
+| Add Modal | `JSAddModal` | 10604 | Advanced add modal (multi-select types, preview, save) |
 | **JavaScript – Init** | | | |
-| Init & Setup | `JSInit` | 10938 | App initialization, Firebase/auth integration, event listeners |
+| Init & Setup | `JSInit` | 10981 | App initialization, Firebase/auth integration, event listeners |
 
 ## Common Tasks
 
@@ -155,5 +155,5 @@ app.html
 ---
 
 **Last updated:** April 30, 2026  
-**File size:** ~11,180 lines  
+**File size:** ~11,230 lines  
 **Sections:** 43 major code regions

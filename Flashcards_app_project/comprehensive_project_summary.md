@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-04-30 (App renamed to Nexora, code navigation system with @@SECTION markers and CODE_MAP.md added)
+**Last Updated**: 2026-04-30 (Context-aware definition selection via Gemini, synonyms & antonyms enrichment added)
 
 ---
 
@@ -69,7 +69,7 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 | Key | Contents |
 |-----|----------|
 | `nexora_projects` | Deck list `[{id, name}]` |
-| `custom_vocab` | User-added vocabulary entries with SM-2 tracking `{id, word, definition, sm2, context, dataSources[], ...}` (Apr 30) |
+| `custom_vocab` | User-added vocabulary entries with SM-2 tracking `{id, word, definition, sm2, context, dataSources[], synonyms[], antonyms[], ...}` (Apr 30) |
 | `deleted_vocab` | Blacklisted core word IDs |
 | `nexora_custom_cards` | Front/back custom flashcards `{id, front, back, projectId, sm2, ...}` (Apr 30 SM-2) |
 | `nexora_notes` | Notes `{id, deckId, title, content, createdAt, updatedAt}` |
@@ -145,11 +145,12 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
   - Picks best non-circular definition; merges up to 5 synonyms + 5 antonyms; dedupes usage examples
   - New `dataSources[]` field on saved words tracks which APIs contributed (e.g., `["Free Dictionary", "AI"]`)
   - Word card modal displays source attribution at bottom ("Sources: Free Dictionary, AI")
-- **Dictionary Waterfall** (4-tier, in `_enrichWordAsync()` called after save):
+- **Dictionary Waterfall** (5-tier, in `_enrichWordAsync()` called after save):
   1. **Free Dictionary API** — no key, covers ~80% of common words; fetches definition, IPA, audio URL, usage, synonyms, antonyms, all definitions grouped by part of speech
-  2. **Wordnik** — optional free key (`localStorage('wordnik_key')`); fires when Free Dict fails or returns no definition; multi-source definitions + examples
-  3. **Gemini 2.0 Flash gap-fill** — routed through Cloudflare Worker proxy for security; fires automatically when IPA, definition, or usage is still missing after Tiers 1–2; targeted prompt requesting only the missing fields
-  4. **Web Speech API audio fallback** — zero cost, zero key, built-in; used at playback time when no audio URL is stored
+  2. **Tier 1.5: Context-Aware Definition Selection via Gemini** — fires after Free Dict when multiple definitions exist (>2); sends word + all definitions + deck title + vocab sample to Gemini proxy; returns 1-based indices of 2–3 most contextually relevant definitions; user sees only the definitions relevant to their deck
+  3. **Wordnik** — optional free key (`localStorage('wordnik_key')`); fires when Free Dict fails or returns no definition; multi-source definitions + examples
+  4. **Gemini 2.0 Flash gap-fill** — routed through Cloudflare Worker proxy for security; fires automatically when IPA, definition, usage, synonyms, or antonyms are still missing after previous tiers; targeted prompt requesting only missing fields; now also fetches up to 2 synonyms and 2 antonyms per word
+  5. **Web Speech API audio fallback** — zero cost, zero key, built-in; used at playback time when no audio URL is stored
 - **Difficulty Scoring System** (Apr 27, 2026):
   - `_scoreDifficulty(wordData)` computes 1–4 score (Easy→Very Hard) based on audio presence, synonym count, and word length
   - Used in `addWords()` for all words; stored in `word.difficulty` field
