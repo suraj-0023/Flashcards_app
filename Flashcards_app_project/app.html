@@ -4500,6 +4500,132 @@
 
     [data-theme="dark"] .add-type-check.active { color: var(--emerald); }
 
+    .add-modal-section-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .add-modal-input-checks {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .add-modal-input-check {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 1.5px solid var(--border-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      user-select: none;
+      transition: border-color 0.12s, background 0.12s;
+      color: var(--muted);
+    }
+    .add-modal-input-check input[type="checkbox"] { display: none; }
+    .add-modal-input-check.active {
+      border-color: var(--gold);
+      background: var(--amber-50, #fffbeb);
+      color: var(--amber-700, #b45309);
+    }
+    [data-theme="dark"] .add-modal-input-check.active { color: var(--gold); }
+
+    /* Review step indicator */
+    .add-modal-step-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .add-modal-step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border-2);
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .add-modal-step-dot.active { background: var(--emerald); }
+    .add-modal-step-dot.done { background: var(--muted); }
+    .add-modal-step-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+
+    /* Review item cards */
+    .review-item-card {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border-2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      transition: border-color 0.2s, opacity 0.2s;
+    }
+    .review-item-card.ri-accepted { border-color: var(--emerald); opacity: 0.6; }
+    .review-item-card.ri-declined { opacity: 0.35; }
+    .review-item-source {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .review-item-source.highlighted { color: var(--gold); }
+    .review-item-source.suggested { color: var(--muted); }
+    .review-item-text {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: var(--text);
+      margin: 0 0 8px;
+    }
+    .review-card-front {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+    .review-card-back {
+      font-size: 0.88rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .review-item-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .review-item-actions button {
+      padding: 4px 12px;
+      border-radius: 7px;
+      border: 1.5px solid var(--border-2);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      background: none;
+      color: var(--muted);
+      transition: all 0.12s;
+    }
+    .review-item-actions button.ri-accept {
+      border-color: var(--emerald);
+      color: var(--emerald-700);
+      background: var(--emerald-50);
+    }
+    .review-item-actions button.ri-decline { color: var(--muted); }
+    [data-theme="dark"] .review-item-actions button.ri-accept { color: var(--emerald); }
+
+    .add-modal-panel { max-height: 90vh; overflow-y: auto; }
+
     /* ── NOTES SECTION ── */
     .notes-header {
       display: flex;
@@ -10638,48 +10764,54 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
       // ──────────────────────────────────────────────────────────────
       // ── ADD MODAL ──
 
-      let _addModalFile = null;
-      const _ADD_MODAL_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
-      let _pendingAddModalSaveFn = null;
+      let _addModalFiles = [];  // Array of File objects
+      const _ADD_MODAL_MAX_BYTES = 5 * 1024 * 1024;
+
+      // Review queue state
+      let _reviewQueue = [];   // [{type, highlighted:[], suggested:[]}]
+      let _reviewIndex = 0;
+      let _reviewDeckId = '';
 
       function _getSelectedTypes() {
-        return [...document.querySelectorAll('.add-modal-type-checks input:checked')].map(i => i.value);
+        return [...document.querySelectorAll('#addTypeChecks input:checked')].map(i => i.value);
+      }
+
+      function _getSelectedInputs() {
+        return [...document.querySelectorAll('#addInputChecks input:checked')].map(i => i.value);
       }
 
       function updateAddModalTypes() {
-        const selected = _getSelectedTypes();
+        const types = _getSelectedTypes();
+        const inputs = _getSelectedInputs();
 
-        // Image/PDF is exclusive — uncheck all others when selected
-        if (selected.includes('imagepdf') && selected.length > 1) {
-          document.querySelectorAll('.add-modal-type-checks input').forEach(cb => {
-            if (cb.value !== 'imagepdf') cb.checked = false;
-          });
-        }
-
-        const finalSelected = _getSelectedTypes();
-        document.querySelectorAll('.add-type-check').forEach(el => {
-          el.classList.toggle('active', finalSelected.includes(el.dataset.type));
+        // Sync pill active state — types
+        document.querySelectorAll('#addTypeChecks .add-type-check').forEach(el => {
+          el.classList.toggle('active', types.includes(el.dataset.type));
+        });
+        // Sync pill active state — inputs
+        document.querySelectorAll('#addInputChecks .add-modal-input-check').forEach(el => {
+          el.classList.toggle('active', inputs.includes(el.dataset.input));
         });
 
-        const isImagePdf = finalSelected.includes('imagepdf');
-        const isMulti = !isImagePdf && finalSelected.length > 1;
+        const hasText = inputs.includes('text');
+        const hasFile = inputs.includes('file');
+        const vocabOnly = types.length === 1 && types[0] === 'vocab';
 
-        // Show/hide word input
-        const wordWrap = document.getElementById('addModalWord');
-        if (wordWrap) wordWrap.style.display = (isImagePdf || isMulti) ? 'none' : '';
+        // Word input: only when vocab-only + text-only
+        const wordEl = document.getElementById('addModalWord');
+        if (wordEl) wordEl.style.display = (vocabOnly && hasText && !hasFile) ? '' : 'none';
 
-        // Show/hide panels
-        document.getElementById('addTypeVocab').style.display     = (!isMulti && !isImagePdf && finalSelected.includes('vocab'))      ? 'block' : 'none';
-        document.getElementById('addTypeNote').style.display      = (!isMulti && !isImagePdf && finalSelected.includes('note'))       ? 'block' : 'none';
-        document.getElementById('addTypeFlashcard').style.display = (!isMulti && !isImagePdf && finalSelected.includes('flashcard'))  ? 'block' : 'none';
-        document.getElementById('addTypeMulti').style.display     = isMulti    ? 'block' : 'none';
-        document.getElementById('addTypeImagePdf').style.display  = isImagePdf ? 'block' : 'none';
+        // Vocab context: same condition
+        const vocabCtx = document.getElementById('addTypeVocab');
+        if (vocabCtx) vocabCtx.style.display = (vocabOnly && hasText && !hasFile) ? 'block' : 'none';
 
-        // Submit button label
-        const submitBtn = document.getElementById('addModalSubmitBtn');
-        if (submitBtn) {
-          submitBtn.textContent = isImagePdf ? 'Scan File →' : isMulti ? 'Save All →' : 'Generate →';
-        }
+        // Text area: shown for multi-type or when text selected and not vocab-only-text-only
+        const textArea = document.getElementById('addModalTextArea');
+        if (textArea) textArea.style.display = (hasText && (!vocabOnly || hasFile)) ? 'block' : 'none';
+
+        // File area: shown whenever file is selected
+        const fileArea = document.getElementById('addModalFileArea');
+        if (fileArea) fileArea.style.display = hasFile ? 'block' : 'none';
       }
 
       function openAddModal() {
@@ -10694,221 +10826,383 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           ).join('');
         }
 
-        // Reset all fields
+        // Reset fields
         const wordInput = document.getElementById('addModalWord');
-        if (wordInput) { wordInput.value = ''; wordInput.style.display = ''; }
-        document.getElementById('addContextSentence').value = '';
-        document.getElementById('addNoteTitle').value = '';
-        document.getElementById('addNoteContent').value = '';
-        document.getElementById('addCardFront').value = '';
-        document.getElementById('addCardBack').value = '';
-        document.getElementById('addMultiText').value = '';
+        if (wordInput) wordInput.value = '';
+        const ctx = document.getElementById('addContextSentence');
+        if (ctx) ctx.value = '';
+        const multiText = document.getElementById('addMultiText');
+        if (multiText) multiText.value = '';
 
         // Reset file state
-        _addModalFile = null;
-        document.getElementById('addModalFileName').textContent = '';
-        document.getElementById('addModalFileSizeError').style.display = 'none';
+        _addModalFiles = [];
+        const fnEl = document.getElementById('addModalFileName');
+        if (fnEl) fnEl.textContent = '';
+        const errEl = document.getElementById('addModalFileSizeError');
+        if (errEl) errEl.style.display = 'none';
         const fi = document.getElementById('addModalFileInput');
         if (fi) fi.value = '';
 
-        // Reset checkboxes — only vocab checked
-        document.querySelectorAll('.add-modal-type-checks input').forEach(cb => {
+        // Reset type checkboxes — only vocab checked
+        document.querySelectorAll('#addTypeChecks input').forEach(cb => {
           cb.checked = cb.value === 'vocab';
+        });
+        // Reset input checkboxes — only text checked
+        document.querySelectorAll('#addInputChecks input').forEach(cb => {
+          cb.checked = cb.value === 'text';
         });
         updateAddModalTypes();
 
-        // Reset preview state
-        _discardAddModalPreview(true);
+        // Hide review
+        _hideReviewUI();
 
         if (wordInput) wordInput.focus();
       }
 
       function closeAddModal() {
         document.getElementById('addModal').classList.remove('open');
-        _pendingAddModalSaveFn = null;
+        _reviewQueue = [];
+        _reviewIndex = 0;
       }
 
       function handleAddModalFileChange(input) {
-        const file = input.files && input.files[0];
+        const files = input.files;
         const errEl = document.getElementById('addModalFileSizeError');
-        if (!file) return;
-        if (file.size > _ADD_MODAL_MAX_BYTES) {
+        if (!files || !files.length) return;
+        const oversized = [...files].find(f => f.size > _ADD_MODAL_MAX_BYTES);
+        if (oversized) {
           errEl.style.display = 'block';
-          document.getElementById('addModalFileName').textContent = '';
-          _addModalFile = null;
           input.value = '';
           return;
         }
         errEl.style.display = 'none';
-        _addModalFile = file;
-        document.getElementById('addModalFileName').textContent = file.name;
+        _addModalFiles = [...files];
+        const nameEl = document.getElementById('addModalFileName');
+        if (nameEl) nameEl.textContent = _addModalFiles.map(f => f.name).join(', ');
       }
+
+      function _hideReviewUI() {
+        const rev = document.getElementById('addModalReview');
+        if (rev) rev.style.display = 'none';
+        const typeSection = document.getElementById('addModalTypeSection');
+        if (typeSection) typeSection.style.display = '';
+        // Restore submit btn
+        const submitBtn = document.getElementById('addModalSubmitBtn');
+        if (submitBtn) submitBtn.style.display = '';
+        document.getElementById('addModalBackBtn').style.display = 'none';
+        document.getElementById('addModalEditBtn').style.display = 'none';
+        document.getElementById('addModalNextBtn').style.display = 'none';
+        document.getElementById('addModalFinalizeBtn').style.display = 'none';
+        updateAddModalTypes();
+      }
+
+      function _discardAddModalPreview() {
+        _reviewQueue = [];
+        _reviewIndex = 0;
+        _hideReviewUI();
+      }
+
+      // ── GEMINI HELPERS ──
+
+      async function _callGemini(promptText, file) {
+        const parts = [{ text: promptText }];
+        if (file) {
+          const base64Str = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          parts.push({ inline_data: { mime_type: file.type, data: base64Str } });
+        }
+        const res = await fetch(GEMINI_PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts }] })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error?.message || 'API error');
+        return (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().replace(/```json\n?|\n?```/g, '');
+      }
+
+      async function _generateVocabFromFile(file) {
+        const prompt = `You are an OCR and vocabulary assistant. Analyze this image and return a JSON object with exactly two keys:
+- "underlined_words": array of lowercase words with a pen or pencil underline beneath them in the image (no punctuation). If none, use [].
+- "suggested_words": array of up to 8 of the most advanced or rare vocabulary words visible in the image text that are NOT underlined. Lowercase, no punctuation. If none, use [].
+Return only raw JSON, no markdown code fences.`;
+        const raw = await _callGemini(prompt, file);
+        const p = JSON.parse(raw);
+        return {
+          highlighted: (p.underlined_words || []).map(w => ({ text: w, source: 'highlighted' })),
+          suggested:   (p.suggested_words  || []).map(w => ({ text: w, source: 'suggested' }))
+        };
+      }
+
+      async function _generateNotesFromText(text) {
+        const prompt = `Given this study material, extract up to 8 concise key points worth remembering as study notes.
+Text: ${JSON.stringify(text.slice(0, 3000))}
+Return ONLY raw JSON: {"notes": ["point 1", "point 2", ...]}
+No markdown, no extra text.`;
+        const raw = await _callGemini(prompt);
+        const p = JSON.parse(raw);
+        return { highlighted: [], suggested: (p.notes || []).map(n => ({ text: n, source: 'suggested' })) };
+      }
+
+      async function _generateNotesFromFile(file) {
+        const prompt = `You are analyzing an image or document page for study notes.
+Priority 1: If there is any highlighted, underlined, or annotated text, extract those as notes verbatim.
+Priority 2: Generate up to 6 additional key points worth remembering from the rest of the content.
+Return ONLY raw JSON: {"highlighted": ["note1", ...], "suggested": ["note1", ...]}
+No markdown, no extra text.`;
+        const raw = await _callGemini(prompt, file);
+        const p = JSON.parse(raw);
+        return {
+          highlighted: (p.highlighted || []).map(n => ({ text: n, source: 'highlighted' })),
+          suggested:   (p.suggested   || []).map(n => ({ text: n, source: 'suggested' }))
+        };
+      }
+
+      async function _generateFlashcardsFromText(text) {
+        const prompt = `Create up to 6 flashcard Q&A pairs from this study material.
+Text: ${JSON.stringify(text.slice(0, 3000))}
+Return ONLY raw JSON: {"cards": [{"front": "question", "back": "answer"}, ...]}
+No markdown, no extra text.`;
+        const raw = await _callGemini(prompt);
+        const p = JSON.parse(raw);
+        return { highlighted: [], suggested: (p.cards || []).map(c => ({ front: c.front, back: c.back, source: 'suggested' })) };
+      }
+
+      async function _generateFlashcardsFromFile(file) {
+        const prompt = `You are analyzing an image or document. Create flashcard Q&A pairs for studying.
+Priority 1: Create cards from highlighted, underlined, or annotated content first.
+Priority 2: Create additional cards from other important content (up to 6 total).
+Return ONLY raw JSON: {"highlighted": [{"front":"...","back":"..."},...], "suggested": [{"front":"...","back":"..."},...]}
+No markdown, no extra text.`;
+        const raw = await _callGemini(prompt, file);
+        const p = JSON.parse(raw);
+        return {
+          highlighted: (p.highlighted || []).map(c => ({ front: c.front, back: c.back, source: 'highlighted' })),
+          suggested:   (p.suggested   || []).map(c => ({ front: c.front, back: c.back, source: 'suggested' }))
+        };
+      }
+
+      // ── MAIN GENERATE HANDLER ──
 
       async function handleAddModalGenerate() {
         const sel = document.getElementById('addModalDeckSelect');
         const deckId = sel ? sel.value : (currentProjectId === 'all' ? (projects[0] ? projects[0].id : 'general') : currentProjectId);
-        const selectedTypes = _getSelectedTypes();
-        const isImagePdf = selectedTypes.includes('imagepdf');
-        const isMulti = !isImagePdf && selectedTypes.length > 1;
+        const types  = _getSelectedTypes();
+        const inputs = _getSelectedInputs();
+
+        if (!types.length)  { alert('Please select at least one type to generate.'); return; }
+        if (!inputs.length) { alert('Please select Text or Image / File as input.'); return; }
+
+        const hasText = inputs.includes('text');
+        const hasFile = inputs.includes('file');
+        const vocabOnlyText = types.length === 1 && types[0] === 'vocab' && hasText && !hasFile;
+        const wordVal  = (document.getElementById('addModalWord')?.value || '').trim();
+        const textVal  = (document.getElementById('addMultiText')?.value || '').trim();
+        const inputText = vocabOnlyText ? wordVal : textVal;
+
+        if (hasText && vocabOnlyText && !wordVal) { alert('Please enter a word or phrase.'); return; }
+        if (hasText && !vocabOnlyText && !textVal) { alert('Please paste some content in the text area.'); return; }
+        if (hasFile && !_addModalFiles.length) { alert('Please choose a file first.'); return; }
+
         const btn = document.getElementById('addModalSubmitBtn');
+        if (btn) { btn.textContent = 'Generating…'; btn.disabled = true; }
 
-        if (isImagePdf) {
-          if (!_addModalFile) { alert('Please choose a file first.'); return; }
-          if (btn) { btn.textContent = 'Scanning…'; btn.disabled = true; }
-          const fileToScan = _addModalFile;
-          _addModalFile = null;
-          document.getElementById('addModalFileName').textContent = '';
-          const fi = document.getElementById('addModalFileInput');
-          if (fi) fi.value = '';
-          closeAddModal();
-          try {
-            if (typeof _imageVocabDeckId !== 'undefined') _imageVocabDeckId = deckId;
-            await generateVocabFromImage(fileToScan, deckId);
-          } finally {
-            if (btn) { btn.textContent = 'Scan File →'; btn.disabled = false; }
-          }
-          return;
-        }
+        try {
+          const queue = [];
 
-        if (isMulti) {
-          const raw = (document.getElementById('addMultiText').value || '').trim();
-          if (!raw) { alert('Please paste some content first.'); return; }
-          const lines = raw.split('\n').filter(l => l.trim());
-          const firstLine = lines[0] || raw;
+          for (const type of types) {
+            let highlighted = [], suggested = [];
 
-          // Build multi-preview
-          const previewItems = [];
-          if (selectedTypes.includes('vocab')) {
-            previewItems.push({ type: 'vocab', word: firstLine });
-          }
-          if (selectedTypes.includes('note')) {
-            previewItems.push({ type: 'note', title: firstLine.slice(0, 60), content: raw });
-          }
-          if (selectedTypes.includes('flashcard')) {
-            const back = lines.length > 1 ? lines.slice(1).join(' ') : firstLine;
-            previewItems.push({ type: 'flashcard', front: firstLine, back });
-          }
-
-          _pendingAddModalSaveFn = async () => {
-            if (selectedTypes.includes('vocab')) {
-              window._silentAdd = true;
-              try { await _addWordsFromText(firstLine, deckId); }
-              finally { window._silentAdd = false; }
+            if (type === 'vocab') {
+              if (hasText) {
+                const w = vocabOnlyText ? wordVal : (inputText.split('\n').find(l => l.trim()) || inputText);
+                suggested.push({ text: w, source: 'text' });
+              }
+              if (hasFile) {
+                for (const file of _addModalFiles) {
+                  try { const r = await _generateVocabFromFile(file); highlighted.push(...r.highlighted); suggested.push(...r.suggested); } catch {}
+                }
+              }
+            } else if (type === 'note') {
+              if (hasText && inputText) {
+                try { const r = await _generateNotesFromText(inputText); suggested.push(...r.suggested); } catch {}
+              }
+              if (hasFile) {
+                for (const file of _addModalFiles) {
+                  try { const r = await _generateNotesFromFile(file); highlighted.push(...r.highlighted); suggested.push(...r.suggested); } catch {}
+                }
+              }
+            } else if (type === 'flashcard') {
+              if (hasText && inputText) {
+                try { const r = await _generateFlashcardsFromText(inputText); suggested.push(...r.suggested); } catch {}
+              }
+              if (hasFile) {
+                for (const file of _addModalFiles) {
+                  try { const r = await _generateFlashcardsFromFile(file); highlighted.push(...r.highlighted); suggested.push(...r.suggested); } catch {}
+                }
+              }
             }
-            if (selectedTypes.includes('note')) {
-              const note = {
-                id: 'n_' + Date.now(),
-                deckId,
-                title: firstLine.slice(0, 60),
-                content: raw,
-                createdAt: new Date().toISOString().split('T')[0],
-                updatedAt: new Date().toISOString().split('T')[0]
-              };
-              ALL_NOTES.push(note);
-              lsSet('nexora_notes', ALL_NOTES);
-              syncToCloud({ nexora_notes: ALL_NOTES });
-            }
-            if (selectedTypes.includes('flashcard')) {
-              const back = lines.length > 1 ? lines.slice(1).join(' ') : firstLine;
-              const newCard = { id: 'cc_' + (Date.now() + 1), isCustom: true, front: firstLine, back, projectId: deckId };
-              ALL_CUSTOM_CARDS.push(newCard);
-              const cards = lsGet('nexora_custom_cards', []);
-              cards.push(newCard);
-              lsSet('nexora_custom_cards', cards);
-              syncToCloud({ nexora_custom_cards: cards });
-            }
-          };
 
-          _showAddModalPreview(previewItems, deckId);
-          return;
-        }
+            const items = [...highlighted, ...suggested];
+            queue.push({ type, items, states: new Array(items.length).fill('pending') });
+          }
 
-        // Single type
-        const word = (document.getElementById('addModalWord').value || '').trim();
-        const type = selectedTypes[0] || 'vocab';
+          _reviewQueue = queue;
+          _reviewDeckId = deckId;
+          _reviewIndex  = 0;
+          _startReview();
 
-        if (type === 'vocab') {
-          if (!word) { alert('Please enter a word or phrase.'); return; }
-          _pendingAddModalSaveFn = async () => {
-            await _addWordsFromText(word, deckId);
-          };
-          _showAddModalPreview([{ type: 'vocab', word }], deckId);
-          // Kick off async definition fetch to enrich preview
-          _fetchAddModalVocabPreview(word);
-        } else if (type === 'note') {
-          const title = (document.getElementById('addNoteTitle').value || word || '').trim();
-          const content = document.getElementById('addNoteContent').value.trim();
-          if (!title && !content) { alert('Please fill in the note.'); return; }
-          _pendingAddModalSaveFn = async () => {
-            const note = {
-              id: 'n_' + Date.now(),
-              deckId,
-              title: title || 'Untitled',
-              content,
-              createdAt: new Date().toISOString().split('T')[0],
-              updatedAt: new Date().toISOString().split('T')[0]
-            };
-            ALL_NOTES.push(note);
-            lsSet('nexora_notes', ALL_NOTES);
-            syncToCloud({ nexora_notes: ALL_NOTES });
-          };
-          _showAddModalPreview([{ type: 'note', title: title || 'Untitled', content }], deckId);
-        } else if (type === 'flashcard') {
-          const front = (document.getElementById('addCardFront').value || word || '').trim();
-          const back = document.getElementById('addCardBack').value.trim();
-          if (!front || !back) { alert('Please fill in both sides of the flashcard.'); return; }
-          _pendingAddModalSaveFn = async () => {
-            const newCard = { id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), isCustom: true, front, back, projectId: deckId, sm2: defaultSM2() };
-            ALL_CUSTOM_CARDS.push(newCard);
-            const cards = lsGet('nexora_custom_cards', []);
-            cards.push(newCard);
-            lsSet('nexora_custom_cards', cards);
-            syncToCloud({ nexora_custom_cards: cards });
-          };
-          _showAddModalPreview([{ type: 'flashcard', front, back }], deckId);
+        } catch (err) {
+          alert('Generation failed: ' + (err.message || 'Unknown error'));
+        } finally {
+          if (btn) { btn.textContent = 'Generate →'; btn.disabled = false; }
         }
       }
 
-      function _showAddModalPreview(items, deckId) {
-        // Hide form inputs
-        const hideEls = ['addModalWord', 'addTypeVocab', 'addTypeNote', 'addTypeFlashcard', 'addTypeMulti'];
-        hideEls.forEach(id => {
+      // ── REVIEW STEP SYSTEM ──
+
+      function _startReview() {
+        // Hide input form sections
+        ['addModalTypeSection','addModalWord','addTypeVocab','addModalTextArea','addModalFileArea'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.style.display = 'none';
         });
-        document.querySelector('.add-modal-type-checks').style.display = 'none';
-
-        // Build preview HTML
-        const typeLabel = { vocab: 'Vocab', note: 'Note', flashcard: 'Flashcard' };
-        const typeColor = { vocab: 'var(--emerald-700)', note: 'var(--gold)', flashcard: '#6366f1' };
-
-        const cardsHtml = items.map(item => {
-          let contentHtml = '';
-          if (item.type === 'vocab') {
-            contentHtml = `<strong id="addModalPreviewWord">${item.word}</strong><br><span id="addModalPreviewDef" style="color:var(--muted);font-size:0.82rem;">Fetching definition…</span>`;
-          } else if (item.type === 'note') {
-            const preview = item.content ? item.content.slice(0, 160) + (item.content.length > 160 ? '…' : '') : '';
-            contentHtml = `<strong>${item.title}</strong>${preview ? `<br><span style="color:var(--muted);font-size:0.82rem;">${preview.replace(/</g,'&lt;')}</span>` : ''}`;
-          } else if (item.type === 'flashcard') {
-            contentHtml = `<span style="font-size:0.78rem;color:var(--muted);font-weight:600;">FRONT</span><br><strong>${item.front.replace(/</g,'&lt;')}</strong><br><span style="font-size:0.78rem;color:var(--muted);font-weight:600;margin-top:6px;display:block;">BACK</span><span style="font-size:0.88rem;">${item.back.replace(/</g,'&lt;')}</span>`;
-          }
-          return `<div style="background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
-            <div style="font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:${typeColor[item.type]};margin-bottom:8px;">${typeLabel[item.type] || item.type}</div>
-            <div style="font-size:0.88rem;line-height:1.55;color:var(--text);">${contentHtml}</div>
-          </div>`;
-        }).join('');
-
-        document.getElementById('addModalPreviewCards').innerHTML = cardsHtml;
-        document.getElementById('addModalPreview').style.display = 'block';
-
-        // Swap footer buttons
-        document.getElementById('addModalSubmitBtn').style.display = 'none';
-        document.getElementById('addModalDiscardBtn').style.display = '';
-        document.getElementById('addModalSaveBtn').style.display = '';
+        // Show review panel
+        const rev = document.getElementById('addModalReview');
+        if (rev) rev.style.display = 'block';
+        // Swap buttons
+        const submitBtn = document.getElementById('addModalSubmitBtn');
+        if (submitBtn) submitBtn.style.display = 'none';
+        _renderReviewStep();
       }
 
-      async function _fetchAddModalVocabPreview(word) {
-        const defEl = document.getElementById('addModalPreviewDef');
+      function _renderReviewStep() {
+        const step  = _reviewQueue[_reviewIndex];
+        const total = _reviewQueue.length;
+        const typeLabels = { vocab: 'Vocab', note: 'Notes', flashcard: 'Flashcards' };
+
+        // Step bar
+        const barEl = document.getElementById('addModalStepBar');
+        if (barEl) {
+          barEl.innerHTML = _reviewQueue.map((s, i) =>
+            `<div class="add-modal-step-dot ${i < _reviewIndex ? 'done' : i === _reviewIndex ? 'active' : ''}"></div>`
+          ).join('') + `<span class="add-modal-step-label">${typeLabels[step.type] || step.type} &middot; ${_reviewIndex + 1} of ${total}</span>`;
+        }
+
+        // Content
+        const content = document.getElementById('addModalReviewContent');
+        if (content) {
+          if (!step.items.length) {
+            content.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:0.88rem;">No items generated for <strong>${typeLabels[step.type]}</strong>.</div>`;
+          } else if (step.type === 'vocab') {
+            content.innerHTML = _renderVocabReviewItems(step.items, step.states);
+            step.items.forEach((item, i) => _fetchVocabReviewDef(item.text, i));
+          } else if (step.type === 'note') {
+            content.innerHTML = _renderNoteReviewItems(step.items, step.states);
+          } else if (step.type === 'flashcard') {
+            content.innerHTML = _renderFlashcardReviewItems(step.items, step.states);
+          }
+        }
+
+        // Footer nav
+        document.getElementById('addModalBackBtn').style.display     = _reviewIndex > 0 ? '' : 'none';
+        document.getElementById('addModalEditBtn').style.display     = '';
+        document.getElementById('addModalNextBtn').style.display     = _reviewIndex < total - 1 ? '' : 'none';
+        document.getElementById('addModalFinalizeBtn').style.display = _reviewIndex === total - 1 ? '' : 'none';
+      }
+
+      function _renderVocabReviewItems(items, states) {
+        return items.map((item, i) => {
+          const stCls   = states[i] === 'accepted' ? 'ri-accepted' : states[i] === 'declined' ? 'ri-declined' : '';
+          const srcLabel = item.source === 'highlighted' ? '📖 Highlighted' : item.source === 'text' ? '✏️ Your word' : '✨ Suggested';
+          const srcCls   = item.source === 'highlighted' ? 'highlighted' : 'suggested';
+          return `<div class="review-item-card ${stCls}" id="rv-${_reviewIndex}-${i}">
+            <div class="review-item-source ${srcCls}">${srcLabel}</div>
+            <div class="review-item-text"><strong id="rv-word-${i}">${item.text}</strong> <span id="rv-def-${i}" style="color:var(--muted);font-size:0.82rem;font-style:italic;"></span></div>
+            ${_reviewItemActions(_reviewIndex, i, states[i])}
+          </div>`;
+        }).join('');
+      }
+
+      function _renderNoteReviewItems(items, states) {
+        const highlighted = items.filter(it => it.source === 'highlighted');
+        const rest        = items.filter(it => it.source !== 'highlighted');
+        let html = '';
+        if (highlighted.length) {
+          html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">📖 From highlights</div>`;
+          highlighted.forEach(item => { const i = items.indexOf(item); html += _noteCard(item, i, states[i]); });
+        }
+        if (rest.length) {
+          if (highlighted.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);">✨ AI Suggestions</div>`;
+          rest.forEach(item => { const i = items.indexOf(item); html += _noteCard(item, i, states[i]); });
+        }
+        return html;
+      }
+
+      function _noteCard(item, i, state) {
+        const stCls = state === 'accepted' ? 'ri-accepted' : state === 'declined' ? 'ri-declined' : '';
+        return `<div class="review-item-card ${stCls}" id="rv-${_reviewIndex}-${i}">
+          <p class="review-item-text" style="margin:0 0 8px;">${item.text.replace(/</g,'&lt;')}</p>
+          ${_reviewItemActions(_reviewIndex, i, state)}
+        </div>`;
+      }
+
+      function _renderFlashcardReviewItems(items, states) {
+        const highlighted = items.filter(it => it.source === 'highlighted');
+        const rest        = items.filter(it => it.source !== 'highlighted');
+        let html = '';
+        if (highlighted.length) {
+          html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">📖 From highlights</div>`;
+          highlighted.forEach(item => { const i = items.indexOf(item); html += _flashcardCard(item, i, states[i]); });
+        }
+        if (rest.length) {
+          if (highlighted.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);">✨ AI Suggestions</div>`;
+          rest.forEach(item => { const i = items.indexOf(item); html += _flashcardCard(item, i, states[i]); });
+        }
+        return html;
+      }
+
+      function _flashcardCard(item, i, state) {
+        const stCls = state === 'accepted' ? 'ri-accepted' : state === 'declined' ? 'ri-declined' : '';
+        return `<div class="review-item-card ${stCls}" id="rv-${_reviewIndex}-${i}">
+          <div class="review-card-front">FRONT</div>
+          <div class="review-item-text" style="margin:2px 0 6px;">${(item.front||'').replace(/</g,'&lt;')}</div>
+          <div class="review-card-front" style="margin-top:4px;">BACK</div>
+          <div class="review-card-back">${(item.back||'').replace(/</g,'&lt;')}</div>
+          ${_reviewItemActions(_reviewIndex, i, state)}
+        </div>`;
+      }
+
+      function _reviewItemActions(stepIdx, itemIdx, state) {
+        const acceptDis = state === 'accepted'  ? ' disabled' : '';
+        const declineDis = state === 'declined' ? ' disabled' : '';
+        const undo = state !== 'pending'
+          ? `<button onclick="_toggleReviewItem(${stepIdx},${itemIdx},'pending')" style="color:var(--muted);">↩ Undo</button>`
+          : '';
+        return `<div class="review-item-actions">
+          <button class="ri-accept"${acceptDis} onclick="_toggleReviewItem(${stepIdx},${itemIdx},'accepted')">✓ Accept</button>
+          <button class="ri-decline"${declineDis} onclick="_toggleReviewItem(${stepIdx},${itemIdx},'declined')">✕ Decline</button>
+          ${undo}
+        </div>`;
+      }
+
+      function _toggleReviewItem(stepIdx, itemIdx, newState) {
+        const step = _reviewQueue[stepIdx];
+        if (!step) return;
+        step.states[itemIdx] = newState;
+        const cardEl = document.getElementById(`rv-${stepIdx}-${itemIdx}`);
+        if (!cardEl) return;
+        cardEl.className = `review-item-card ${newState === 'accepted' ? 'ri-accepted' : newState === 'declined' ? 'ri-declined' : ''}`;
+        const actEl = cardEl.querySelector('.review-item-actions');
+        if (actEl) actEl.outerHTML = _reviewItemActions(stepIdx, itemIdx, newState);
+      }
+
+      async function _fetchVocabReviewDef(word, i) {
+        const defEl = document.getElementById(`rv-def-${i}`);
         if (!defEl) return;
         try {
           const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
@@ -10916,55 +11210,74 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           const data = await res.json();
           if (!data || !data.length) throw new Error('empty');
           const entry = _parseFreeDictEntry(data[0], word);
-          if (!defEl) return;
-          const wordEl = document.getElementById('addModalPreviewWord');
-          if (wordEl && entry.phonetic) wordEl.innerHTML = `${word} <span style="color:var(--muted);font-size:0.8em;">${entry.phonetic}</span>`;
-          defEl.innerHTML = `<em>${entry.definition || 'No definition found.'}</em>${entry.usage && entry.usage[0] ? `<br>"${entry.usage[0]}"` : ''}`;
-        } catch {
-          if (defEl) defEl.innerHTML = '<em>Definition not found — will save as-is.</em>';
-        }
+          if (defEl) defEl.textContent = entry.definition || '';
+          const wordEl = document.getElementById(`rv-word-${i}`);
+          if (wordEl && entry.phonetic) wordEl.innerHTML = `${word} <span style="font-weight:400;font-size:0.82em;color:var(--muted);">${entry.phonetic}</span>`;
+        } catch { /* silent */ }
       }
 
-      async function _saveAddModalPreview() {
-        if (!_pendingAddModalSaveFn) { closeAddModal(); return; }
-        const btn = document.getElementById('addModalSaveBtn');
+      function _reviewGoBack() {
+        if (_reviewIndex > 0) { _reviewIndex--; _renderReviewStep(); }
+      }
+
+      function _reviewGoNext() {
+        if (_reviewIndex < _reviewQueue.length - 1) { _reviewIndex++; _renderReviewStep(); }
+      }
+
+      async function _finalizeReview() {
+        const btn = document.getElementById('addModalFinalizeBtn');
         if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
         try {
-          await _pendingAddModalSaveFn();
+          for (const step of _reviewQueue) {
+            const accepted = step.items.filter((_, i) => step.states[i] === 'accepted');
+            if (!accepted.length) continue;
+
+            if (step.type === 'vocab') {
+              for (const item of accepted) {
+                window._silentAdd = true;
+                try { await _addWordsFromText(item.text, _reviewDeckId); }
+                finally { window._silentAdd = false; }
+              }
+            } else if (step.type === 'note') {
+              for (const item of accepted) {
+                const note = {
+                  id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
+                  deckId: _reviewDeckId,
+                  title: item.text.slice(0, 60),
+                  content: item.text,
+                  createdAt: new Date().toISOString().split('T')[0],
+                  updatedAt: new Date().toISOString().split('T')[0]
+                };
+                ALL_NOTES.push(note);
+              }
+              lsSet('nexora_notes', ALL_NOTES);
+              syncToCloud({ nexora_notes: ALL_NOTES });
+            } else if (step.type === 'flashcard') {
+              const cards = lsGet('nexora_custom_cards', []);
+              for (const item of accepted) {
+                const newCard = {
+                  id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
+                  isCustom: true,
+                  front: item.front,
+                  back:  item.back,
+                  projectId: _reviewDeckId,
+                  sm2: typeof defaultSM2 === 'function' ? defaultSM2() : {}
+                };
+                ALL_CUSTOM_CARDS.push(newCard);
+                cards.push(newCard);
+              }
+              lsSet('nexora_custom_cards', cards);
+              syncToCloud({ nexora_custom_cards: cards });
+            }
+          }
         } finally {
-          _pendingAddModalSaveFn = null;
-          if (btn) { btn.textContent = '✓ Save'; btn.disabled = false; }
+          if (btn) { btn.textContent = '✓ Finalize'; btn.disabled = false; }
         }
         closeAddModal();
         renderLibrary();
       }
 
-      function _discardAddModalPreview(silent) {
-        _pendingAddModalSaveFn = null;
-        const preview = document.getElementById('addModalPreview');
-        if (preview) preview.style.display = 'none';
-        const cards = document.getElementById('addModalPreviewCards');
-        if (cards) cards.innerHTML = '';
-
-        // Restore form elements (updateAddModalTypes will re-show the right ones)
-        const wordEl = document.getElementById('addModalWord');
-        if (wordEl) wordEl.style.display = '';
-        const checksEl = document.querySelector('.add-modal-type-checks');
-        if (checksEl) checksEl.style.display = '';
-
-        // Restore footer buttons
-        const submitBtn = document.getElementById('addModalSubmitBtn');
-        if (submitBtn) submitBtn.style.display = '';
-        const discardBtn = document.getElementById('addModalDiscardBtn');
-        if (discardBtn) discardBtn.style.display = 'none';
-        const saveBtn = document.getElementById('addModalSaveBtn');
-        if (saveBtn) saveBtn.style.display = 'none';
-
-        if (!silent) updateAddModalTypes();
-      }
-
-      // Keep legacy switchAddType as a no-op shim for any remaining references
-      function switchAddType(type) { }
+      function switchAddType(type) { /* legacy no-op */ }
 
       // Keyboard: Cmd+N opens add modal, Cmd+K opens search, Escape closes modals
       document.addEventListener('keydown', function(e) {
@@ -11158,90 +11471,96 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         <button class="add-modal-close" onclick="closeAddModal()">✕</button>
       </div>
 
-      <!-- Type checkboxes — multi-select -->
-      <div class="add-modal-type-checks">
-        <label class="add-type-check active" data-type="vocab">
-          <input type="checkbox" value="vocab" checked onchange="updateAddModalTypes()"> ● Vocab
-        </label>
-        <label class="add-type-check" data-type="note">
-          <input type="checkbox" value="note" onchange="updateAddModalTypes()"> Note
-        </label>
-        <label class="add-type-check" data-type="flashcard">
-          <input type="checkbox" value="flashcard" onchange="updateAddModalTypes()"> Flashcard
-        </label>
-        <label class="add-type-check" data-type="imagepdf">
-          <input type="checkbox" value="imagepdf" onchange="updateAddModalTypes()"> 📎 Image / PDF
-        </label>
+      <!-- Group 1: What to generate (multi-select) -->
+      <div id="addModalTypeSection">
+        <div class="add-modal-section-label">Generate</div>
+        <div class="add-modal-type-checks" id="addTypeChecks">
+          <label class="add-type-check active" data-type="vocab">
+            <input type="checkbox" value="vocab" checked onchange="updateAddModalTypes()"> Vocab
+          </label>
+          <label class="add-type-check" data-type="note">
+            <input type="checkbox" value="note" onchange="updateAddModalTypes()"> Notes
+          </label>
+          <label class="add-type-check" data-type="flashcard">
+            <input type="checkbox" value="flashcard" onchange="updateAddModalTypes()"> Flashcards
+          </label>
+        </div>
+
+        <!-- Group 2: From what (independent multi-select) -->
+        <div class="add-modal-section-label">From</div>
+        <div class="add-modal-input-checks" id="addInputChecks">
+          <label class="add-modal-input-check active" data-input="text">
+            <input type="checkbox" value="text" checked onchange="updateAddModalTypes()"> ✏️ Text
+          </label>
+          <label class="add-modal-input-check" data-input="file">
+            <input type="checkbox" value="file" onchange="updateAddModalTypes()"> 📎 Image / File
+          </label>
+        </div>
       </div>
 
-      <!-- Word input — hidden in multi + imagepdf mode -->
+      <!-- Vocab word input — shown only when vocab+text and no other types -->
       <input id="addModalWord" class="add-modal-word-input" type="text"
         placeholder="Type a word or phrase…"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();handleAddModalGenerate();}">
 
-      <!-- Single-type panels -->
-      <div id="addTypeVocab" class="add-modal-field">
+      <!-- Text input area — shown when text input is selected + multi or non-vocab -->
+      <div id="addModalTextArea" class="add-modal-field" style="display:none">
+        <label>Paste or type your content</label>
+        <textarea id="addMultiText" rows="5"
+          placeholder="Paste any text — notes, passages, study material…"></textarea>
+      </div>
+
+      <!-- Vocab context (shown only for vocab-only + text) -->
+      <div id="addTypeVocab" class="add-modal-field" style="display:none">
         <label>Context sentence (optional)</label>
         <textarea id="addContextSentence" rows="2" placeholder='e.g. "The serendipitous meeting changed everything."'></textarea>
       </div>
 
-      <div id="addTypeNote" class="add-modal-field" style="display:none">
-        <label>Note title</label>
-        <input type="text" id="addNoteTitle" placeholder="Note title">
-        <div style="margin-top:8px"></div>
-        <label>Content</label>
-        <textarea id="addNoteContent" rows="4" placeholder="Note content…"></textarea>
-      </div>
-
-      <div id="addTypeFlashcard" class="add-modal-field" style="display:none">
-        <label>Front (question)</label>
-        <input type="text" id="addCardFront" placeholder="Question or term">
-        <div style="margin-top:8px"></div>
-        <label>Back (answer)</label>
-        <input type="text" id="addCardBack" placeholder="Answer or definition">
-      </div>
-
-      <!-- Multi-type panel — shown when 2+ content types selected -->
-      <div id="addTypeMulti" class="add-modal-field" style="display:none">
-        <label>Paste your content</label>
-        <textarea id="addMultiText" rows="5"
-          placeholder="Paste any text. The first line becomes the vocab word and flashcard front; the full text becomes the note body."></textarea>
-        <p style="font-size:11px;color:var(--muted);margin-top:6px;">Content will be saved to all selected types above.</p>
-      </div>
-
-      <!-- Image / PDF panel — exclusive -->
-      <div id="addTypeImagePdf" class="add-modal-field" style="display:none">
-        <label>Upload an image or PDF to scan for vocabulary</label>
-        <div style="margin-top:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <!-- File upload — shown independently when file input is selected -->
+      <div id="addModalFileArea" class="add-modal-field" style="display:none">
+        <label>Image or file</label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px;">
           <button
-            style="padding:8px 16px; border-radius:10px; border:1.5px dashed var(--border-2); background:var(--surface-2); color:var(--text); font-family:var(--font-sans); font-size:13px; font-weight:600; cursor:pointer;"
+            style="padding:7px 14px;border-radius:10px;border:1.5px dashed var(--border-2);background:var(--surface-2);color:var(--text);font-family:var(--font-sans);font-size:13px;font-weight:600;cursor:pointer;"
             onclick="document.getElementById('addModalFileInput').click()">
             📎 Choose File…
           </button>
           <input type="file" id="addModalFileInput" accept="image/*,.pdf" style="display:none"
-            onchange="handleAddModalFileChange(this)">
-          <span id="addModalFileName" style="font-size:12px; color:var(--muted);"></span>
+            onchange="handleAddModalFileChange(this)" multiple>
+          <span id="addModalFileName" style="font-size:12px;color:var(--muted);"></span>
         </div>
-        <p id="addModalFileSizeError"
-          style="display:none; color:var(--red); font-size:12px; margin-top:6px;">
+        <p id="addModalFileSizeError" style="display:none;color:var(--red);font-size:12px;margin-top:6px;">
           File exceeds the 5 MB limit. Please choose a smaller file.
         </p>
-        <p style="font-size:11px; color:var(--muted); margin-top:10px;">
-          Supported: images (JPG, PNG, WEBP) and PDFs · Max 5 MB<br>
-          Results appear in the vocabulary review panel.
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;">
+          Images (JPG, PNG, WEBP) · Max 5 MB · Highlighted content detected first
         </p>
       </div>
 
-      <!-- Preview section — shown after Generate, before Save -->
-      <div id="addModalPreview" style="display:none;">
-        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:0.04em;">PREVIEW — confirm before saving</div>
-        <div id="addModalPreviewCards"></div>
+      <!-- Hidden legacy fields (kept for acceptPreview compatibility) -->
+      <div style="display:none">
+        <input type="text" id="addNoteTitle">
+        <textarea id="addNoteContent"></textarea>
+        <input type="text" id="addCardFront">
+        <input type="text" id="addCardBack">
+        <div id="addTypeNote"></div>
+        <div id="addTypeFlashcard"></div>
+        <div id="addTypeMulti"></div>
+        <div id="addTypeImagePdf"></div>
+      </div>
+
+      <!-- Review section — multi-step wizard -->
+      <div id="addModalReview" style="display:none;">
+        <div class="add-modal-step-bar" id="addModalStepBar"></div>
+        <div id="addModalReviewContent"></div>
       </div>
 
       <div class="add-modal-footer">
         <button class="add-modal-cancel" onclick="closeAddModal()">Cancel</button>
-        <button class="add-modal-cancel" id="addModalDiscardBtn" style="display:none;" onclick="_discardAddModalPreview()">← Edit</button>
-        <button class="add-modal-submit" id="addModalSaveBtn" style="display:none;" onclick="_saveAddModalPreview()">✓ Save</button>
+        <button class="add-modal-cancel" id="addModalBackBtn" style="display:none;" onclick="_reviewGoBack()">← Back</button>
+        <button class="add-modal-cancel" id="addModalEditBtn" style="display:none;" onclick="_discardAddModalPreview()">← Edit</button>
+        <button class="add-modal-submit" id="addModalNextBtn" style="display:none;" onclick="_reviewGoNext()">Next →</button>
+        <button class="add-modal-submit" id="addModalFinalizeBtn" style="display:none;" onclick="_finalizeReview()">✓ Finalize</button>
         <button class="add-modal-submit" id="addModalSubmitBtn" onclick="handleAddModalGenerate()">Generate →</button>
       </div>
     </div>

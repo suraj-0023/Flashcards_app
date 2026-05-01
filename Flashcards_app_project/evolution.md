@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-05-01 — Add Modal Redesign: Dual-Group Selection + Multi-Step Review Wizard
+
+**What:** Completely redesigned the Add Content modal with two independent multi-select pill groups ("Generate": Vocab/Notes/Flashcards; "From": Text/Image-File) and a sequential multi-step review wizard (Back/Next/Finalize navigation).
+
+**Why:** User requested any combination of content types and sources to be generatable simultaneously, with a step-by-step review flow instead of the old single-preview pattern. Notes and flashcards from images use Gemini to prioritise highlighted/annotated content.
+
+**Impact:**
+- Users can now generate Vocab + Notes + Flashcards from the same text or image in one action
+- Each generated item goes through a review step before saving (accept/decline per item)
+- Gemini-powered generation for notes and flashcards from images/PDFs, with highlighted content prioritised
+- Legacy single-preview save flow removed; wizard replaces it entirely
+
+**Technical Detail:**
+- `updateAddModalTypes()` — controls dynamic input area visibility based on selected pill combinations
+- `_callGemini(prompt, file)`, `_generateVocabFromFile`, `_generateNotesFromText/File`, `_generateFlashcardsFromText/File` — new Gemini generation functions returning `{highlighted:[], suggested:[]}` objects
+- `handleAddModalGenerate()` — rebuilt to iterate types, build `_reviewQueue`, launch `_startReview()`
+- `_startReview()` / `_renderReviewStep()` / `_finalizeReview()` — new multi-step wizard with step-dot indicator
+- `_reviewQueue`, `_reviewStep`, `_reviewSelections` — new state variables driving the wizard
+- `_addModalFiles` (array) replaces `_addModalFile` (single) for multi-file support
+- New CSS: `.add-modal-section-label`, `.add-modal-step-bar`, `.add-modal-step-dot`, `.review-item-card`, `.review-item-actions` and related selectors
+
+---
+
 ## 2026-04-30 — Bug-finder agent sweep: 7 new bugs fixed
 
 **What:** Two automated Haiku bug-finder agents scanned all remaining sections of app.html and found 7 bugs that were then fixed.

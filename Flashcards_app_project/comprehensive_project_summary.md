@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-04-30 (Bulk bug fix sweep: 30+ issues resolved — dark mode, null-checks, async guards, branding)
+**Last Updated**: 2026-05-01 (Add Modal redesign: dual-group selection + multi-step review wizard)
 
 ---
 
@@ -27,16 +27,15 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch; includes ⌘K Search ghost pill and "+ Add" button (Cmd+N shortcut)
 2. **Daily Queue Badge** (sidebar) — Shows total items due today; expandable breakdown showing count of new, review, and lapsed items; dismissible with ✕ button (Apr 30)
 3. **Add Modal** (Cmd+N to open, Escape to close)
-   - **Multi-select content type checkboxes**: Vocab, Note, Flashcard (combinable), and Image/PDF (exclusive)
-   - When 2+ types selected: single textarea input → first line becomes vocab word + flashcard front; full text becomes note body; "Save All →" saves to all selected types in one action
-   - When Image/PDF selected: file picker (5 MB limit) replaces text input; "Scan File →" runs vision AI extraction
-   - **Context Sentence** field for Vocab (optional) — displayed on flashcard back and in word detail modal (Apr 30)
-   - Word/title input field (hidden in multi-type and image/PDF modes)
+   - **Two independent multi-select pill groups**:
+     - "Generate": Vocab, Notes, Flashcards (any combination)
+     - "From": Text, Image/File (any combination)
+   - Dynamic input area: word input for vocab-only+text-only; textarea for multi-type; file upload for Image/File; both can coexist
+   - **Gemini-powered generation**: notes and flashcards from images/PDFs prioritise highlighted/annotated content; AI suggestions fill the rest
+   - **Multi-step review wizard**: after Generate, each content type gets its own step (step-dot indicator + "Type · N of N" label); accept/decline per item; Back/Next navigation; Finalize saves accepted items
+   - `_fetchVocabReviewDef()` loads definitions async per vocab item during review
    - Deck selector dropdown
-   - Type-specific fields (title+body for Note, front+back for Flashcard)
-   - Preview step before save: vocab shows definition preview; note/flashcard show content preview; multi-type shows all previews stacked
-   - Cmd+Enter or button click to submit; scroll position preserved after add
-   - Smart routing: Vocab → `_addWordsFromText()` for enrichment, Note/Flashcard → direct object creation, Image/PDF → `generateVocabFromImage()`
+   - Cmd+Enter or button click to generate; Escape to close
 4. **Library** (2-column card grid, scroll position preserved)
    - Unified grid of all content types for the active deck
    - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), SM-2 state pill + "Due in Xd" chip (Apr 30), circular SVG score ring badge, accuracy label
