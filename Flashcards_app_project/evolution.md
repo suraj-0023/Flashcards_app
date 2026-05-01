@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-05-01 — Smart Note Generation: 3-Mode Input Detection
+
+**What:** Rewrote `_generateNotesFromText` and `_generateNotesFromFile` to produce structured notes with a clear title and rich body instead of raw definition strings. Input is now auto-detected as single word, word list, or passage — each mode uses a tailored Gemini prompt and produces the right number of notes.
+
+**Why:** Notes generated from a single word (e.g. "imitation") previously showed only the definition with no title, making them unidentifiable after time. A note should be a study artifact — titled, contextualised, and rich enough to stand alone.
+
+**Impact:**
+- Single word → 1 note titled with the word; body has definition, usage example, related words, and memory hook
+- Word list (e.g. "imitation mimicry emulation") → one note per word, parallel Gemini calls, same structure
+- Passage → Gemini extracts however many concepts are worth studying (2–6), each as its own titled note
+- Image/file notes also now return structured {title, body} objects
+- Review wizard note cards now show the title as a bold heading above the body
+
+**Technical Detail:**
+- `_generateNotesFromText(text)`: detects single word (1 token), word list (2–8 short tokens, no punctuation), or passage; dispatches to `_wordNotePrompt` per-word or passage-mode Gemini prompt; uses `Promise.all` for parallel word-list calls
+- `_generateNotesFromFile(file)`: updated prompt requests `{title, definition, example, related, hook}` per note; `toItem()` helper assembles the body string
+- `_noteCard()`: renders `item.title` as bold heading when present; `white-space:pre-line` on body; falls back to `item.text` for compat
+- `_finalizeReview()`: saves `item.title` → `note.title` and `item.body` → `note.content`
+
+---
+
 ## 2026-05-01 — Add Modal Redesign: Dual-Group Selection + Multi-Step Review Wizard
 
 **What:** Completely redesigned the Add Content modal with two independent multi-select pill groups ("Generate": Vocab/Notes/Flashcards; "From": Text/Image-File) and a sequential multi-step review wizard (Back/Next/Finalize navigation).

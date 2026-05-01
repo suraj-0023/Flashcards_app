@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-01 (Add Modal redesign: dual-group selection + multi-step review wizard)
+**Last Updated**: 2026-05-01 (Smart note generation: 3-mode input detection — word, word list, passage)
 
 ---
 

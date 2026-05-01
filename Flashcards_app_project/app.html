@@ -10939,26 +10939,71 @@ Return only raw JSON, no markdown code fences.`;
       }
 
       async function _generateNotesFromText(text) {
-        const prompt = `Given this study material, extract up to 8 concise key points worth remembering as study notes.
-Text: ${JSON.stringify(text.slice(0, 3000))}
-Return ONLY raw JSON: {"notes": ["point 1", "point 2", ...]}
-No markdown, no extra text.`;
-        const raw = await _callGemini(prompt);
-        const p = JSON.parse(raw);
-        return { highlighted: [], suggested: (p.notes || []).map(n => ({ text: n, source: 'suggested' })) };
+        const trimmed = text.trim();
+        const tokens = trimmed.split(/\s+/).filter(Boolean);
+        const isWordList = tokens.length >= 2 && tokens.length <= 8 &&
+                           tokens.every(t => t.length <= 20) &&
+                           !/[.,;:!?()"']/.test(trimmed);
+
+        const _wordNotePrompt = (word) =>
+          `Write a structured study note for the vocabulary word "${word}".
+Return ONLY raw JSON (no markdown): {"title":"${word}","definition":"clear definition","example":"a usage example sentence","related":["word1","word2"],"hook":"a memory hook"}`;
+
+        const _toNoteItem = (p, fallbackTitle) => {
+          const body = [
+            p.definition || '',
+            p.example    ? `Example: ${p.example}` : '',
+            p.related?.length ? `Related: ${p.related.join(', ')}` : '',
+            p.hook       ? `Memory hook: ${p.hook}` : ''
+          ].filter(Boolean).join('\n\n');
+          return { title: p.title || fallbackTitle || '', body, source: 'suggested' };
+        };
+
+        if (tokens.length === 1 || isWordList) {
+          // One Gemini call per word, in parallel
+          const results = await Promise.all(tokens.map(async word => {
+            try {
+              const raw = await _callGemini(_wordNotePrompt(word));
+              return _toNoteItem(JSON.parse(raw), word);
+            } catch {
+              return { title: word, body: '', source: 'suggested' };
+            }
+          }));
+          return { highlighted: [], suggested: results };
+        } else {
+          // Passage mode: Gemini decides how many concepts are worth studying
+          const prompt = `Read this text and identify every concept genuinely worth studying. For each concept return a structured study note.
+Text: ${JSON.stringify(trimmed.slice(0, 3000))}
+Return ONLY raw JSON (no markdown): {"notes":[{"title":"concept name","definition":"explanation","example":"example (from text if possible)","related":["word1","word2"],"hook":"memory hook"},...]}
+Extract as many concepts as are genuinely worth studying (typically 2–6). No markdown, no extra text.`;
+          const raw = await _callGemini(prompt);
+          const p = JSON.parse(raw);
+          return { highlighted: [], suggested: (p.notes || []).map(n => _toNoteItem(n, '')) };
+        }
       }
 
       async function _generateNotesFromFile(file) {
-        const prompt = `You are analyzing an image or document page for study notes.
-Priority 1: If there is any highlighted, underlined, or annotated text, extract those as notes verbatim.
-Priority 2: Generate up to 6 additional key points worth remembering from the rest of the content.
-Return ONLY raw JSON: {"highlighted": ["note1", ...], "suggested": ["note1", ...]}
-No markdown, no extra text.`;
+        const prompt = `Analyze this image or document for study notes.
+Priority 1: For any highlighted, underlined, or annotated content extract a structured study note verbatim.
+Priority 2: Identify additional key concepts worth studying from the rest.
+For each note return: title (concept name or short label), definition (explanation), example, related words, and a memory hook.
+Return ONLY raw JSON (no markdown):
+{"highlighted":[{"title":"...","definition":"...","example":"...","related":["..."],"hook":"..."},...],
+ "suggested":  [{"title":"...","definition":"...","example":"...","related":["..."],"hook":"..."},...]}`;
         const raw = await _callGemini(prompt, file);
         const p = JSON.parse(raw);
+        const toItem = (n, src) => {
+          const body = [
+            n.definition || '',
+            n.example    ? `Example: ${n.example}` : '',
+            n.related?.length ? `Related: ${n.related.join(', ')}` : '',
+            n.hook       ? `Memory hook: ${n.hook}` : ''
+          ].filter(Boolean).join('\n\n');
+          return { title: n.title || '', body, source: src };
+        };
         return {
-          highlighted: (p.highlighted || []).map(n => ({ text: n, source: 'highlighted' })),
-          suggested:   (p.suggested   || []).map(n => ({ text: n, source: 'suggested' }))
+          highlighted: (p.highlighted || []).map(n => toItem(n, 'highlighted')),
+          suggested:   (p.suggested   || []).map(n => toItem(n, 'suggested'))
         };
       }
 
@@ -11145,8 +11190,11 @@ No markdown, no extra text.`;
 
       function _noteCard(item, i, state) {
         const stCls = state === 'accepted' ? 'ri-accepted' : state === 'declined' ? 'ri-declined' : '';
+        const title = (item.title || '').replace(/</g, '&lt;');
+        const body  = (item.body  || item.text || '').replace(/</g, '&lt;');
         return `<div class="review-item-card ${stCls}" id="rv-${_reviewIndex}-${i}">
-          <p class="review-item-text" style="margin:0 0 8px;">${item.text.replace(/</g,'&lt;')}</p>
+          ${title ? `<div style="font-weight:700;font-size:0.95rem;margin-bottom:6px;">${title}</div>` : ''}
+          <p class="review-item-text" style="margin:0 0 8px;white-space:pre-line;">${body}</p>
           ${_reviewItemActions(_reviewIndex, i, state)}
         </div>`;
       }
@@ -11240,11 +11288,13 @@ No markdown, no extra text.`;
               }
             } else if (step.type === 'note') {
               for (const item of accepted) {
+                const noteTitle   = item.title   || (item.text || '').slice(0, 60);
+                const noteContent = item.body    || item.text || '';
                 const note = {
                   id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
                   deckId: _reviewDeckId,
-                  title: item.text.slice(0, 60),
-                  content: item.text,
+                  title: noteTitle,
+                  content: noteContent,
                   createdAt: new Date().toISOString().split('T')[0],
                   updatedAt: new Date().toISOString().split('T')[0]
                 };

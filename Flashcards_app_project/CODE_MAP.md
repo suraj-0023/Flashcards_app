@@ -21,8 +21,8 @@
 | Main App Container | `MainAppContainer` | 5542 | Root app div (sidebar + main) |
 | Practice Overlay | `PracticeOverlay` | 5628 | Flashcard/quiz/stats practice UI (decks, cards, scoring) |
 | Main Page | `MainPage` | 5897 | Main library view (deck browser, search, add section) |
-| Search Modal | `SearchModal` | 11449 | Cmd+K command palette (search vocab, notes, flashcards) |
-| Add Modal | `AddModal` | 11462 | Modal for adding vocab/notes/flashcards to decks |
+| Search Modal | `SearchModal` | 11499 | Cmd+K command palette (search vocab, notes, flashcards) |
+| Add Modal | `AddModal` | 11512 | Modal for adding vocab/notes/flashcards to decks |
 | **JavaScript – Core** | | | |
 | Main Script Setup | `MainScript` | 6500 | Script block opener, Gemini proxy URL config |
 | State Variables | `JSState` | 6505 | Global state (VOCAB, QUIZ_VOCAB, projects, currentUser, etc.) |
@@ -62,7 +62,7 @@
 | Notes | `JSNotes` | 10682 | Notes editor and list (create, edit, delete, search) |
 | Add Modal | `JSAddModal` | 10763 | Advanced add modal (multi-select types, dual-group pills, review wizard) |
 | **JavaScript – Init** | | | |
-| Init & Setup | `JSInit` | 11333 | App initialization, Firebase/auth integration, event listeners |
+| Init & Setup | `JSInit` | 11383 | App initialization, Firebase/auth integration, event listeners |
 
 ## Common Tasks
 
@@ -85,7 +85,7 @@
 → **JSStorage** (6565) handles all cloud sync. **JSAuthStateHandler** (7131) handles login flows. **JSDemoData** (7408) seeds data for new users.
 
 ### Modify the search/command palette
-→ **JSInit** (11333) wires the Cmd+K shortcut. The palette HTML is at **SearchModal** (11449). Search logic (openSearch, runSearch, renderSearchResults) lives near the bottom of **JSAddModal** (10763).
+→ **JSInit** (11383) wires the Cmd+K shortcut. The palette HTML is at **SearchModal** (11499). Search logic (openSearch, runSearch, renderSearchResults) lives near the bottom of **JSAddModal** (10763).
 
 ---
 
@@ -155,9 +155,9 @@ app.html
 ---
 
 **Last updated:** May 1, 2026  
-**File size:** ~11,500+ lines  
+**File size:** ~11,550+ lines  
 **Sections:** 43 major code regions
 
 ---
 
-**Latest changes (May 1, 2026):** Add Modal redesign — dual-group pill selection (Generate + From), Gemini generation functions, multi-step review wizard; all section line numbers refreshed.
+**Latest changes (May 1, 2026):** Smart note generation — 3-mode input detection (word/word-list/passage), structured {title, body} notes, parallel Gemini calls for word lists; all section line numbers refreshed.
