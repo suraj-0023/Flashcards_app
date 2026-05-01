@@ -224,7 +224,7 @@
 
     /* ── SIDEBAR ── M3 white/emerald */
     aside {
-      width: 220px;
+      width: 260px;
       background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-tint) 100%);
       border-right: 1px solid var(--sidebar-border);
       color: var(--text);
@@ -5750,14 +5750,23 @@
                   Practice Quiz</h2>
                 <p style="color:var(--muted);font-size:0.85rem;">Test your knowledge across your deck</p>
               </div>
-              <div class="vocab-practice-option" onclick="startNotesQuiz()">
+              <div class="vocab-practice-option" onclick="_showQuizDeckPicker('notes')">
                 <h3>📝 Notes &amp; Flashcards Quiz</h3>
                 <p>Questions generated from your notes and flashcards. 4 options per question.</p>
               </div>
-              <div class="vocab-practice-option" onclick="startVocabQuizDirect()">
+              <div class="vocab-practice-option" onclick="_showQuizDeckPicker('vocab')">
                 <h3>📖 Vocabulary Quiz</h3>
                 <p>4-option word meaning quiz from your deck vocabulary.</p>
               </div>
+            </div>
+
+            <!-- Deck Picker (shown after choosing quiz type) -->
+            <div id="quizDeckPicker" style="display:none;">
+              <button onclick="_hideQuizDeckPicker()" style="background:none;border:none;font-size:0.75rem;color:var(--muted);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;padding:0;margin-bottom:20px;font-family:inherit;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">← Back</button>
+              <h2 style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.4rem;font-weight:500;margin-bottom:6px;">Choose Decks</h2>
+              <p style="color:var(--muted);font-size:0.85rem;margin-bottom:18px;">Select which decks to include in this quiz</p>
+              <div id="quizDeckPickerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+              <button id="quizDeckStartBtn" onclick="_confirmQuizDecks()" style="width:100%;padding:13px;background:var(--emerald);color:#fff;border:none;border-radius:12px;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity 0.15s;">Start Quiz →</button>
             </div>
 
             <!-- Vocab Flashcard Mode -->
@@ -5974,6 +5983,8 @@
             <div class="library-header">
               <span class="library-title">Library</span>
             </div>
+            <!-- Recently Added (Complete Library only) -->
+            <div id="recentlyAddedSection" style="display:none;margin-bottom:24px;"></div>
             <!-- Summary Tiles -->
             <div id="librarySummaryTiles" class="library-summary-tiles">
               <div class="lib-summary-tile" onclick="showLibraryList('notes')">
@@ -7673,6 +7684,10 @@
           if (libSectionEl) libSectionEl.style.display = '';
         }
 
+        // Show header +Add only on Complete Library; decks have their own CTA
+        const headerAddBtn = document.querySelector('.add-modal-btn');
+        if (headerAddBtn) headerAddBtn.style.display = currentProjectId === 'all' ? '' : 'none';
+
         if (!sessionStorage.getItem('queue_dismissed')) updateDailyBadge();
         initFlash();
         initQuiz();
@@ -7818,14 +7833,10 @@
       const nameHtml = isSample
         ? `${p.name} <span style="font-weight:400;opacity:0.55;font-size:0.78em;">(sample)</span>`
         : p.name;
-      const pct = _masteryPercent(p.id);
-      const filled = Math.round(pct / 25);
-      const dotsHtml = `<span class="mastery-dots">${[0,1,2,3].map(i => `<span class="mastery-dot${i < filled ? ' filled' : ''}"></span>`).join('')}</span>`;
       return `
       <div class="project-item-sidebar ${currentProjectId === p.id ? 'active' : ''}" onclick="switchProject('${p.id}')">
         <i>🗂️</i> <span>${nameHtml}</span>
         <div class="project-actions">
-          ${dotsHtml}
           <button class="project-action-btn" onclick="event.stopPropagation(); deleteDeck('${p.id}')">🗑️</button>
         </div>
       </div>`;
@@ -9766,6 +9777,59 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
+      async function _prefetchAllDistractors() {
+        // Show a loading state in the quiz area
+        const optEl = document.getElementById('quizOptions');
+        if (optEl) optEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;font-family:\'Plus Jakarta Sans\',system-ui,sans-serif;">Preparing quiz…</div>';
+
+        const items = _nqQueue.map((item, idx) => ({
+          index: idx,
+          correct: _nqMode === 'vocab' ? item.definition : item.a,
+          context: _nqMode === 'vocab' ? item.word : item.q
+        }));
+
+        const prompt = _nqMode === 'vocab'
+          ? `You are a vocabulary quiz generator. For each item below, generate exactly 3 wrong definitions that are believable, from a similar semantic field, and medium-to-hard to distinguish.
+Items: ${JSON.stringify(items)}
+Return ONLY a JSON array indexed 0..${items.length - 1}, each element being an array of 3 strings: [["wrong1","wrong2","wrong3"],...]
+No explanation, no markdown.`
+          : `You are a quiz generator. For each item below, generate exactly 3 wrong answer options that are plausible, in the same domain, medium-to-hard difficulty, and varied.
+Items: ${JSON.stringify(items)}
+Return ONLY a JSON array indexed 0..${items.length - 1}, each element being an array of 3 strings: [["wrong1","wrong2","wrong3"],...]
+No explanation, no markdown.`;
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000);
+          const res = await fetch(GEMINI_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          if (!res.ok) throw new Error('API ' + res.status);
+          const data = await res.json();
+          const text = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+            .replace(/```json\n?|\n?```/g, '');
+          const allDistractors = JSON.parse(text);
+          if (Array.isArray(allDistractors)) {
+            allDistractors.forEach((distractors, idx) => {
+              if (!Array.isArray(distractors) || distractors.length < 3) return;
+              const item = _nqQueue[idx];
+              const correctText = _nqMode === 'vocab' ? item.definition : item.a;
+              const opts = shuffle([
+                { id: 'correct', text: correctText, isCorrect: true },
+                ...distractors.slice(0, 3).map((d, i) => ({ id: 'w' + i, text: d, isCorrect: false }))
+              ]);
+              _nqTrack[idx] = { opts, answered: false, selectedId: null, correct: null };
+            });
+          }
+        } catch (e) {
+          console.warn('Batch distractor prefetch failed, will fall back per-card:', e);
+        }
+      }
+
       async function _callAnthropicDistractors(correctAnswer, context, mode) {
         const prompt = mode === 'vocab'
           ? `You are a vocabulary quiz generator. Given a word and its correct definition, generate exactly 3 wrong definitions that are believable, from a similar semantic field, and medium-to-hard to distinguish. Return ONLY a JSON array of 3 strings. No explanation, no markdown. Word: ${context}. Correct definition: ${correctAnswer}`
@@ -9803,23 +9867,67 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         return ['Option A', 'Option B', 'Option C'];
       }
 
+      let _quizPendingMode = null; // mode staged by deck picker
+
       function _showNewQuizArea() {
         document.getElementById('vocabPracticeLanding').style.display = 'none';
+        document.getElementById('quizDeckPicker').style.display = 'none';
         document.getElementById('vocabFlipSection').style.display = 'none';
         document.getElementById('quizLevelSelect').style.display = 'none';
         document.getElementById('quizArea').style.display = 'block';
         document.getElementById('quizDone').style.display = 'none';
-        document.getElementById('quizPrevArrow').onclick = async () => { if (_nqIdx > 0) { _nqIdx--; await _renderNqCard(); } };
-        document.getElementById('quizNextArrow').onclick = async () => { if (_nqIdx < _nqQueue.length) { _nqIdx++; await _renderNqCard(); } };
-        document.getElementById('quizNextBtn').onclick = async () => { if (_nqIdx < _nqQueue.length) { _nqIdx++; await _renderNqCard(); } };
+        document.getElementById('quizPrevArrow').onclick = () => { if (_nqIdx > 0) { _nqIdx--; _renderNqCard(); } };
+        document.getElementById('quizNextArrow').onclick = () => { if (_nqIdx < _nqQueue.length) { _nqIdx++; _renderNqCard(); } };
+        document.getElementById('quizNextBtn').onclick = () => { if (_nqIdx < _nqQueue.length) { _nqIdx++; _renderNqCard(); } };
       }
 
-      async function startNotesQuiz() {
+      function _showQuizDeckPicker(mode) {
+        _quizPendingMode = mode;
+        // Build deck list: "All Decks" + each project
+        const listEl = document.getElementById('quizDeckPickerList');
+        if (!listEl) return;
+        const deckOptions = [{ id: 'all', name: 'All Decks' }, ...projects];
+        listEl.innerHTML = deckOptions.map((d, i) => `
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-radius:10px;border:1px solid var(--border);cursor:pointer;">
+            <input type="checkbox" class="quiz-deck-cb" value="${d.id}" ${i === 0 ? 'checked' : ''} onchange="_onQuizDeckCbChange(this)" style="width:16px;height:16px;accent-color:var(--emerald);cursor:pointer;">
+            <span style="font-size:0.9rem;font-weight:${i === 0 ? '600' : '500'};">${d.name}</span>
+          </label>`).join('');
+        document.getElementById('vocabPracticeLanding').style.display = 'none';
+        document.getElementById('quizDeckPicker').style.display = 'block';
+      }
+
+      function _onQuizDeckCbChange(cb) {
+        const cbs = document.querySelectorAll('.quiz-deck-cb');
+        if (cb.value === 'all' && cb.checked) {
+          // Uncheck all individual decks
+          cbs.forEach(c => { if (c.value !== 'all') c.checked = false; });
+        } else if (cb.value !== 'all' && cb.checked) {
+          // Uncheck "All Decks"
+          cbs.forEach(c => { if (c.value === 'all') c.checked = false; });
+        }
+      }
+
+      function _hideQuizDeckPicker() {
+        document.getElementById('quizDeckPicker').style.display = 'none';
+        document.getElementById('vocabPracticeLanding').style.display = 'block';
+      }
+
+      async function _confirmQuizDecks() {
+        const checked = [...document.querySelectorAll('.quiz-deck-cb:checked')].map(c => c.value);
+        if (!checked.length) return;
+        const allDecks = checked.includes('all');
+        if (_quizPendingMode === 'notes') await startNotesQuiz(allDecks ? null : checked);
+        else await startVocabQuizDirect(allDecks ? null : checked);
+      }
+
+      async function startNotesQuiz(deckIds = null) {
         const pool = [];
         ALL_CUSTOM_CARDS.forEach(card => {
-          if (card.front && card.back) pool.push({ id: 'cc_' + card.id, q: card.front, a: card.back });
+          if (card.front && card.back && (deckIds === null || deckIds.includes(card.projectId)))
+            pool.push({ id: 'cc_' + card.id, q: card.front, a: card.back });
         });
         ALL_NOTES.forEach(note => {
+          if (deckIds !== null && !deckIds.includes(note.deckId)) return;
           const text = (note.content || '').replace(/<[^>]+>/g, '').trim();
           if (note.title && text.length > 20) pool.push({ id: 'no_' + (note.id || note.ts || Date.now().toString(36) + Math.random().toString(36).slice(2)), q: note.title, a: text.slice(0, 200) });
         });
@@ -9830,24 +9938,29 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         _nqMode = 'notes';
         _nqQueue = shuffle(pool).slice(0, Math.min(pool.length, 20));
         _nqIdx = 0; _nqCorrect = 0; _nqWrong = 0;
-        _nqTrack = Array(_nqQueue.length).fill(null);
+        _nqTrack = new Array(_nqQueue.length).fill(null);
         _nqWrongAnswers = [];
         _showNewQuizArea();
-        await _renderNqCard();
+        await _prefetchAllDistractors();
+        _renderNqCard();
       }
 
-      async function startVocabQuizDirect() {
-        if (QUIZ_VOCAB.length < 2) { alert('No vocabulary available yet!'); return; }
+      async function startVocabQuizDirect(deckIds = null) {
+        const pool = deckIds === null
+          ? [...ALL_QUIZ_VOCAB]
+          : ALL_QUIZ_VOCAB.filter(w => deckIds.includes(w.projectId));
+        if (pool.length < 2) { alert('No vocabulary available for the selected decks!'); return; }
         _nqMode = 'vocab';
-        _nqQueue = shuffle([...QUIZ_VOCAB]).slice(0, Math.min(QUIZ_VOCAB.length, 20));
+        _nqQueue = shuffle(pool).slice(0, Math.min(pool.length, 20));
         _nqIdx = 0; _nqCorrect = 0; _nqWrong = 0;
-        _nqTrack = Array(_nqQueue.length).fill(null);
+        _nqTrack = new Array(_nqQueue.length).fill(null);
         _nqWrongAnswers = [];
         _showNewQuizArea();
-        await _renderNqCard();
+        await _prefetchAllDistractors();
+        _renderNqCard();
       }
 
-      async function _renderNqCard() {
+      function _renderNqCard() {
         if (_nqIdx >= _nqQueue.length) { _showNqDone(); return; }
         const cardIdx = _nqIdx;
         const item = _nqQueue[cardIdx];
@@ -9871,15 +9984,19 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }
 
         if (!_nqTrack[cardIdx]) {
+          // Prefetch missed this card — generate on-demand as fallback
           document.getElementById('quizOptions').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;font-family:\'Plus Jakarta Sans\',system-ui,sans-serif;">Generating options…</div>';
           const correctText = _nqMode === 'notes' ? item.a : item.definition;
           const contextText = _nqMode === 'notes' ? item.q : item.word;
-          const distractors = await _callAnthropicDistractors(correctText, contextText, _nqMode === 'vocab' ? 'vocab' : 'notes');
-          const opts = shuffle([
-            { id: 'correct', text: correctText, isCorrect: true },
-            ...distractors.map((d, i) => ({ id: 'w' + i, text: d, isCorrect: false }))
-          ]);
-          _nqTrack[cardIdx] = { opts, answered: false, selectedId: null, correct: null };
+          _callAnthropicDistractors(correctText, contextText, _nqMode === 'vocab' ? 'vocab' : 'notes').then(distractors => {
+            const opts = shuffle([
+              { id: 'correct', text: correctText, isCorrect: true },
+              ...distractors.map((d, i) => ({ id: 'w' + i, text: d, isCorrect: false }))
+            ]);
+            _nqTrack[cardIdx] = { opts, answered: false, selectedId: null, correct: null };
+            if (_nqIdx === cardIdx) _renderNqCard();
+          });
+          return;
         }
 
         const track = _nqTrack[cardIdx];
@@ -9956,10 +10073,8 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         }
       }
 
-      async function restartCurrentQuiz() {
-        if (_nqMode === 'notes') await startNotesQuiz();
-        else if (_nqMode === 'vocab') await startVocabQuizDirect();
-        else showVocabLanding();
+      function restartCurrentQuiz() {
+        showVocabLanding();
       }
 
       // ──────────────────────────────────────────────────────────────
@@ -10065,6 +10180,40 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         if (nc) nc.textContent = `${notesItems.length} note${notesItems.length !== 1 ? 's' : ''}`;
         if (fc) fc.textContent = `${flashItems.length} flashcard${flashItems.length !== 1 ? 's' : ''}`;
         if (vc) vc.textContent = `${vocabItems.length} word${vocabItems.length !== 1 ? 's' : ''}`;
+
+        // Recently Added — shown only in Complete Library
+        const recentEl = document.getElementById('recentlyAddedSection');
+        if (recentEl) {
+          if (currentProjectId === 'all') {
+            const deckName = id => (projects.find(p => p.id === id) || {}).name || id;
+            const all = [
+              ...ALL_NOTES.map(n => ({ type: 'note', label: n.title || '(untitled)', sub: deckName(n.deckId), date: n.createdAt || '' })),
+              ...ALL_CUSTOM_CARDS.map(c => ({ type: 'card', label: c.front || '(untitled)', sub: deckName(c.projectId), date: c.createdAt || '' })),
+              ...ALL_VOCAB.map(w => ({ type: 'vocab', label: w.word || '', sub: deckName(w.projectId), date: w.dateAdded || '' }))
+            ].filter(x => x.label).sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0)).slice(0, 15);
+            if (all.length) {
+              const typeIcon = { note: '📝', card: '🃏', vocab: '📖' };
+              recentEl.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                  <span style="font-size:0.78rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);">Recently Added</span>
+                  <button onclick="openAddModal()" style="background:var(--emerald);color:#fff;border:none;border-radius:8px;padding:5px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">+ Add Content</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  ${all.map(item => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border-radius:10px;border:1px solid var(--border);">
+                      <span style="font-size:1rem;flex-shrink:0;">${typeIcon[item.type]}</span>
+                      <span style="flex:1;font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.label.replace(/</g,'&lt;')}</span>
+                      <span style="font-size:0.72rem;color:var(--muted);white-space:nowrap;flex-shrink:0;">${item.sub.replace(/</g,'&lt;')}</span>
+                    </div>`).join('')}
+                </div>`;
+              recentEl.style.display = 'block';
+            } else {
+              recentEl.style.display = 'none';
+            }
+          } else {
+            recentEl.style.display = 'none';
+          }
+        }
 
         // Refresh list view if currently open
         if (currentLibListType) renderLibraryList();

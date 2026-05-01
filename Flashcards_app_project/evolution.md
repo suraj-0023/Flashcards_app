@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-05-01 — UI/UX Improvements: Sidebar, Library, Quiz Flow
+
+**What:** Six UX improvements — sidebar cleanup, wider sidebar, context-aware Add button, Recently Added section in Complete Library, deck picker before quiz, and batch distractor prefetch for instant quiz navigation.
+
+**Why:** Mastery dots were overlapping deck names; sidebar felt cramped; two Add buttons appeared simultaneously on deck views; Complete Library had no at-a-glance recent activity; quiz launched without deck selection; quiz card navigation was slow due to per-card AI calls.
+
+**Impact:**
+- Sidebar deck names no longer obscured by dots
+- Wider sidebar (260px) gives more room for deck names
+- Only one Add button visible at a time — header button hidden on deck views, shown on Complete Library
+- Complete Library shows last 15 added items across all decks with deck name badge and "+ Add Content" button
+- Quiz now asks which deck(s) to include before starting; "All Decks" pre-selected
+- Quiz navigation is instant — all answer options generated in one batch request at quiz start
+
+**Technical Detail:**
+- Sidebar: removed `_masteryPercent` call and `dotsHtml` from deck pill render; `aside` width 220px → 260px
+- `applyProjectFilter()`: toggles `.add-modal-btn` display based on `currentProjectId === 'all'`
+- `renderLibrary()`: populates `#recentlyAddedSection` with sorted merged array of notes/cards/vocab when on Complete Library
+- New `_showQuizDeckPicker(mode)`, `_onQuizDeckCbChange()`, `_hideQuizDeckPicker()`, `_confirmQuizDecks()` for deck picker flow
+- `startNotesQuiz(deckIds)` / `startVocabQuizDirect(deckIds)`: accept optional deck filter; call `_prefetchAllDistractors()` before rendering
+- `_prefetchAllDistractors()`: single batch Gemini call for all questions; populates `_nqTrack` entries upfront
+- `_renderNqCard()`: now synchronous; falls back to per-card async only when prefetch entry missing
+
+---
+
 ## 2026-05-01 — Smart Note Generation: 3-Mode Input Detection
 
 **What:** Rewrote `_generateNotesFromText` and `_generateNotesFromFile` to produce structured notes with a clear title and rich body instead of raw definition strings. Input is now auto-detected as single word, word list, or passage — each mode uses a tailored Gemini prompt and produces the right number of notes.

@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-01 (Smart note generation: 3-mode input detection — word, word list, passage)
+**Last Updated**: 2026-05-01 (UI/UX improvements: sidebar, library, quiz flow)
 
 ---
 
@@ -14,17 +14,17 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 
 ## 2. Current Layout & UX (M3 Warm/Gamified Design)
 
-### Sidebar (M3 White + Green-Tinted Gradient, 220px width)
+### Sidebar (M3 White + Green-Tinted Gradient, 260px width)
 - **Logo**: "N" mark in emerald (#10B981) (Nexora)
 - **New Deck** button → pill-shaped, emerald, creates a named deck
-- **Deck list** → emerald pill active state, white/muted default; each deck shows 4-dot mastery quartile indicator (based on word accuracy ≥75% across ≥3 attempts)
-- **Daily Queue Badge** → placeholder (hidden, reserved for Phase 4 SM-2 spaced repetition engine)
+- **Deck list** → emerald pill active state, white/muted default; clean list with no overlapping indicators
+- **Daily Queue Badge** → shows total items due today; expandable breakdown (new/review/lapsed); dismissible with ✕ button
 - **Practice section** → SVG icons (flashcard, vocab, chart); links to Flashcards, Vocab, Stats (open as full-area overlay)
 - **Profile** → auth state, sign in/out, sync badge
 - **Background**: White with subtle #F0FDF4 green-tinted gradient; 14px border-radius on deck pills
 
 ### Main Area — Single Scrollable Page
-1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch; includes ⌘K Search ghost pill and "+ Add" button (Cmd+N shortcut)
+1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch; includes ⌘K Search ghost pill and context-aware "+ Add" button (Cmd+N shortcut; hidden on deck views, shown on Complete Library)
 2. **Daily Queue Badge** (sidebar) — Shows total items due today; expandable breakdown showing count of new, review, and lapsed items; dismissible with ✕ button (Apr 30)
 3. **Add Modal** (Cmd+N to open, Escape to close)
    - **Two independent multi-select pill groups**:
@@ -36,13 +36,14 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
    - `_fetchVocabReviewDef()` loads definitions async per vocab item during review
    - Deck selector dropdown
    - Cmd+Enter or button click to generate; Escape to close
-4. **Library** (2-column card grid, scroll position preserved)
+4. **Recently Added Section** (when on Complete Library) — Shows last 15 items added across all decks (notes, flashcards, vocab) with type icons, item labels, deck name badges, and "+ Add Content" emerald button
+5. **Library** (2-column card grid, scroll position preserved)
    - Unified grid of all content types for the active deck
    - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), SM-2 state pill + "Due in Xd" chip (Apr 30), circular SVG score ring badge, accuracy label
    - **Note cards**: 14px radius, title + italic content preview + creation date, color-coded left border, "edited Xd ago" timestamp (Apr 30)
    - **Flashcard cards**: 14px radius, front + back preview, SM-2 state pill (Apr 30), color-coded left border
    - Each card shows a small deck-name badge in the top corner
-5. **Background**: Warm #FFF7ED, M3 rounded aesthetic throughout
+6. **Background**: Warm #FFF7ED, M3 rounded aesthetic throughout
 
 ### Practice Overlay (Flashcards / Vocab / Stats)
 - Accessed via sidebar Practice links
@@ -51,7 +52,9 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
   - **Keyboard support** (Apr 30): Space to flip, 1 to mark wrong, 2 to mark correct; visual hint shows available shortcuts
   - **Context sentence** displays on card back when available (Apr 30)
   - **Post-rating toast** provides feedback after rating a card (Apr 30)
-- **Vocab**: Landing screen with two options (Vocab Flashcards, Quiz); Quiz shows multi-tier difficulty (Easy/Medium/Hard) with intelligent distractor logic
+- **Vocab**: Landing screen with two options (Vocab Flashcards, Quiz); Quiz now shows deck picker (checkboxes, "All Decks" pre-selected) before launching; multi-tier difficulty (Easy/Medium/Hard) with intelligent distractor logic
+  - **Deck Picker**: Mutual exclusivity — checking "All Decks" unchecks individuals and vice versa
+  - **Batch Distractor Prefetch**: All quiz distractors generated in one batch Gemini call at quiz start — instant card navigation
 - **Stats**: Displays per-word accuracy breakdown across quiz and flashcard modes
 - All rounded, M3-compliant design
 
