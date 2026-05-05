@@ -7,6 +7,7 @@
   <title>Nexora — From Information to Intelligence</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="nexora-onboarding.css">
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -7267,10 +7268,10 @@
           // App not loaded yet, load it in guest mode
           document.getElementById('loadingScreen').style.display = 'flex';
           loadVocab().then(() => {
-            if (!lsGet('nexora_tour_complete', false)) startWelcomeTour();
+            if (!lsGet('nexora_tour_complete', false)) showProfileSetup(null);
           });
         } else {
-          if (!lsGet('nexora_tour_complete', false)) startWelcomeTour();
+          if (!lsGet('nexora_tour_complete', false)) showProfileSetup(null);
         }
       }
 
@@ -11772,6 +11773,7 @@ No markdown, no extra text.`;
     <button class="guest-banner-dismiss" onclick="sessionStorage.setItem('guest_banner_dismissed','1');this.parentElement.style.display='none';">✕</button>
   </div>
 
+  <script src="nexora-onboarding.js"></script>
 </body>
 
 </html>

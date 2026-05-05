@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-05-05 — Nexora Onboarding: 18-step flow fully verified and hardened
+
+**What**: Fixed 5 bugs in `nexora-onboarding.js` and 1 in `app.html` to make the complete onboarding flow work end-to-end.
+
+**Why**: Puppeteer MCP-based 18-step regression test revealed multiple issues: spotlight targeting a hidden button, tooltip outside-click listener accumulating across shows, wizard closing with app still hidden on `file://`, deck_open tooltip consumed invisibly during wizard deck creation, and checklist DOM not yet initialized when first update call ran. Also `skipLogin()` bypassed the onboarding wrapper entirely.
+
+**Impact**: Full onboarding flow now works from welcome modal → goal wizard → spotlight → 5 contextual tooltips → checklist (3 tasks auto-done, 2 via session/quiz) → completion banner. Dark mode and mobile (360px) both verified.
+
+**Technical Detail**:
+- `_maybeShowSpotlight()` in nexora-onboarding.js: fallback from `.add-modal-btn` to `.deck-home-cta-btn`
+- Outside-click `addEventListener` uses `{ once: true }` to prevent re-entrant dismiss loop
+- `_closeWizard()` force-shows `#app` + hides loadingScreen for `file://` compatibility
+- Wizard step 0 swaps `window.switchProject` ↔ `_origSwitchProject` around `createNewDeck()` call
+- `_markWizardDone()` calls `_initChecklist()` before `_updateChecklist()`
+- `app.html` `skipLogin()`: added `if (!lsGet('nexora_tour_complete', false)) showProfileSetup(null);`
+
+---
+
 ## 2026-05-01 — UI/UX Improvements: Sidebar, Library, Quiz Flow
 
 **What:** Six UX improvements — sidebar cleanup, wider sidebar, context-aware Add button, Recently Added section in Complete Library, deck picker before quiz, and batch distractor prefetch for instant quiz navigation.
