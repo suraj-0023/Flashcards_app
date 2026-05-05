@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-05 (Nexora onboarding: 18-step flow verified, 6 bugs fixed)
+**Last Updated**: 2026-05-05 (Automated bug sweep: 4 XSS patches + 2 null/async fixes)
 
 ---
 

@@ -21,8 +21,8 @@
 | Main App Container | `MainAppContainer` | 5543 | Root app div (sidebar + main) |
 | Practice Overlay | `PracticeOverlay` | 5629 | Flashcard/quiz/stats practice UI (decks, cards, scoring) |
 | Main Page | `MainPage` | 5907 | Main library view (deck browser, search, add section) |
-| Search Modal | `SearchModal` | 11649 | Cmd+K command palette (search vocab, notes, flashcards) |
-| Add Modal | `AddModal` | 11662 | Modal for adding vocab/notes/flashcards to decks |
+| Search Modal | `SearchModal` | 11653 | Cmd+K command palette (search vocab, notes, flashcards) |
+| Add Modal | `AddModal` | 11666 | Modal for adding vocab/notes/flashcards to decks |
 | **JavaScript – Core** | | | |
 | Main Script Setup | `MainScript` | 6512 | Script block opener, Gemini proxy URL config |
 | State Variables | `JSState` | 6517 | Global state (VOCAB, QUIZ_VOCAB, projects, currentUser, etc.) |
@@ -46,23 +46,23 @@
 | **JavaScript – Cards & Practice** | | | |
 | Custom Flashcards | `JSCustomFlashcards` | 8988 | Create and manage custom front/back flashcards |
 | Flashcards | `JSFlashcards` | 9039 | Flashcard study mode (SM-2 rating, flip, keyboard shortcuts, toast) |
-| Quiz | `JSQuiz` | 9338 | Quiz mode with multiple choice and difficulty levels |
-| Stats | `JSStats` | 9573 | Performance stats (total, correct, accuracy per word) |
+| Quiz | `JSQuiz` | 9341 | Quiz mode with multiple choice and difficulty levels |
+| Stats | `JSStats` | 9576 | Performance stats (total, correct, accuracy per word) |
 | **JavaScript – Navigation & Views** | | | |
-| Flashcard Deck Selection | `JSFlashcardDeckSelection` | 9629 | Deck picker for practice (checkboxes, start practice) |
-| Practice Overlay | `JSPracticeOverlay` | 9724 | Practice view switcher (flashcards/quiz/stats) |
-| New Quiz System | `JSNewQuizSystem` | 9768 | Multiple choice quiz engine with wrong answer review |
-| Vocab Practice (Flip) | `JSVocabPractice` | 10082 | Flip card vocab review mode (vocabulary.json words) |
-| Library | `JSLibrary` | 10160 | Main library render (decks, vocab, notes, cards sections) |
-| Library List View | `JSLibraryListView` | 10228 | Filtered list display (vocab, notes, flashcards) with SM-2 state pills |
-| Detail Popup | `JSDetailPopup` | 10392 | Item detail view in list (flip for cards, edit, delete) |
+| Flashcard Deck Selection | `JSFlashcardDeckSelection` | 9632 | Deck picker for practice (checkboxes, start practice) |
+| Practice Overlay | `JSPracticeOverlay` | 9727 | Practice view switcher (flashcards/quiz/stats) |
+| New Quiz System | `JSNewQuizSystem` | 9771 | Multiple choice quiz engine with wrong answer review |
+| Vocab Practice (Flip) | `JSVocabPractice` | 10085 | Flip card vocab review mode (vocabulary.json words) |
+| Library | `JSLibrary` | 10163 | Main library render (decks, vocab, notes, cards sections) |
+| Library List View | `JSLibraryListView` | 10231 | Filtered list display (vocab, notes, flashcards) with SM-2 state pills |
+| Detail Popup | `JSDetailPopup` | 10395 | Item detail view in list (flip for cards, edit, delete) |
 | **JavaScript – Add Section & Management** | | | |
-| Add Section | `JSAddSection` | 10488 | Add vocab/notes UI (text textarea, file uploads, type pills) |
-| Deck Dashboard | `JSDeckDashboard` | 10710 | Deck home page (stats, section tiles, actions) |
-| Notes | `JSNotes` | 10832 | Notes editor and list (create, edit, delete, search) |
-| Add Modal | `JSAddModal` | 10913 | Advanced add modal (multi-select types, dual-group pills, review wizard) |
+| Add Section | `JSAddSection` | 10491 | Add vocab/notes UI (text textarea, file uploads, type pills) |
+| Deck Dashboard | `JSDeckDashboard` | 10714 | Deck home page (stats, section tiles, actions) |
+| Notes | `JSNotes` | 10836 | Notes editor and list (create, edit, delete, search) |
+| Add Modal | `JSAddModal` | 10917 | Advanced add modal (multi-select types, dual-group pills, review wizard) |
 | **JavaScript – Init** | | | |
-| Init & Setup | `JSInit` | 11533 | App initialization, Firebase/auth integration, event listeners |
+| Init & Setup | `JSInit` | 11537 | App initialization, Firebase/auth integration, event listeners |
 
 ## Common Tasks
 
@@ -160,4 +160,4 @@ app.html
 
 ---
 
-**Latest changes (May 5, 2026):** Nexora onboarding hardened — 5 bugs in nexora-onboarding.js + 1 in app.html fixed; all section line numbers refreshed (+1 each).
+**Latest changes (May 5, 2026):** Automated bug sweep — 4 XSS patches + null/async fixes; section line numbers updated.

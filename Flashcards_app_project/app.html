@@ -7192,7 +7192,7 @@
             if (lsGet('nexora_demo_seed_version', 0) < DEMO_SEED_VERSION) {
               mergeDemoDataForUser();
               lsSet('nexora_demo_seed_version', DEMO_SEED_VERSION);
-              syncToCloud();
+              await syncToCloud();
             }
             loadVocab(); // Refresh silently with the latest cloud data
           }).catch(e => {
@@ -9196,10 +9196,13 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           usageEl.style.display = 'none';
 
           const delBtn = document.getElementById('flashDeleteBtn');
-          delBtn.style.display = 'block';
-          delBtn.onclick = (e) => { e.stopPropagation(); deleteCustomCard(w.id); };
+          if (delBtn) {
+            delBtn.style.display = 'block';
+            delBtn.onclick = (e) => { e.stopPropagation(); deleteCustomCard(w.id); };
+          }
         } else {
-          document.getElementById('flashDeleteBtn').style.display = 'none';
+          const delBtnEl = document.getElementById('flashDeleteBtn');
+          if (delBtnEl) delBtnEl.style.display = 'none';
           usageEl.style.display = 'block';
           if (flashMode === 'word') {
             frontEl.textContent = w.word;
@@ -9465,7 +9468,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         document.getElementById('quizQuestion').textContent = track.questionText;
 
         document.getElementById('quizOptions').innerHTML = track.options.map(opt => `
-    <button class="quiz-option" id="opt-${opt.id}" onclick="selectQuizOption('${opt.id}', '${w.id}', '${w.word.replace(/'/g, "\\'")}')">${opt.word}</button>
+    <button class="quiz-option" id="opt-${_escHtml(opt.id)}" data-opt-id="${_escHtml(opt.id)}" data-correct-id="${_escHtml(w.id)}" data-correct-word="${_escHtml(w.word)}" onclick="selectQuizOption(this.dataset.optId, this.dataset.correctId, this.dataset.correctWord)">${_escHtml(opt.word)}</button>
   `).join('');
 
         // If already answered, restore visual state
@@ -10445,15 +10448,15 @@ No explanation, no markdown.`;
           const t = tC + tW;
           const pct = t ? Math.round((tC / t) * 100) + '%' : 'new';
           const typeStr = (item.type || []).join(' · ');
-          const usageHtml = (item.usage || []).map(u => `<div class="usage-item">"${u}"</div>`).join('');
+          const usageHtml = (item.usage || []).map(u => `<div class="usage-item">"${_escHtml(u)}"</div>`).join('');
           const oppHtml = (item.opposites || []).length
-            ? `<div class="modal-section"><h4>Opposites</h4><div class="tag-list">${item.opposites.map(o => `<span class="tag opposite">${o}</span>`).join('')}</div></div>` : '';
+            ? `<div class="modal-section"><h4>Opposites</h4><div class="tag-list">${item.opposites.map(o => `<span class="tag opposite">${_escHtml(o)}</span>`).join('')}</div></div>` : '';
           const relHtml = (item.related || []).length
-            ? `<div class="modal-section"><h4>Related</h4><div class="tag-list">${item.related.map(r => `<span class="tag related">${r}</span>`).join('')}</div></div>` : '';
+            ? `<div class="modal-section"><h4>Related</h4><div class="tag-list">${item.related.map(r => `<span class="tag related">${_escHtml(r)}</span>`).join('')}</div></div>` : '';
           contentEl.innerHTML = `
-      <div class="modal-word">${item.word}</div>
-      <div class="modal-type">${typeStr}</div>
-      <div class="modal-section"><h4>Definition</h4><div class="modal-def">${item.definition}</div></div>
+      <div class="modal-word">${_escHtml(item.word)}</div>
+      <div class="modal-type">${_escHtml(typeStr)}</div>
+      <div class="modal-section"><h4>Definition</h4><div class="modal-def">${_escHtml(item.definition)}</div></div>
       <div class="modal-section"><h4>Usage Examples</h4><div>${usageHtml || '<span style="color:var(--muted);font-size:0.85rem;">No examples.</span>'}</div></div>
       ${oppHtml}${relHtml}
       <div style="margin-top:12px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:0.7rem;color:var(--muted);">Score: ${pct}</div>
@@ -10461,7 +10464,7 @@ No explanation, no markdown.`;
         } else if (type === 'notes') {
           const content = (item.content || '').replace(/</g, '&lt;');
           contentEl.innerHTML = `
-      <div class="modal-word" style="font-size:1.5rem;">${item.title || 'Untitled'}</div>
+      <div class="modal-word" style="font-size:1.5rem;">${_escHtml(item.title || 'Untitled')}</div>
       <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:0.65rem;color:var(--muted);margin-bottom:16px;">${item.updatedAt || ''}</div>
       <div style="font-size:0.9rem;line-height:1.7;white-space:pre-wrap;">${content || '<em style="color:var(--muted);">Empty note</em>'}</div>
     `;
@@ -10472,11 +10475,11 @@ No explanation, no markdown.`;
         <div id="detailFCInner" class="detail-flashcard-inner">
           <div class="detail-fc-front">
             <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:0.65rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.1em;">Front</div>
-            <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.3rem;font-weight:700;">${item.front}</div>
+            <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.3rem;font-weight:700;">${_escHtml(item.front)}</div>
           </div>
           <div class="detail-fc-back">
             <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:0.65rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.1em;">Back</div>
-            <div style="font-size:1rem;line-height:1.6;">${item.back}</div>
+            <div style="font-size:1rem;line-height:1.6;">${_escHtml(item.back)}</div>
           </div>
         </div>
       </div>
@@ -10635,7 +10638,8 @@ No explanation, no markdown.`;
       function discardPreview(type) {
         const card = document.getElementById('preview-' + type);
         if (card) card.remove();
-        if (!document.getElementById('aiPreviewCards').children.length) {
+        const previewCards = document.getElementById('aiPreviewCards');
+        if (previewCards && !previewCards.children.length) {
           document.getElementById('aiPreviewSection').style.display = 'none';
         }
       }
@@ -11604,7 +11608,7 @@ No markdown, no extra text.`;
           html += '<div class="search-group-label">Vocab</div>';
           html += vocabHits.map(w => `<div class="search-result-item" onclick="closeSearch();openModal('${w.id}')">
             <div class="search-result-icon">📖</div>
-            <div><div class="search-result-title">${w.word}</div><div class="search-result-sub">${w.definition || ''}</div></div>
+            <div><div class="search-result-title">${_escHtml(w.word)}</div><div class="search-result-sub">${_escHtml(w.definition || '')}</div></div>
           </div>`).join('');
         }
         if (noteHits.length) {
@@ -11612,7 +11616,7 @@ No markdown, no extra text.`;
           html += noteHits.map(n => {
             return `<div class="search-result-item" onclick="closeSearch();showLibraryList('notes');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${n.id}');if(idx>=0)openDetailPopup(idx);},50)">
               <div class="search-result-icon">📝</div>
-              <div><div class="search-result-title">${n.title || 'Untitled'}</div><div class="search-result-sub">${(n.content || '').slice(0, 80)}</div></div>
+              <div><div class="search-result-title">${_escHtml(n.title || 'Untitled')}</div><div class="search-result-sub">${_escHtml((n.content || '').slice(0, 80))}</div></div>
             </div>`;
           }).join('');
         }
@@ -11621,7 +11625,7 @@ No markdown, no extra text.`;
           html += cardHits.map(c => {
             return `<div class="search-result-item" onclick="closeSearch();showLibraryList('flashcards');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${c.id}');if(idx>=0)openDetailPopup(idx);},50)">
               <div class="search-result-icon">🃏</div>
-              <div><div class="search-result-title">${c.front}</div><div class="search-result-sub">${c.back || ''}</div></div>
+              <div><div class="search-result-title">${_escHtml(c.front)}</div><div class="search-result-sub">${_escHtml(c.back || '')}</div></div>
             </div>`;
           }).join('');
         }

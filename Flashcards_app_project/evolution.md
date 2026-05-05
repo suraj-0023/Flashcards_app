@@ -4,6 +4,18 @@
 
 ---
 
+## [2026-05-05] — Automated bug sweep: 6 fixes (4 HIGH, 2 MEDIUM)
+
+**What:** Fixed 4 stored-XSS vulnerabilities and 2 null/async bugs across quiz, library, search, and flashcard sections.
+
+**Why:** Dual Haiku agent automated sweep identified unescaped innerHTML injections, a null dereference in discardPreview, a missing await on syncToCloud, and unguarded DOM accesses in flashcard rendering.
+
+**Impact:** Eliminates stored-XSS vectors in quiz option rendering, detail popup, and Cmd+K search results; prevents crash when aiPreviewCards element is absent; ensures demo seed sync completes before continuing auth flow; prevents flashDeleteBtn null crash.
+
+**Technical Detail:** `_escHtml()` applied to all user-controlled fields in `renderDetailPopupContent`, `renderSearchResults`, and `showQuizCard`; quiz option onclick converted to data-attribute pattern; `discardPreview` null-checks `aiPreviewCards`; `await` added to `syncToCloud()` in JSAuthStateHandler demo-seed block; `showFlashCard` wraps `flashDeleteBtn` access in null guards.
+
+---
+
 ## 2026-05-05 — Nexora Onboarding: 18-step flow fully verified and hardened
 
 **What**: Fixed 5 bugs in `nexora-onboarding.js` and 1 in `app.html` to make the complete onboarding flow work end-to-end.
