@@ -167,8 +167,8 @@
         <div class="nob-welcome-tagline">From Information to Intelligence</div>
         <div class="nob-welcome-illustration">
           <svg width="80" height="60" viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M40 52 C30 52 14 47 8 43 L8 15 C14 19 30 23 40 23 L40 52Z" fill="#3B8BD4" opacity="0.9"/>
-            <path d="M40 52 C50 52 66 47 72 43 L72 15 C66 19 50 23 40 23 L40 52Z" fill="#2563EB" opacity="0.85"/>
+            <path d="M40 52 C30 52 14 47 8 43 L8 15 C14 19 30 23 40 23 L40 52Z" fill="#10B981" opacity="0.9"/>
+            <path d="M40 52 C50 52 66 47 72 43 L72 15 C66 19 50 23 40 23 L40 52Z" fill="#059669" opacity="0.85"/>
             <line x1="40" y1="52" x2="40" y2="23" stroke="white" stroke-width="1.5" opacity="0.5"/>
             <path d="M59 6 L60.3 10.2 L64.8 10.2 L61.2 12.7 L62.5 17 L59 14.5 L55.5 17 L56.8 12.7 L53.2 10.2 L57.7 10.2 Z" fill="#F5A623"/>
           </svg>
@@ -285,81 +285,93 @@
     el.setAttribute('aria-modal', 'true');
     el.innerHTML = `
       <div class="nob-wizard-card">
-        <div class="nob-wizard-dots">
-          <div class="nob-wizard-dot active" id="nob-dot-0"></div>
-          <div class="nob-wizard-dot"        id="nob-dot-1"></div>
-          <div class="nob-wizard-dot"        id="nob-dot-2"></div>
+        <!-- Branded header -->
+        <div class="nob-wizard-header">
+          <div class="nob-wizard-brand">
+            <div class="nob-wizard-brand-mark">N</div>
+            <div class="nob-wizard-brand-name">Getting started</div>
+          </div>
+          <button class="nob-wizard-header-close" id="nob-wiz-header-close" aria-label="Close">✕</button>
         </div>
 
-        <!-- STEP 1: Name Your Deck -->
-        <div class="nob-wizard-step active" id="nob-step-0">
-          <div class="nob-wizard-title">First, create a deck</div>
-          <div class="nob-wizard-desc">A deck is a collection — name it after the book, subject, or topic you're studying.</div>
-          <input class="nob-wizard-input" id="nob-deck-input" type="text"
-            placeholder="Atomic Habits, GRE Prep, Work Vocab…" autocomplete="off" />
-          <div class="nob-wizard-nav">
-            <button class="nob-wizard-skip" id="nob-wiz-skip">Skip setup</button>
-            <button class="nob-wizard-next" id="nob-step0-next">Next →</button>
+        <div class="nob-wizard-body">
+          <!-- Step progress bars -->
+          <div class="nob-wizard-dots">
+            <div class="nob-wizard-dot active" id="nob-dot-0"></div>
+            <div class="nob-wizard-dot"        id="nob-dot-1"></div>
+            <div class="nob-wizard-dot"        id="nob-dot-2"></div>
           </div>
-        </div>
 
-        <!-- STEP 2: Add First Word -->
-        <div class="nob-wizard-step" id="nob-step-1">
-          <div class="nob-wizard-title">Add one word to get started</div>
-          <div class="nob-wizard-desc">Type any word you want to remember. The app will fetch its definition automatically.</div>
-          <input class="nob-wizard-input" id="nob-word-input" type="text"
-            placeholder="e.g. ephemeral, serendipity…" autocomplete="off" />
-          <div class="nob-mode-toggle">
-            <button class="nob-mode-btn selected" id="nob-mode-type">Type manually</button>
-            <button class="nob-mode-btn"          id="nob-mode-ai">AI Extract</button>
-            <button class="nob-mode-btn"          id="nob-mode-scan">Scan Image</button>
-          </div>
-          <div class="nob-wizard-confirm" id="nob-word-confirm"></div>
-          <div class="nob-wizard-error"   id="nob-word-error">Word not found — try another word or use the main + Add button.</div>
-          <div class="nob-wizard-nav">
-            <button class="nob-wizard-skip" id="nob-wiz-skip-2">Skip setup</button>
-            <button class="nob-wizard-next" id="nob-step1-next">Add &amp; Continue</button>
-          </div>
-        </div>
-
-        <!-- STEP 3: Try a Flashcard -->
-        <div class="nob-wizard-step" id="nob-step-2">
-          <div class="nob-wizard-title">Now let's practice it</div>
-          <div class="nob-wizard-desc">Tap the card to flip it and see the definition.</div>
-          <div class="nob-flashcard-wrap">
-            <div class="nob-flashcard-mini" id="nob-flashcard">
-              <div class="nob-card-face nob-card-front">
-                <span id="nob-card-word"></span>
-                <span class="nob-card-hint">tap to flip</span>
-              </div>
-              <div class="nob-card-face nob-card-back">
-                <span id="nob-card-def">Loading definition…</span>
-              </div>
+          <!-- STEP 1: Name Your Deck -->
+          <div class="nob-wizard-step active" id="nob-step-0">
+            <div class="nob-wizard-title">First, create a deck</div>
+            <div class="nob-wizard-desc">A deck is a collection — name it after the book, subject, or topic you're studying.</div>
+            <input class="nob-wizard-input" id="nob-deck-input" type="text"
+              placeholder="Atomic Habits, GRE Prep, Work Vocab…" autocomplete="off" />
+            <div class="nob-wizard-nav">
+              <button class="nob-wizard-skip" id="nob-wiz-skip">Skip setup</button>
+              <button class="nob-wizard-next" id="nob-step0-next">Next →</button>
             </div>
           </div>
-          <div class="nob-flash-actions" id="nob-flash-actions">
-            <button class="nob-flash-btn nob-flash-btn-got"  id="nob-btn-got">✓ Got It</button>
-            <button class="nob-flash-btn nob-flash-btn-need" id="nob-btn-need">✗ Need Practice</button>
-          </div>
-          <div class="nob-wizard-nav">
-            <button class="nob-wizard-skip" id="nob-wiz-skip-3">Skip setup</button>
-            <span></span>
-          </div>
-        </div>
 
-        <!-- COMPLETION STATE -->
-        <div class="nob-wizard-complete" id="nob-wiz-complete">
-          <div class="nob-confetti-wrap">
-            <div class="nob-confetti-dot"></div>
-            <div class="nob-confetti-dot"></div>
-            <div class="nob-confetti-dot"></div>
-            <div class="nob-confetti-dot"></div>
-            <div class="nob-confetti-dot"></div>
-            <div class="nob-confetti-dot"></div>
+          <!-- STEP 2: Add First Word -->
+          <div class="nob-wizard-step" id="nob-step-1">
+            <div class="nob-wizard-title">Add one word to get started</div>
+            <div class="nob-wizard-desc">Type any word you want to remember. The app will fetch its definition automatically.</div>
+            <input class="nob-wizard-input" id="nob-word-input" type="text"
+              placeholder="e.g. ephemeral, serendipity…" autocomplete="off" />
+            <div class="nob-mode-toggle">
+              <button class="nob-mode-btn selected" id="nob-mode-type">Type manually</button>
+              <button class="nob-mode-btn"          id="nob-mode-ai">AI Extract</button>
+              <button class="nob-mode-btn"          id="nob-mode-scan">Scan Image</button>
+            </div>
+            <div class="nob-wizard-confirm" id="nob-word-confirm"></div>
+            <div class="nob-wizard-error"   id="nob-word-error">Word not found — try another word or use the main + Add button.</div>
+            <div class="nob-wizard-nav">
+              <button class="nob-wizard-skip" id="nob-wiz-skip-2">Skip setup</button>
+              <button class="nob-wizard-next" id="nob-step1-next">Add &amp; Continue</button>
+            </div>
           </div>
-          <div class="nob-wizard-complete-heading">You're all set! 🎉</div>
-          <div class="nob-wizard-complete-sub" id="nob-complete-sub">Your deck is ready. Keep adding words.</div>
-          <button class="nob-wizard-complete-cta" id="nob-complete-cta">Go to my deck →</button>
+
+          <!-- STEP 3: Try a Flashcard -->
+          <div class="nob-wizard-step" id="nob-step-2">
+            <div class="nob-wizard-title">Now let's practice it</div>
+            <div class="nob-wizard-desc">Tap the card to flip it and see the definition.</div>
+            <div class="nob-flashcard-wrap">
+              <div class="nob-flashcard-mini" id="nob-flashcard">
+                <div class="nob-card-face nob-card-front">
+                  <span id="nob-card-word"></span>
+                  <span class="nob-card-hint">tap to flip</span>
+                </div>
+                <div class="nob-card-face nob-card-back">
+                  <span id="nob-card-def">Loading definition…</span>
+                </div>
+              </div>
+            </div>
+            <div class="nob-flash-actions" id="nob-flash-actions">
+              <button class="nob-flash-btn nob-flash-btn-got"  id="nob-btn-got">✓ Got It</button>
+              <button class="nob-flash-btn nob-flash-btn-need" id="nob-btn-need">✗ Need Practice</button>
+            </div>
+            <div class="nob-wizard-nav">
+              <button class="nob-wizard-skip" id="nob-wiz-skip-3">Skip setup</button>
+              <span></span>
+            </div>
+          </div>
+
+          <!-- COMPLETION STATE -->
+          <div class="nob-wizard-complete" id="nob-wiz-complete">
+            <div class="nob-confetti-wrap">
+              <div class="nob-confetti-dot"></div>
+              <div class="nob-confetti-dot"></div>
+              <div class="nob-confetti-dot"></div>
+              <div class="nob-confetti-dot"></div>
+              <div class="nob-confetti-dot"></div>
+              <div class="nob-confetti-dot"></div>
+            </div>
+            <div class="nob-wizard-complete-heading">You're all set! 🎉</div>
+            <div class="nob-wizard-complete-sub" id="nob-complete-sub">Your deck is ready. Keep adding words.</div>
+            <button class="nob-wizard-complete-cta" id="nob-complete-cta">Go to my deck →</button>
+          </div>
         </div>
       </div>`;
 
@@ -374,6 +386,10 @@
   }
 
   function _wizardBindEvents() {
+    // Header close button
+    const headerClose = document.getElementById('nob-wiz-header-close');
+    if (headerClose) headerClose.addEventListener('click', _wizardSkip);
+
     // Step 1 next
     const s0next = document.getElementById('nob-step0-next');
     if (s0next) s0next.addEventListener('click', _wizardStep1Next);

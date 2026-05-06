@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-06 (Sample deck removal, card layout fix, tagline update, quiz timing fix)
+**Last Updated**: 2026-05-06 (Onboarding UI redesign: emerald design system match, branded wizard header, SVG color update)
 
 ---
 
@@ -13,6 +13,9 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 ---
 
 ## 2. Current Layout & UX (M3 Warm/Gamified Design)
+
+### Design System
+**Onboarding Design** (as of May 6, 2026): The onboarding experience (wizard, spotlight, checklist) is now styled to match the app's emerald design system with consistent color tokens, surface styles, and flashcard gradients. The wizard includes a branded header with the Nexora N-mark logo and "Getting started" label for visual consistency.
 
 ### Sidebar (M3 White + Green-Tinted Gradient, 260px width)
 - **Logo**: "N" mark in emerald (#10B981) (Nexora)

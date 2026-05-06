@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-06 — Onboarding UI redesign: match Nexora design system
+
+**What:** Redesigned `nexora-onboarding.css` to use the app's emerald design tokens instead of an independent blue palette. Added a branded wizard header with Nexora N-mark, "Getting started" label, and ✕ close button. Updated the welcome modal SVG illustration to use emerald colors.
+
+**Why:** The onboarding wizard, spotlight tooltips, and checklist widget were styled with a completely different visual language (blue #3B8BD4/#2563EB accents, generic black #111 buttons, pure-white cards) that clashed with the app's warm emerald design system — making it feel like a foreign component.
+
+**Impact:** Onboarding now feels native to Nexora — consistent accent color, button style, surface tones, and flashcard gradient. The wizard has a branded header so users always know which app they're in.
+
+**Technical Detail:** `nexora-onboarding.css` — replaced all `#3B8BD4`/`#2563EB` with `var(--emerald)`; replaced `background: #111` CTAs with `var(--emerald)`; swapped hardcoded `#fff` surfaces for `var(--surface)`; changed the `.nob-card-front` gradient to `linear-gradient(135deg, var(--emerald) 0%, #059669 100%)`; restyled `.nob-wizard-dot` as segmented bars. `nexora-onboarding.js` — added `.nob-wizard-header` + `.nob-wizard-body` wrapper structure in `_showFirstDeckWizard()`, wired header ✕ button, updated SVG fill colors.
+
+---
+
 ## 2026-05-06 — Sample deck removal, card layout, tagline & quiz timing
 
 ### What

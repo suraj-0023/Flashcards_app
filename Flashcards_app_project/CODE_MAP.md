@@ -160,4 +160,4 @@ app.html
 
 ---
 
-**Latest changes (May 6, 2026):** Sample deck removal, card layout fix, tagline update, quiz timing fix; section line numbers updated.
+**Latest changes (May 6, 2026):** Onboarding UI redesign — emerald design system match, branded wizard header with N-mark and close button, SVG illustration color update; all app.html section line numbers verified intact.
