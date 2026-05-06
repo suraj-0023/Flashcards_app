@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-05-06 — UX Sweep: Floater Fix, Grid Redesign, General Deck Removal, Save Original AI, Notes Review, Onboarding Expansion
+
+### What
+- Fixed Getting Started floater blinking (poll no longer re-renders unless progress changes)
+- Removed the auto-created "General" deck for all users (V4 migration)
+- Recently Added grid: vocab = square tiles (1:1), notes/flashcards = wide horizontal rectangles (2.5:1, span 2 cols), fluid auto-fill grid
+- AI Generate now offers a "Save Original" card at the top of review results for Notes and Flashcards (from text: raw input; from image: verbatim highlighted/underlined text)
+- New Notes Review practice mode: flip through notes like flashcards, accessible from sidebar
+- Onboarding wizard expanded from 3 → 4 steps: multi-type content creator (Vocab/Note/Flashcard multi-select) + book-page scan demo step
+
+### Why
+User review identified six UX issues: floater animation bug, missing original-text save option in AI flow, incorrect card shapes in recently added section, auto-created General deck cluttering sidebar, no practice mode for notes, and onboarding only covering vocabulary.
+
+### Impact
+- Floater no longer pops every 2 seconds
+- General deck removed from sidebar for all users (existing items still accessible via Complete Library)
+- Recently Added section is visually cleaner with correct card proportions
+- Users can now save their own text alongside AI suggestions
+- Notes are now a first-class practice item (flip review mode)
+- Onboarding introduces all three content types and the image scan feature
+
+### Technical Detail
+- nexora-onboarding.js: _lastChecklistDone sentinel; _syncContentTypeFields(); _wizardStep2Next() multi-type save; _goWizardStep() updated for 4 dots; new _showFirstDeckWizard() HTML with nob-step-0 through nob-step-3
+- nexora-onboarding.css: .nob-type-btn and .nob-type-btn.selected added
+- app.html: DEMO_SEED_VERSION bumped to 4; deck-recent-grid CSS; _generateFlashcardBackForFront(); _extractVerbatimFromFile(); JSNotesReview section; openPracticeView() notes branch
+
+---
+
 ## 2026-05-06 — Onboarding UI redesign: match Nexora design system
 
 **What:** Redesigned `nexora-onboarding.css` to use the app's emerald design tokens instead of an independent blue palette. Added a branded wizard header with Nexora N-mark, "Getting started" label, and ✕ close button. Updated the welcome modal SVG illustration to use emerald colors.

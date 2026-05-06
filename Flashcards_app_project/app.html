@@ -4369,7 +4369,7 @@
 
     .deck-recent-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 10px;
       margin-bottom: 28px;
     }
@@ -4389,7 +4389,7 @@
 
     .deck-recent-card.type-vocab { aspect-ratio: 1 / 1; }
     .deck-recent-card.type-flash,
-    .deck-recent-card.type-note  { min-height: 84px; }
+    .deck-recent-card.type-note  { aspect-ratio: 2.5 / 1; grid-column: span 2; }
     .deck-recent-card:hover { background: var(--bg-2); box-shadow: var(--shadow-card); }
     .deck-recent-word { font-size: 14px; font-weight: 700; font-family: var(--font-serif); color: var(--text); margin-top: 4px; }
     .deck-recent-phonetic { font-size: 10.5px; color: var(--muted); font-style: italic; }
@@ -5594,6 +5594,16 @@
           </svg>
           Quiz
         </div>
+        <div class="practice-link" id="practiceLink-notes" onclick="openPracticeView('notes')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          Notes Review
+        </div>
         <div class="practice-link" id="practiceLink-stats" onclick="openPracticeView('stats')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -5902,6 +5912,44 @@
               </div>
             </div>
             <div class="word-stats-list" id="wordStatsList"></div>
+          </div>
+
+          <!-- NOTES REVIEW -->
+          <div class="view" id="view-notes">
+            <div id="notesReviewDeckSelect">
+              <div style="margin-bottom:24px;">
+                <h2 style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:1.8rem;font-weight:400;margin-bottom:6px;">Notes Review</h2>
+                <p style="color:var(--muted);font-size:0.85rem;">Flip through your notes — title on front, full content on back</p>
+              </div>
+              <div class="deck-select-grid" id="notesDeckSelectGrid"></div>
+              <button class="start-practice-btn" id="startNotesReviewBtn" onclick="startNotesReview()" disabled>Start Review →</button>
+            </div>
+            <div id="notesReviewContent" style="display:none;">
+              <div class="flash-progress">
+                <span id="notesCounter">1 / 1</span>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="notesProgress" style="width:0%"></div>
+                </div>
+                <span></span>
+              </div>
+              <div class="flip-scene">
+                <div class="flip-card" id="notesFlipCard" onclick="flipNoteCard()">
+                  <div class="flip-front">
+                    <div class="flip-label">Tap to reveal content</div>
+                    <div class="flip-word" id="notesFront" style="font-size:1.1rem;">—</div>
+                    <div class="flip-hint">Click the card to read the note</div>
+                  </div>
+                  <div class="flip-back">
+                    <div class="flip-label">Note</div>
+                    <div class="flip-def" id="notesBack" style="font-size:0.9rem;white-space:pre-line;text-align:left;max-height:260px;overflow-y:auto;">—</div>
+                  </div>
+                </div>
+              </div>
+              <div class="flip-actions" id="notesNavActions" style="display:none;">
+                <button class="action-btn wrong" onclick="prevNoteCard()">← Previous</button>
+                <button class="action-btn next" onclick="nextNoteCard()">Next →</button>
+              </div>
+            </div>
           </div>
 
         </div><!-- end .practice-scroll -->
@@ -7425,7 +7473,8 @@
       // ── DEMO DATA SEED ──
       // Bump DEMO_SEED_VERSION whenever DEMO_DATA changes — existing accounts will receive the new content on next login.
       // V3: Sample decks removed; migration cleans up p_atomic/p_climate/p_alchemist/p_science10 from existing accounts.
-      const DEMO_SEED_VERSION = 3;
+      // V4: General deck removed; migration strips 'general' from existing accounts.
+      const DEMO_SEED_VERSION = 4;
       const DEMO_DATA = {
         projects: [],
         notes: [],
@@ -7436,21 +7485,15 @@
       function seedDemoData() {
         if (currentUser) return;
         if (lsGet('nexora_demo_seed_version', 0) >= DEMO_SEED_VERSION) return;
-        if (!lsGet('nexora_projects', []).length) {
-          const generalDeck = { id: 'general', name: 'General' };
-          lsSet('nexora_projects', [generalDeck]);
-          projects = [generalDeck];
-        }
         lsSet('nexora_demo_seed_version', DEMO_SEED_VERSION);
         currentProjectId = 'all';
       }
 
-      // V3 migration: removes legacy sample decks from existing accounts.
+      // V3 migration: removes legacy sample decks (incl. general) from existing accounts.
       // Called once per account when nexora_demo_seed_version < DEMO_SEED_VERSION.
       function mergeDemoDataForUser() {
-        const sampleIds = new Set(['p_atomic','p_climate','p_alchemist','p_science10']);
+        const sampleIds = new Set(['p_atomic','p_climate','p_alchemist','p_science10','general']);
         projects = projects.filter(p => !sampleIds.has(p.id));
-        if (!projects.find(p => p.id === 'general')) projects.unshift({ id: 'general', name: 'General' });
         lsSet('nexora_projects', projects);
         lsSet('nexora_notes',        lsGet('nexora_notes', []).filter(n => !sampleIds.has(n.deckId)));
         lsSet('nexora_custom_cards', lsGet('nexora_custom_cards', []).filter(c => !sampleIds.has(c.projectId)));
@@ -9627,7 +9670,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         document.getElementById('practiceOverlay').style.display = 'flex';
         document.getElementById('mainPage').style.display = 'none';
 
-        const titles = { flashcards: 'Flashcards', vocab: 'Vocab', stats: 'Stats' };
+        const titles = { flashcards: 'Flashcards', vocab: 'Vocab', stats: 'Stats', notes: 'Notes Review' };
         document.getElementById('practiceViewTitle').textContent = titles[type] || type;
 
         document.querySelectorAll('#practiceOverlay .view').forEach(v => v.classList.remove('active'));
@@ -9642,6 +9685,10 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           if (view) view.classList.add('active');
           showVocabLanding();
           setTimeout(() => showHint('#view-quiz', 'Pick a difficulty — Easy uses simple definitions, Hard uses context clues. Your score is saved to Stats.', 'nexora_hint_quiz'), 800);
+        } else if (type === 'notes') {
+          const view = document.getElementById('view-notes');
+          if (view) view.classList.add('active');
+          _renderNotesDeckSelection();
         } else {
           const view = document.getElementById('view-' + type);
           if (view) view.classList.add('active');
@@ -9654,6 +9701,122 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         document.getElementById('practiceOverlay').style.display = 'none';
         document.getElementById('mainPage').style.display = 'flex';
         document.querySelectorAll('.practice-link').forEach(el => el.classList.remove('active'));
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSNotesReview
+      // ──────────────────────────────────────────────────────────────
+      // ── NOTES REVIEW MODE ──
+
+      let _notesReviewQueue = [];
+      let _notesReviewIdx   = 0;
+      let _notesFlipped     = false;
+      let _notesSelectedDecks = new Set();
+
+      function _renderNotesDeckSelection() {
+        const grid = document.getElementById('notesDeckSelectGrid');
+        if (!grid) return;
+
+        document.getElementById('notesReviewDeckSelect').style.display = '';
+        document.getElementById('notesReviewContent').style.display = 'none';
+        _notesSelectedDecks.clear();
+
+        const allNotes = lsGet('nexora_notes', []);
+        const deckIds  = [...new Set(allNotes.map(n => n.deckId).filter(Boolean))];
+        const deckList = [{ id: 'all', name: 'All Decks' }, ...projects.filter(p => deckIds.includes(p.id))];
+
+        grid.innerHTML = deckList.map(d => `
+          <div class="deck-select-card" id="nrDeck-${d.id}" onclick="_toggleNotesDeck('${d.id}')">
+            <div class="deck-select-name">${d.name}</div>
+            <div class="deck-select-count">${d.id === 'all' ? allNotes.length : allNotes.filter(n => n.deckId === d.id).length} notes</div>
+          </div>`).join('');
+
+        document.getElementById('startNotesReviewBtn').disabled = true;
+      }
+
+      function _toggleNotesDeck(deckId) {
+        if (deckId === 'all') {
+          _notesSelectedDecks.clear();
+          _notesSelectedDecks.add('all');
+        } else {
+          _notesSelectedDecks.delete('all');
+          if (_notesSelectedDecks.has(deckId)) _notesSelectedDecks.delete(deckId);
+          else _notesSelectedDecks.add(deckId);
+        }
+        document.querySelectorAll('[id^="nrDeck-"]').forEach(el => el.classList.remove('selected'));
+        _notesSelectedDecks.forEach(id => {
+          const el = document.getElementById('nrDeck-' + id);
+          if (el) el.classList.add('selected');
+        });
+        document.getElementById('startNotesReviewBtn').disabled = _notesSelectedDecks.size === 0;
+      }
+
+      function startNotesReview() {
+        const allNotes = lsGet('nexora_notes', []);
+        let queue;
+        if (_notesSelectedDecks.has('all')) {
+          queue = [...allNotes];
+        } else {
+          queue = allNotes.filter(n => _notesSelectedDecks.has(n.deckId));
+        }
+        if (!queue.length) { alert('No notes found in selected decks.'); return; }
+
+        _notesReviewQueue = queue.sort(() => Math.random() - 0.5);
+        _notesReviewIdx = 0;
+        _notesFlipped = false;
+
+        document.getElementById('notesReviewDeckSelect').style.display = 'none';
+        document.getElementById('notesReviewContent').style.display = 'block';
+        _showNoteCard();
+      }
+
+      function _showNoteCard() {
+        const note = _notesReviewQueue[_notesReviewIdx];
+        if (!note) return;
+
+        const total = _notesReviewQueue.length;
+        document.getElementById('notesCounter').textContent = `${_notesReviewIdx + 1} / ${total}`;
+        document.getElementById('notesProgress').style.width = `${((_notesReviewIdx + 1) / total) * 100}%`;
+
+        document.getElementById('notesFront').textContent = note.title || 'Untitled Note';
+        document.getElementById('notesBack').textContent = note.content || '';
+
+        const card = document.getElementById('notesFlipCard');
+        card.classList.remove('flipped');
+        _notesFlipped = false;
+        document.getElementById('notesNavActions').style.display = 'none';
+      }
+
+      function flipNoteCard() {
+        const card = document.getElementById('notesFlipCard');
+        card.classList.toggle('flipped');
+        _notesFlipped = card.classList.contains('flipped');
+        if (_notesFlipped) {
+          document.getElementById('notesNavActions').style.display = 'flex';
+        }
+      }
+
+      function prevNoteCard() {
+        if (_notesReviewIdx > 0) {
+          _notesReviewIdx--;
+          _showNoteCard();
+        }
+      }
+
+      function nextNoteCard() {
+        if (_notesReviewIdx < _notesReviewQueue.length - 1) {
+          _notesReviewIdx++;
+          _showNoteCard();
+        } else {
+          // End of deck — show completion message
+          document.getElementById('notesReviewContent').innerHTML = `
+            <div style="text-align:center;padding:48px 24px;">
+              <div style="font-size:2rem;margin-bottom:12px;">🎉</div>
+              <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">All notes reviewed!</div>
+              <div style="color:var(--muted);font-size:0.9rem;margin-bottom:24px;">You went through ${_notesReviewQueue.length} note${_notesReviewQueue.length !== 1 ? 's' : ''}.</div>
+              <button class="start-practice-btn" onclick="_renderNotesDeckSelection()" style="width:auto;padding:10px 28px;">Review Again</button>
+            </div>`;
+        }
       }
 
       // ──────────────────────────────────────────────────────────────
@@ -11076,6 +11239,29 @@ No markdown, no extra text.`;
         };
       }
 
+      // ── HELPERS FOR "SAVE ORIGINAL" FEATURE ──
+
+      async function _generateFlashcardBackForFront(frontText) {
+        const prompt = `Generate a concise, clear answer/definition for this flashcard front: "${frontText.slice(0, 500)}"
+Return ONLY raw JSON: {"back": "the answer"}
+No markdown, no extra text.`;
+        try {
+          const raw = await _callGemini(prompt);
+          return JSON.parse(raw).back || '';
+        } catch { return ''; }
+      }
+
+      async function _extractVerbatimFromFile(file) {
+        const prompt = `Look at this image. Extract ONLY the exact verbatim text that is highlighted, underlined, or annotated (pen marks, sticky notes, margin notes). Return each distinct piece of highlighted or annotated text as a separate string.
+Return ONLY raw JSON: {"verbatim": ["exact text 1", "exact text 2"]}
+If nothing is highlighted or annotated, return {"verbatim": []}.
+No markdown, no extra text.`;
+        try {
+          const raw = await _callGemini(prompt, file);
+          return JSON.parse(raw).verbatim || [];
+        } catch { return []; }
+      }
+
       // ── MAIN GENERATE HANDLER ──
 
       async function handleAddModalGenerate() {
@@ -11119,20 +11305,44 @@ No markdown, no extra text.`;
               }
             } else if (type === 'note') {
               if (hasText && inputText) {
+                // "Save Original" card — user's own text, offered before AI suggestions
+                highlighted.unshift({ title: inputText.split('\n')[0].slice(0, 60), body: inputText, source: 'original' });
                 try { const r = await _generateNotesFromText(inputText); suggested.push(...r.suggested); } catch {}
               }
               if (hasFile) {
                 for (const file of _addModalFiles) {
-                  try { const r = await _generateNotesFromFile(file); highlighted.push(...r.highlighted); suggested.push(...r.suggested); } catch {}
+                  try {
+                    const [r, verbatim] = await Promise.all([_generateNotesFromFile(file), _extractVerbatimFromFile(file)]);
+                    // Verbatim highlighted text = "original" items, placed before AI-structured notes
+                    verbatim.forEach(s => highlighted.unshift({ title: s.slice(0, 60), body: s, source: 'original' }));
+                    highlighted.push(...r.highlighted);
+                    suggested.push(...r.suggested);
+                  } catch {}
                 }
               }
             } else if (type === 'flashcard') {
               if (hasText && inputText) {
+                // "Save Original" card — user's front text + LLM-generated back
+                try {
+                  const back = await _generateFlashcardBackForFront(inputText);
+                  highlighted.unshift({ front: inputText, back, source: 'original' });
+                } catch {}
                 try { const r = await _generateFlashcardsFromText(inputText); suggested.push(...r.suggested); } catch {}
               }
               if (hasFile) {
                 for (const file of _addModalFiles) {
-                  try { const r = await _generateFlashcardsFromFile(file); highlighted.push(...r.highlighted); suggested.push(...r.suggested); } catch {}
+                  try {
+                    const [r, verbatim] = await Promise.all([_generateFlashcardsFromFile(file), _extractVerbatimFromFile(file)]);
+                    // Verbatim highlighted text = front of "original" cards; generate backs
+                    for (const s of verbatim) {
+                      try {
+                        const back = await _generateFlashcardBackForFront(s);
+                        highlighted.unshift({ front: s, back, source: 'original' });
+                      } catch {}
+                    }
+                    highlighted.push(...r.highlighted);
+                    suggested.push(...r.suggested);
+                  } catch {}
                 }
               }
             }
@@ -11219,15 +11429,21 @@ No markdown, no extra text.`;
       }
 
       function _renderNoteReviewItems(items, states) {
+        const original    = items.filter(it => it.source === 'original');
         const highlighted = items.filter(it => it.source === 'highlighted');
-        const rest        = items.filter(it => it.source !== 'highlighted');
+        const rest        = items.filter(it => it.source !== 'highlighted' && it.source !== 'original');
         let html = '';
+        if (original.length) {
+          html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">✏️ Your original text</div>`;
+          original.forEach(item => { const i = items.indexOf(item); html += _noteCard(item, i, states[i]); });
+        }
         if (highlighted.length) {
-          html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">📖 From highlights</div>`;
+          if (original.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);">📖 From highlights</div>`;
+          else html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">📖 From highlights</div>`;
           highlighted.forEach(item => { const i = items.indexOf(item); html += _noteCard(item, i, states[i]); });
         }
         if (rest.length) {
-          if (highlighted.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);">✨ AI Suggestions</div>`;
+          if (original.length || highlighted.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);">✨ AI Suggestions</div>`;
           rest.forEach(item => { const i = items.indexOf(item); html += _noteCard(item, i, states[i]); });
         }
         return html;
@@ -11245,15 +11461,21 @@ No markdown, no extra text.`;
       }
 
       function _renderFlashcardReviewItems(items, states) {
+        const original    = items.filter(it => it.source === 'original');
         const highlighted = items.filter(it => it.source === 'highlighted');
-        const rest        = items.filter(it => it.source !== 'highlighted');
+        const rest        = items.filter(it => it.source !== 'highlighted' && it.source !== 'original');
         let html = '';
+        if (original.length) {
+          html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">✏️ Your original card</div>`;
+          original.forEach(item => { const i = items.indexOf(item); html += _flashcardCard(item, i, states[i]); });
+        }
         if (highlighted.length) {
-          html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">📖 From highlights</div>`;
+          if (original.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);">📖 From highlights</div>`;
+          else html += `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">📖 From highlights</div>`;
           highlighted.forEach(item => { const i = items.indexOf(item); html += _flashcardCard(item, i, states[i]); });
         }
         if (rest.length) {
-          if (highlighted.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);">✨ AI Suggestions</div>`;
+          if (original.length || highlighted.length) html += `<div style="margin:12px 0 8px;border-top:1px solid var(--border-2);padding-top:12px;font-size:10.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);">✨ AI Suggestions</div>`;
           rest.forEach(item => { const i = items.indexOf(item); html += _flashcardCard(item, i, states[i]); });
         }
         return html;

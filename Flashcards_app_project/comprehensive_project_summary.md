@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-06 (Onboarding UI redesign: emerald design system match, branded wizard header, SVG color update)
+**Last Updated**: 2026-05-06 (UX sweep: floater fix, grid redesign, General deck removal, Save Original AI, Notes Review, expanded onboarding wizard)
 
 ---
 
@@ -35,11 +35,12 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
      - "From": Text, Image/File (any combination)
    - Dynamic input area: word input for vocab-only+text-only; textarea for multi-type; file upload for Image/File; both can coexist
    - **Gemini-powered generation**: notes and flashcards from images/PDFs prioritise highlighted/annotated content; AI suggestions fill the rest
+   - **Save Original** (May 6): AI review results for Notes and Flashcards now show a "Save Original" card at the top (for text input: raw user text; for image input: verbatim highlighted/underlined text)
    - **Multi-step review wizard**: after Generate, each content type gets its own step (step-dot indicator + "Type · N of N" label); accept/decline per item; Back/Next navigation; Finalize saves accepted items
    - `_fetchVocabReviewDef()` loads definitions async per vocab item during review
    - Deck selector dropdown
    - Cmd+Enter or button click to generate; Escape to close
-4. **Recently Added Section** (when on Complete Library) — Shows last 15 items added across all decks (notes, flashcards, vocab) with type icons, item labels, deck name badges, and "+ Add Content" emerald button. Flashcard and Note cards display as horizontal rectangles (min-height: 84px); vocabulary cards remain square (aspect-ratio: 1/1)
+4. **Recently Added Section** (when on Complete Library) — Shows last 15 items added across all decks (notes, flashcards, vocab) with type icons, item labels, deck name badges, and "+ Add Content" emerald button. Grid uses auto-fill with fluid layout: vocabulary cards = square tiles (aspect-ratio: 1/1); notes and flashcards = wide horizontal rectangles (aspect-ratio: 2.5/1, grid-column: span 2)
 5. **Library** (2-column card grid, scroll position preserved)
    - Unified grid of all content types for the active deck
    - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), SM-2 state pill + "Due in Xd" chip (Apr 30), circular SVG score ring badge, accuracy label
@@ -58,6 +59,7 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 - **Vocab**: Landing screen with two options (Vocab Flashcards, Quiz); Quiz now shows deck picker (checkboxes, "All Decks" pre-selected) before launching; multi-tier difficulty (Easy/Medium/Hard) with intelligent distractor logic
   - **Deck Picker**: Mutual exclusivity — checking "All Decks" unchecks individuals and vice versa
   - **Batch Distractor Prefetch**: All quiz distractors generated in one batch Gemini call at quiz start — instant card navigation
+- **Notes Review** (May 6): Flip through notes like flashcards; accessible from sidebar; deck picker and navigation (previous/next, keyboard support)
 - **Stats**: Displays per-word accuracy breakdown across quiz and flashcard modes
 - All rounded, M3-compliant design
 

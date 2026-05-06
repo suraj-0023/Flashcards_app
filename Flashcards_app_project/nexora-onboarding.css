@@ -452,7 +452,44 @@
   font-weight: 600;
 }
 
-/* Step 3 mini flashcard */
+/* Multi-type toggle (Step 2) */
+.nob-type-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border: 1.5px solid var(--border-2, #E0D8CE);
+  border-radius: 8px;
+  background: var(--bg, #FDFAF6);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted, #6E6660);
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-align: center;
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+}
+.nob-type-btn.selected {
+  border-color: var(--emerald, #10B981);
+  background: var(--emerald-50, #ECFDF5);
+  color: var(--emerald-700, #047857);
+  font-weight: 700;
+  box-shadow: 0 0 0 1px var(--emerald, #10B981);
+}
+.nob-type-btn:hover:not(.selected) {
+  border-color: var(--emerald, #10B981);
+  color: var(--text, #1A1612);
+}
+[data-theme="dark"] .nob-type-btn {
+  background: var(--bg, #1A1612);
+  border-color: var(--border-2, #2E2A26);
+  color: var(--muted, #9E9890);
+}
+[data-theme="dark"] .nob-type-btn.selected {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: var(--emerald, #10B981);
+  color: var(--emerald, #10B981);
+}
+
+/* Step 4 mini flashcard */
 .nob-flashcard-wrap {
   margin-top: 18px;
   perspective: 600px;

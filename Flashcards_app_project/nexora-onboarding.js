@@ -149,6 +149,7 @@
   let _checklistExpanded = false;
   let _checklistCollapseTimer = null;
   let _checklistPollTimer = null;
+  let _lastChecklistDone = -1;
 
   /* ══════════════════════════════════════════════════════
      FEATURE 1 — WELCOME MODAL
@@ -295,11 +296,12 @@
         </div>
 
         <div class="nob-wizard-body">
-          <!-- Step progress bars -->
+          <!-- Step progress dots (4 steps) -->
           <div class="nob-wizard-dots">
             <div class="nob-wizard-dot active" id="nob-dot-0"></div>
             <div class="nob-wizard-dot"        id="nob-dot-1"></div>
             <div class="nob-wizard-dot"        id="nob-dot-2"></div>
+            <div class="nob-wizard-dot"        id="nob-dot-3"></div>
           </div>
 
           <!-- STEP 1: Name Your Deck -->
@@ -314,27 +316,80 @@
             </div>
           </div>
 
-          <!-- STEP 2: Add First Word -->
+          <!-- STEP 2: Add First Content (multi-type) -->
           <div class="nob-wizard-step" id="nob-step-1">
-            <div class="nob-wizard-title">Add one word to get started</div>
-            <div class="nob-wizard-desc">Type any word you want to remember. The app will fetch its definition automatically.</div>
-            <input class="nob-wizard-input" id="nob-word-input" type="text"
-              placeholder="e.g. ephemeral, serendipity…" autocomplete="off" />
-            <div class="nob-mode-toggle">
-              <button class="nob-mode-btn selected" id="nob-mode-type">Type manually</button>
-              <button class="nob-mode-btn"          id="nob-mode-ai">AI Extract</button>
-              <button class="nob-mode-btn"          id="nob-mode-scan">Scan Image</button>
+            <div class="nob-wizard-title">Add your first content</div>
+            <div class="nob-wizard-desc">Select one or more types — fill in what you know and we'll save it all.</div>
+
+            <!-- Multi-select type buttons -->
+            <div class="nob-type-toggle" style="display:flex;gap:8px;margin:12px 0 10px;flex-wrap:wrap;">
+              <button class="nob-type-btn" id="nob-type-vocab" data-type="vocab">📚 Vocabulary</button>
+              <button class="nob-type-btn" id="nob-type-note"  data-type="note">📝 Note</button>
+              <button class="nob-type-btn" id="nob-type-flash" data-type="flash">🃏 Flashcard</button>
             </div>
-            <div class="nob-wizard-confirm" id="nob-word-confirm"></div>
-            <div class="nob-wizard-error"   id="nob-word-error">Word not found — try another word or use the main + Add button.</div>
-            <div class="nob-wizard-nav">
-              <button class="nob-wizard-skip" id="nob-wiz-skip-2">Skip setup</button>
-              <button class="nob-wizard-next" id="nob-step1-next">Add &amp; Continue</button>
+
+            <!-- Vocab fields -->
+            <div id="nob-vocab-fields" style="display:none;">
+              <input class="nob-wizard-input" id="nob-word-input" type="text"
+                placeholder="e.g. ephemeral, serendipity…" autocomplete="off" style="margin-bottom:4px;" />
+              <div class="nob-wizard-confirm" id="nob-word-confirm"></div>
+              <div class="nob-wizard-error" id="nob-word-error">Word not found — use the main + Add button to try again.</div>
+            </div>
+
+            <!-- Note fields -->
+            <div id="nob-note-fields" style="display:none;">
+              <input class="nob-wizard-input" id="nob-note-title" type="text"
+                placeholder="Note title…" autocomplete="off" style="margin-bottom:6px;" />
+              <textarea class="nob-wizard-input" id="nob-note-body" rows="3"
+                placeholder="Note content…" style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
+            </div>
+
+            <!-- Flashcard fields -->
+            <div id="nob-flash-fields" style="display:none;">
+              <input class="nob-wizard-input" id="nob-flash-front" type="text"
+                placeholder="Front — question or term…" autocomplete="off" style="margin-bottom:6px;" />
+              <input class="nob-wizard-input" id="nob-flash-back" type="text"
+                placeholder="Back — answer or definition…" autocomplete="off" />
+            </div>
+
+            <div class="nob-wizard-nav" style="margin-top:14px;">
+              <button class="nob-wizard-skip" id="nob-wiz-skip-2">Skip</button>
+              <button class="nob-wizard-next" id="nob-step1-next">Add &amp; Continue →</button>
             </div>
           </div>
 
-          <!-- STEP 3: Try a Flashcard -->
+          <!-- STEP 3: Book Page / Image Scan Demo -->
           <div class="nob-wizard-step" id="nob-step-2">
+            <div class="nob-wizard-title">Learn from what you read</div>
+            <div class="nob-wizard-desc">Scan a book page — Nexora detects what's worth studying automatically.</div>
+
+            <!-- Book page illustration -->
+            <div class="nob-book-page" style="background:var(--bg-2,#f5f0ea);border:1px solid var(--border,#EDE8E0);border-radius:10px;padding:14px 16px;font-size:0.85rem;line-height:1.65;color:var(--text,#1A1612);margin:12px 0 10px;font-family:Georgia,serif;position:relative;">
+              <p style="margin:0 0 8px;">The concept of <span style="border-bottom:2px solid var(--emerald,#10B981);font-weight:600;">serendipity</span> plays a crucial role in scientific discovery. Many important findings have been accidental.</p>
+              <p style="margin:0 0 8px;background:rgba(251,191,36,0.25);border-radius:3px;padding:1px 3px;display:inline-block;width:100%;box-sizing:border-box;">Unexpected breakthroughs emerge when researchers pursue seemingly unrelated lines of inquiry.</p>
+              <p style="margin:0;">Scientists value <span style="border-bottom:2px solid var(--emerald,#10B981);font-weight:600;">serendipitous</span> findings that reshape entire fields of knowledge.</p>
+            </div>
+
+            <!-- Annotation legend -->
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:0.8rem;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-block;width:22px;border-bottom:2px solid var(--emerald,#10B981);"></span>
+                <span>Underlined word → saved as <strong style="color:var(--emerald,#10B981);">Vocabulary</strong></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-block;width:22px;height:14px;background:rgba(251,191,36,0.35);border-radius:2px;"></span>
+                <span>Highlighted sentence → saved as <strong style="color:#92400E;">Note</strong></span>
+              </div>
+            </div>
+
+            <div class="nob-wizard-nav">
+              <button class="nob-wizard-skip" id="nob-wiz-skip-3">Skip →</button>
+              <button class="nob-wizard-next" id="nob-step2-scan">Try image scan →</button>
+            </div>
+          </div>
+
+          <!-- STEP 4: Practice — Flip the Card -->
+          <div class="nob-wizard-step" id="nob-step-3">
             <div class="nob-wizard-title">Now let's practice it</div>
             <div class="nob-wizard-desc">Tap the card to flip it and see the definition.</div>
             <div class="nob-flashcard-wrap">
@@ -353,7 +408,7 @@
               <button class="nob-flash-btn nob-flash-btn-need" id="nob-btn-need">✗ Need Practice</button>
             </div>
             <div class="nob-wizard-nav">
-              <button class="nob-wizard-skip" id="nob-wiz-skip-3">Skip setup</button>
+              <button class="nob-wizard-skip" id="nob-wiz-skip-4">Skip setup</button>
               <span></span>
             </div>
           </div>
@@ -369,7 +424,7 @@
               <div class="nob-confetti-dot"></div>
             </div>
             <div class="nob-wizard-complete-heading">You're all set! 🎉</div>
-            <div class="nob-wizard-complete-sub" id="nob-complete-sub">Your deck is ready. Keep adding words.</div>
+            <div class="nob-wizard-complete-sub" id="nob-complete-sub">Your deck is ready. Keep adding content.</div>
             <button class="nob-wizard-complete-cta" id="nob-complete-cta">Go to my deck →</button>
           </div>
         </div>
@@ -390,39 +445,43 @@
     const headerClose = document.getElementById('nob-wiz-header-close');
     if (headerClose) headerClose.addEventListener('click', _wizardSkip);
 
-    // Step 1 next
+    // Step 1 next (create deck)
     const s0next = document.getElementById('nob-step0-next');
     if (s0next) s0next.addEventListener('click', _wizardStep1Next);
     const deckInput = document.getElementById('nob-deck-input');
     if (deckInput) deckInput.addEventListener('keydown', e => { if (e.key === 'Enter') _wizardStep1Next(); });
 
-    // Step 2 next
-    const s1next = document.getElementById('nob-step1-next');
-    if (s1next) s1next.addEventListener('click', _wizardStep2Next);
-    const wordInput = document.getElementById('nob-word-input');
-    if (wordInput) wordInput.addEventListener('keydown', e => { if (e.key === 'Enter') _wizardStep2Next(); });
-
-    // Mode toggle (UI only — type manually is default)
-    ['nob-mode-type', 'nob-mode-ai', 'nob-mode-scan'].forEach(id => {
+    // Step 2 type toggle (multi-select)
+    ['nob-type-vocab', 'nob-type-note', 'nob-type-flash'].forEach(id => {
       const btn = document.getElementById(id);
       if (!btn) return;
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.nob-mode-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        const wordInput = document.getElementById('nob-word-input');
-        const s1next = document.getElementById('nob-step1-next');
-        if (id !== 'nob-mode-type') {
-          // Inform user to use main add button for AI/Scan
-          if (wordInput) wordInput.placeholder = 'Use the main + Add button for this mode';
-          if (s1next) s1next.textContent = 'Skip this step →';
-        } else {
-          if (wordInput) wordInput.placeholder = 'e.g. ephemeral, serendipity…';
-          if (s1next) s1next.textContent = 'Add & Continue';
-        }
+        btn.classList.toggle('selected');
+        _syncContentTypeFields();
       });
     });
 
-    // Flashcard flip
+    // Step 2 next (add content)
+    const s1next = document.getElementById('nob-step1-next');
+    if (s1next) s1next.addEventListener('click', _wizardStep2Next);
+
+    // Step 3 (book demo) — scan CTA opens image scan modal, skip goes to step 3
+    const scanBtn = document.getElementById('nob-step2-scan');
+    if (scanBtn) scanBtn.addEventListener('click', () => {
+      _wizardSkip();  // close wizard first
+      if (typeof openAddModal === 'function') {
+        openAddModal();
+        // Pre-select "file" input type if possible
+        setTimeout(() => {
+          const fileCheck = document.querySelector('#addInputChecks input[value="file"]');
+          if (fileCheck && !fileCheck.checked) { fileCheck.checked = true; if (typeof updateAddModalTypes === 'function') updateAddModalTypes(); }
+        }, 300);
+      }
+    });
+    const skip3 = document.getElementById('nob-wiz-skip-3');
+    if (skip3) skip3.addEventListener('click', () => _goWizardStep(3));
+
+    // Flashcard flip (step 4)
     const card = document.getElementById('nob-flashcard');
     if (card) {
       card.addEventListener('click', () => {
@@ -432,14 +491,14 @@
       });
     }
 
-    // Practice buttons
+    // Practice buttons (step 4)
     const gotBtn  = document.getElementById('nob-btn-got');
     const needBtn = document.getElementById('nob-btn-need');
     if (gotBtn)  gotBtn.addEventListener('click',  _wizardComplete);
     if (needBtn) needBtn.addEventListener('click', _wizardComplete);
 
-    // Skip buttons
-    ['nob-wiz-skip', 'nob-wiz-skip-2', 'nob-wiz-skip-3'].forEach(id => {
+    // Skip buttons (all trigger full wizard skip)
+    ['nob-wiz-skip', 'nob-wiz-skip-2', 'nob-wiz-skip-4'].forEach(id => {
       const btn = document.getElementById(id);
       if (btn) btn.addEventListener('click', _wizardSkip);
     });
@@ -447,6 +506,18 @@
     // Completion CTA
     const cta = document.getElementById('nob-complete-cta');
     if (cta) cta.addEventListener('click', _closeWizard);
+  }
+
+  function _syncContentTypeFields() {
+    const vocabSel = document.getElementById('nob-type-vocab')?.classList.contains('selected');
+    const noteSel  = document.getElementById('nob-type-note')?.classList.contains('selected');
+    const flashSel = document.getElementById('nob-type-flash')?.classList.contains('selected');
+    const vocabF = document.getElementById('nob-vocab-fields');
+    const noteF  = document.getElementById('nob-note-fields');
+    const flashF = document.getElementById('nob-flash-fields');
+    if (vocabF) vocabF.style.display = vocabSel ? '' : 'none';
+    if (noteF)  noteF.style.display  = noteSel  ? '' : 'none';
+    if (flashF) flashF.style.display = flashSel ? '' : 'none';
   }
 
   function _wizardStep1Next() {
@@ -486,80 +557,114 @@
   }
 
   async function _wizardStep2Next() {
-    // If non-type mode is selected, just skip to step 3 without a word
-    const modeAi   = document.getElementById('nob-mode-ai');
-    const modeScan = document.getElementById('nob-mode-scan');
-    const isAltMode = (modeAi && modeAi.classList.contains('selected')) ||
-                      (modeScan && modeScan.classList.contains('selected'));
+    const nextBtn = document.getElementById('nob-step1-next');
+    const vocabSel = document.getElementById('nob-type-vocab')?.classList.contains('selected');
+    const noteSel  = document.getElementById('nob-type-note')?.classList.contains('selected');
+    const flashSel = document.getElementById('nob-type-flash')?.classList.contains('selected');
+    const nothingSelected = !vocabSel && !noteSel && !flashSel;
 
-    if (isAltMode) {
-      _wiz.word = '';
+    if (nothingSelected) {
+      // No type picked — skip straight to book demo
       _goWizardStep(2);
       return;
     }
 
-    const input = document.getElementById('nob-word-input');
-    if (!input) return;
-    const word = input.value.trim();
-    if (!word) {
-      input.classList.add('shake');
-      input.addEventListener('animationend', () => input.classList.remove('shake'), { once: true });
-      return;
-    }
-
-    const nextBtn = document.getElementById('nob-step1-next');
     if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Adding…'; }
     const errEl  = document.getElementById('nob-word-error');
     const confEl = document.getElementById('nob-word-confirm');
     if (errEl)  errEl.classList.remove('show');
     if (confEl) confEl.classList.remove('show');
 
-    _wiz.word = word;
+    const deckId = _wiz.deckId;
+    let savedSomething = false;
 
-    // Suppress the alert on word-not-found
-    window._silentAdd = true;
-    try {
-      if (typeof _addWordsFromText === 'function' && _wiz.deckId) {
-        await _addWordsFromText(word, _wiz.deckId);
-      } else if (typeof _addWordsFromText === 'function') {
-        await _addWordsFromText(word, null);
+    // ── Save vocabulary word ──
+    if (vocabSel) {
+      const word = (document.getElementById('nob-word-input')?.value || '').trim();
+      if (word) {
+        _wiz.word = word;
+        window._silentAdd = true;
+        try {
+          if (typeof _addWordsFromText === 'function') await _addWordsFromText(word, deckId);
+          const savedVocab = (typeof lsGet === 'function' ? lsGet('custom_vocab', []) : []) || [];
+          const wordObj = savedVocab.find(w => w.word && w.word.toLowerCase() === word.toLowerCase());
+          _wiz.def = wordObj ? (wordObj.definition || null) : null;
+          savedSomething = true;
+        } catch(e) { console.warn('[Onboarding] vocab save failed:', e); }
+        finally { window._silentAdd = false; }
       }
-    } catch (e) {
-      console.warn('[Onboarding] _addWordsFromText failed:', e);
-    } finally {
-      window._silentAdd = false;
     }
 
-    // Look up the saved definition
-    const savedVocab = (typeof lsGet === 'function' ? lsGet('custom_vocab', []) : []) || [];
-    const wordObj = savedVocab.find(w => w.word && w.word.toLowerCase() === word.toLowerCase());
-    _wiz.def = wordObj ? (wordObj.definition || null) : null;
-
-    if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Add & Continue'; }
-
-    if (wordObj || _wiz.def) {
-      if (confEl) {
-        confEl.textContent = `✓ "${word}" added to ${_wiz.deckName || 'your deck'}`;
-        confEl.classList.add('show');
+    // ── Save note ──
+    if (noteSel) {
+      const title   = (document.getElementById('nob-note-title')?.value || '').trim();
+      const content = (document.getElementById('nob-note-body')?.value  || '').trim();
+      if (title || content) {
+        try {
+          if (typeof lsGet === 'function' && typeof lsSet === 'function') {
+            const notes = lsGet('nexora_notes', []);
+            notes.push({
+              id: 'n_' + Date.now(),
+              deckId: deckId || null,
+              title: title || content.slice(0, 60),
+              content: content || title,
+              createdAt: new Date().toISOString().split('T')[0],
+              updatedAt: new Date().toISOString().split('T')[0]
+            });
+            lsSet('nexora_notes', notes);
+            if (typeof ALL_NOTES !== 'undefined') ALL_NOTES.length = 0, notes.forEach(n => ALL_NOTES.push(n));
+          }
+          savedSomething = true;
+        } catch(e) { console.warn('[Onboarding] note save failed:', e); }
       }
-      setTimeout(() => _goWizardStep(2), 900);
-    } else {
-      // Word not found — still allow progress, show error + skip to step 3
-      if (errEl) errEl.classList.add('show');
-      setTimeout(() => _goWizardStep(2), 1800);
     }
+
+    // ── Save flashcard ──
+    if (flashSel) {
+      const front = (document.getElementById('nob-flash-front')?.value || '').trim();
+      const back  = (document.getElementById('nob-flash-back')?.value  || '').trim();
+      if (front || back) {
+        try {
+          if (typeof lsGet === 'function' && typeof lsSet === 'function') {
+            const cards = lsGet('nexora_custom_cards', []);
+            const newCard = {
+              id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
+              isCustom: true,
+              front: front || 'Front',
+              back: back || '',
+              projectId: deckId || null,
+              sm2: typeof defaultSM2 === 'function' ? defaultSM2() : {}
+            };
+            cards.push(newCard);
+            lsSet('nexora_custom_cards', cards);
+            if (typeof ALL_CUSTOM_CARDS !== 'undefined') ALL_CUSTOM_CARDS.push(newCard);
+            // Use flashcard word for the practice step if no vocab word
+            if (!_wiz.word) { _wiz.word = front; _wiz.def = back; }
+            savedSomething = true;
+          }
+        } catch(e) { console.warn('[Onboarding] flashcard save failed:', e); }
+      }
+    }
+
+    if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Add & Continue →'; }
+
+    if (savedSomething && confEl) {
+      confEl.textContent = '✓ Saved! Moving on…';
+      confEl.classList.add('show');
+    }
+    setTimeout(() => _goWizardStep(2), savedSomething ? 700 : 0);
   }
 
   function _goWizardStep(n) {
     const prev = document.getElementById(`nob-step-${_wiz.step}`);
     if (prev) prev.classList.remove('active');
 
-    // Update dots
-    for (let i = 0; i < 3; i++) {
+    // Update dots (4 total)
+    for (let i = 0; i < 4; i++) {
       const dot = document.getElementById(`nob-dot-${i}`);
       if (!dot) continue;
       dot.classList.remove('active', 'done');
-      if (i < n)      dot.classList.add('done');
+      if (i < n)        dot.classList.add('done');
       else if (i === n) dot.classList.add('active');
     }
 
@@ -567,13 +672,12 @@
     const next = document.getElementById(`nob-step-${n}`);
     if (next) next.classList.add('active');
 
-    // Populate Step 3 flashcard
-    if (n === 2) {
+    // Populate Step 4 (index 3) practice flashcard
+    if (n === 3) {
       const wordEl = document.getElementById('nob-card-word');
       const defEl  = document.getElementById('nob-card-def');
-      if (wordEl) wordEl.textContent = _wiz.word || '—';
-      if (defEl)  defEl.textContent  = _wiz.def || (_wiz.word ? 'Definition loading…' : 'Flip to reveal');
-      // Flip back to front if already flipped from a prior view
+      if (wordEl) wordEl.textContent = _wiz.word || 'serendipity';
+      if (defEl)  defEl.textContent  = _wiz.def  || 'The occurrence of happy accidents — finding something good without looking for it.';
       const card = document.getElementById('nob-flashcard');
       if (card) card.classList.remove('flipped');
       const actions = document.getElementById('nob-flash-actions');
@@ -586,7 +690,7 @@
     if (!steps) return;
 
     // Hide step panels and nav
-    ['nob-step-0','nob-step-1','nob-step-2'].forEach(id => {
+    ['nob-step-0','nob-step-1','nob-step-2','nob-step-3'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.remove('active');
     });
@@ -828,6 +932,9 @@
     document.body.appendChild(root);
     _renderChecklist();
 
+    // Seed _lastChecklistDone so the first poll doesn't needlessly re-render
+    _lastChecklistDone = _getChecklistProgress().done;
+
     // Poll every 2s to update state
     _checklistPollTimer = setInterval(_updateChecklist, 2000);
   }
@@ -901,7 +1008,14 @@
       return;
     }
 
-    // Re-render in place (preserves open/closed state)
+    // Skip re-render if progress hasn't changed (prevents animation replay)
+    if (done === _lastChecklistDone) return;
+    _lastChecklistDone = done;
+
+    // Suppress slide-up animation on the existing pill before replacing innerHTML
+    const existingPill = root.querySelector('.nob-pill');
+    if (existingPill) existingPill.style.animation = 'none';
+
     _renderChecklist();
   }
 
