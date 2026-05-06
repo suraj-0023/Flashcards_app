@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-05 (Automated bug sweep: 4 XSS patches + 2 null/async fixes)
+**Last Updated**: 2026-05-06 (Sample deck removal, card layout fix, tagline update, quiz timing fix)
 
 ---
 
@@ -24,7 +24,7 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 - **Background**: White with subtle #F0FDF4 green-tinted gradient; 14px border-radius on deck pills
 
 ### Main Area — Single Scrollable Page
-1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch; includes ⌘K Search ghost pill and context-aware "+ Add" button (Cmd+N shortcut; hidden on deck views, shown on Complete Library)
+1. **Deck Header** (sticky) — dot + deck name + total item count; updates on deck switch; includes ⌘K Search ghost pill and context-aware "+ Add" button (Cmd+N shortcut; hidden on deck views, shown on Complete Library). Tagline on deck home: "Notes · Flashcards · Vocabulary" (left-aligned)
 2. **Daily Queue Badge** (sidebar) — Shows total items due today; expandable breakdown showing count of new, review, and lapsed items; dismissible with ✕ button (Apr 30)
 3. **Add Modal** (Cmd+N to open, Escape to close)
    - **Two independent multi-select pill groups**:
@@ -36,7 +36,7 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
    - `_fetchVocabReviewDef()` loads definitions async per vocab item during review
    - Deck selector dropdown
    - Cmd+Enter or button click to generate; Escape to close
-4. **Recently Added Section** (when on Complete Library) — Shows last 15 items added across all decks (notes, flashcards, vocab) with type icons, item labels, deck name badges, and "+ Add Content" emerald button
+4. **Recently Added Section** (when on Complete Library) — Shows last 15 items added across all decks (notes, flashcards, vocab) with type icons, item labels, deck name badges, and "+ Add Content" emerald button. Flashcard and Note cards display as horizontal rectangles (min-height: 84px); vocabulary cards remain square (aspect-ratio: 1/1)
 5. **Library** (2-column card grid, scroll position preserved)
    - Unified grid of all content types for the active deck
    - **Vocab cards**: M3 aesthetic, 14px radius, color-coded 4px left border (green for mastered, amber for learning, red for new), SM-2 state pill + "Due in Xd" chip (Apr 30), circular SVG score ring badge, accuracy label
@@ -220,16 +220,11 @@ See `CODE_MAP.md` for the complete index.
 
 ---
 
-## 8. Guest Mode & Sample Decks
+## 8. Guest Mode
 
-- **Guest Users**: See 4 pre-seeded example decks on first visit:
-  1. Atomic Habits
-  2. How to Avoid a Climate Disaster (Bill Gates)
-  3. The Alchemist
-  4. Class 10 Science
-- Each deck contains 6–7 notes, 7 flashcards, and 6–7 vocabulary items for immediate exploration.
+- **Guest Users**: Start with the General deck only (clean slate). Demo decks were removed in v3 as onboarding is now complete.
 - Guest data is un-namespaced in localStorage and cleared on sign-out.
-- **Logged-In Users**: See the same example decks on first login (merged via `mergeDemoDataForUser()` after `pullFromCloud` resolves); skips seeding if user already has custom data. The General deck is always preserved.
+- **Logged-In Users**: Sample decks are auto-removed on next login via v3 migration (`mergeDemoDataForUser()`). The General deck is always preserved.
 
 ---
 

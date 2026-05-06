@@ -4,6 +4,33 @@
 
 ---
 
+## 2026-05-06 — Sample deck removal, card layout, tagline & quiz timing
+
+### What
+- Removed all four sample decks (Atomic Habits, Climate Disaster, The Alchemist, Class 10 Science) and all their associated notes, flashcards, and vocabulary from the app
+- Recently Added grid: flashcard and note cards are now horizontal rectangles; vocabulary cards remain squares
+- Deck home tagline changed from "Your personal study deck" → "Notes · Flashcards · Vocabulary"; header left-aligned
+- Quiz now starts immediately (first card shown at once); batch distractor prefetch runs in background
+
+### Why
+- Onboarding feature is complete; sample decks are no longer needed and clutter new-user experience
+- Card text was being clipped inside square flashcard/note cards — horizontal layout gives more room
+- Tagline was visually drifting toward the Vocabulary tile; left-alignment anchors it to Notes/Flashcards
+- "Preparing quiz…" was blocking the UI for 10-20 seconds while all distractors were batch-fetched
+
+### Impact
+- New users start with a clean slate (General deck only); existing users have sample decks auto-removed on next login via V3 migration
+- Recently Added section is more readable with distinct card shapes per content type
+- Quiz feels instant; options appear as soon as each card's distractors are ready
+
+### Technical Detail
+- `DEMO_SEED_VERSION` bumped 2→3; `DEMO_DATA` arrays cleared; `mergeDemoDataForUser()` now filters out sample IDs
+- CSS: `.deck-recent-card.type-vocab { aspect-ratio: 1/1 }` and `.type-flash, .type-note { min-height: 84px }`
+- `startNotesQuiz` / `startVocabQuizDirect`: removed `await` from `_prefetchAllDistractors()`; `_renderNqCard()` called first
+- Batch loop: added `if (_nqTrack[idx]) return;` guard to avoid overwriting per-card results
+
+---
+
 ## [2026-05-05] — Automated bug sweep: 6 fixes (4 HIGH, 2 MEDIUM)
 
 **What:** Fixed 4 stored-XSS vulnerabilities and 2 null/async bugs across quiz, library, search, and flashcard sections.
