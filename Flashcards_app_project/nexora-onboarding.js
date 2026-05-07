@@ -376,10 +376,10 @@
             </div>
 
             <!-- Review state — AI suggestions shown here -->
-            <div id="nob-step1-review" style="display:none;">
-              <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted,#6E6660);margin-bottom:10px;">🤖 AI found these for you</div>
-              <div id="nob-review-items" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
-              <div class="nob-wizard-nav">
+            <div id="nob-step1-review" style="display:none;flex-direction:column;max-height:52vh;gap:0;">
+              <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted,#6E6660);margin-bottom:10px;flex-shrink:0;">🤖 AI found these for you</div>
+              <div id="nob-review-items" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;padding-bottom:4px;"></div>
+              <div class="nob-wizard-nav" style="flex-shrink:0;margin-top:8px;">
                 <button class="nob-wizard-skip" id="nob-review-skip">Skip all</button>
                 <button class="nob-wizard-next" id="nob-review-save">Save selected →</button>
               </div>
@@ -662,21 +662,33 @@
     }
 
     container.innerHTML = items.map((item, i) => {
-      const label = item.type === 'vocab'
-        ? `📚 <strong>${item.data.text || ''}</strong>`
-        : item.type === 'note'
-          ? `📝 <strong>${(item.data.title || '').slice(0, 50) || (item.data.body || '').slice(0, 50)}</strong>`
-          : `🃏 <strong>${(item.data.front || '').slice(0, 50)}</strong>`;
-      return `<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:var(--bg-2,#f5f0ea);border-radius:8px;cursor:pointer;font-size:0.85rem;">
-        <input type="checkbox" data-idx="${i}" checked style="margin-top:3px;flex-shrink:0;">
-        <span>${label}</span>
+      let icon, title, preview;
+      if (item.type === 'vocab') {
+        icon = '📚'; title = item.data.text || ''; preview = '';
+      } else if (item.type === 'note') {
+        icon = '📝';
+        title = (item.data.title || '').slice(0, 60) || 'Note';
+        const raw = (item.data.body || '').replace(/\n/g, ' ');
+        preview = raw.slice(0, 110) + (raw.length > 110 ? '…' : '');
+      } else {
+        icon = '🃏';
+        title = (item.data.front || '').slice(0, 70);
+        const ans = item.data.back || '';
+        preview = ans.slice(0, 100) + (ans.length > 100 ? '…' : '');
+      }
+      return `<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg-2,#f5f0ea);border-radius:10px;cursor:pointer;">
+        <input type="checkbox" data-idx="${i}" checked style="margin-top:4px;flex-shrink:0;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.875rem;font-weight:700;color:var(--text,#1A1612);${preview ? 'margin-bottom:3px;' : ''}">${icon} ${title}</div>
+          ${preview ? `<div style="font-size:0.78rem;color:var(--muted,#6E6660);line-height:1.45;">${preview}</div>` : ''}
+        </div>
       </label>`;
     }).join('');
 
     document.getElementById('nob-step1-form').style.display    = 'none';
     document.getElementById('nob-step1-loading').style.display = 'none';
     document.getElementById('nob-step1-success').style.display = 'none';
-    document.getElementById('nob-step1-review').style.display  = 'block';
+    document.getElementById('nob-step1-review').style.display  = 'flex';
   }
 
   async function _wizardStep2Finalize() {
@@ -788,14 +800,14 @@
         // Use AI to generate content from the multi-text
         if (noteSel || vocabSel) {
           try {
-            const notesPrompt = `You are an expert teacher. Generate comprehensive study notes on this topic: ${JSON.stringify(multiText.slice(0, 2000))}
-Return ONLY raw JSON (no markdown): {"notes":[{"title":"section","definition":"detailed content","example":"example","related":[],"hook":"tip"},...]}
-Generate 3-6 detailed sections. No markdown, no extra text.`;
+            const notesPrompt = `You are a concise teacher. Create exactly 3 short study note sections on: ${JSON.stringify(multiText.slice(0, 2000))}
+Return ONLY raw JSON: {"notes":[{"title":"section heading","body":"2-3 sentence summary of key facts"},...]}
+Each body must be 2-3 sentences max. Exactly 3 sections. No markdown, no extra text.`;
             const raw = await _callGemini(notesPrompt);
             const parsed = JSON.parse(raw);
             (parsed.notes || []).forEach(n => {
-              const body = [n.definition, n.example ? `Example: ${n.example}` : '', n.hook ? `Tip: ${n.hook}` : ''].filter(Boolean).join('\n\n');
-              reviewItems.push({ type: 'note', data: { title: n.title || '', body } });
+              const body = n.body || n.definition || '';
+              if (body) reviewItems.push({ type: 'note', data: { title: n.title || '', body } });
             });
           } catch(e) { console.warn('[Onboarding] note AI failed:', e); }
         }

@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-07 — Onboarding Review UX: Richer Cards, Sticky Save Button, Shorter Notes
+
+**What:** Updated the onboarding wizard Step 2 ("Add your first content") review panel in three ways: (1) suggestion cards now show a two-line preview (title + body excerpt up to 110 chars) instead of title only; (2) the "Save selected →" / "Skip all" nav buttons are now always visible via flex layout with max-height constraint on the review container; (3) AI notes prompt now generates exactly 3 short sections (2–3 sentences each) instead of 3–6 long detailed sections with examples/tips.
+
+**Why:** Users reported that suggestions were "just one line" and hard to scan; the save button required scrolling to reach on smaller screens; AI-generated notes were too long to read quickly in the review step.
+
+**Impact:** Review panel is more scannable and actionable — users can read note and flashcard content at a glance, and can always see and click the save button without scrolling.
+
+**Technical Detail:** `_nobShowReview()` in `nexora-onboarding.js` now renders each suggestion with `<div style="flex:1;min-width:0">` containing a bold title row and a muted preview row. `#nob-step1-review` uses `display:flex;flex-direction:column;max-height:52vh;` with the items container `flex:1;overflow-y:auto`. Nav buttons have `flex-shrink:0` to stay pinned at bottom. Notes Gemini prompt changed to request exactly 3 sections with 2–3 sentence bodies in JSON format `{"notes":[{"title":"...","body":"..."}]}`. Card body construction updated to read `n.body || n.definition` to support both preview text and definitions.
+
+---
+
 ## 2026-05-07 — AI UX Overhaul: Loading Screen, AI Toggle, Topic Notes, Onboarding Review
 
 ### What

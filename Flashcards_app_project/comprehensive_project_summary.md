@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-07 (AI loading screen, toggle, topic notes, onboarding review flow)
+**Last Updated**: 2026-05-07 (onboarding review UX: richer cards, sticky save button, shorter notes)
 
 ---
 
