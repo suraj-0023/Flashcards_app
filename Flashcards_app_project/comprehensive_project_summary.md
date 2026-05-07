@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-07 (Onboarding redesign, smart field logic, review segregation, hide General deck)
+**Last Updated**: 2026-05-07 (Mobile responsiveness, sidebar drawer, bottom nav, media queries)
 
 ---
 
@@ -17,7 +17,16 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
 ### Design System
 **Onboarding Design** (as of May 6, 2026): The onboarding experience (wizard, spotlight, checklist) is now styled to match the app's emerald design system with consistent color tokens, surface styles, and flashcard gradients. The wizard includes a branded header with the Nexora N-mark logo and "Getting started" label for visual consistency.
 
-### Sidebar (M3 White + Green-Tinted Gradient, 260px width)
+**Mobile Responsiveness** (May 7, 2026): Fully responsive layout for phones/tablets at ≤768px viewport width. Desktop layout (1024px+) is completely unchanged.
+- **Sidebar → Slide-in Drawer**: On mobile, sidebar transforms into an overlay drawer (`transform: translateX(-100%)` hidden, `translate: 0` when open). Toggled by hamburger button (☰) in top bar.
+- **Bottom Navigation**: 5-item nav bar appears at bottom of screen on mobile (Library, Flashcards, Quiz, Notes, Stats).
+- **Mobile Overlay Backdrop**: Semi-transparent overlay (`#mobileOverlay`) behind drawer; closes sidebar on tap.
+- **Component Padding Reduction**: All major components (.deck-header-bar, .view, .flip-front/back, .practice-back-bar, .login-card) have reduced padding on mobile for space efficiency.
+- **Modal → Bottom Sheet**: SearchModal and AddModal become bottom sheets on mobile instead of centered modals.
+- **Viewport Safe Area Support**: Added `viewport-fit=cover` to meta tag for iPhone notch/safe-area support.
+- **Existing Onboarding Responsiveness**: ProfileSetup, WelcomeTour, and OnboardComplete screens were already responsive via existing 600px media queries.
+
+### Sidebar (M3 White + Green-Tinted Gradient, 260px width on desktop; slide-in drawer on mobile)
 - **Logo**: "N" mark in emerald (#10B981) (Nexora)
 - **New Deck** button → pill-shaped, emerald, creates a named deck
 - **Deck list** → emerald pill active state, white/muted default; clean list with no overlapping indicators

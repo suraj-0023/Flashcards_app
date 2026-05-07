@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Nexora — From Information to Intelligence</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
@@ -5364,6 +5364,155 @@
       padding: 0 !important;
       font-weight: 400 !important;
     }
+
+    /* ── DESKTOP-HIDE: elements only visible on mobile ── */
+    #hamburgerBtn  { display: none; }
+    #mobileOverlay { display: none; }
+    #bottomNav     { display: none; }
+
+    /* ── BOTTOM NAV — base styles ── */
+    #bottomNav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: calc(56px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: var(--surface);
+      border-top: 1.5px solid var(--border);
+      z-index: 200;
+      align-items: center;
+      justify-content: space-around;
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+      padding: 6px 4px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .bottom-nav-item svg {
+      width: 22px; height: 22px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .bottom-nav-item.active { color: var(--emerald); }
+    .bottom-nav-item:active { opacity: 0.7; }
+
+    /* ── MOBILE RESPONSIVE ≤768px ── */
+    @media (max-width: 768px) {
+
+      /* 1. Sidebar → slide-in drawer */
+      aside {
+        position: fixed;
+        top: 0; left: 0;
+        height: 100vh;
+        width: 260px;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, border-color 0.2s;
+        z-index: 500;
+        box-shadow: none;
+      }
+
+      body.sidebar-open aside {
+        transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+      }
+
+      /* 2. Mobile overlay backdrop */
+      body.sidebar-open #mobileOverlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 400;
+      }
+
+      /* 3. Main fills full width */
+      main {
+        width: 100%;
+        padding-bottom: calc(56px + env(safe-area-inset-bottom));
+      }
+
+      /* 4. Deck header bar */
+      .deck-header-bar {
+        padding: 10px 14px;
+        gap: 10px;
+      }
+
+      .deck-header-name { font-size: 15px; }
+
+      /* 5. Hamburger button */
+      #hamburgerBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        color: var(--text);
+        border-radius: 8px;
+        flex-shrink: 0;
+        font-size: 20px;
+        line-height: 1;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      #hamburgerBtn:active { background: var(--bg-2); }
+
+      /* 6. View padding */
+      .view { padding: 20px 16px; }
+
+      /* 7. Flashcard flip surface */
+      .flip-front, .flip-back { padding: 24px 20px; }
+      .flip-word { font-size: 1.8rem; }
+
+      /* 8. Practice back bar */
+      .practice-back-bar { padding: 10px 16px; }
+
+      /* 9. Login card */
+      .login-card { padding: 28px 20px; }
+
+      /* 10. SearchModal → bottom sheet */
+      .search-modal-overlay {
+        align-items: flex-end;
+        padding-top: 0;
+      }
+      .search-modal-panel {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
+        max-height: 75vh;
+      }
+
+      /* 11. AddModal → bottom sheet */
+      #addModal { align-items: flex-end; }
+      .add-modal-panel {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom));
+        max-height: 85vh;
+        overflow-y: auto;
+      }
+
+      /* 12. Bottom nav — activate */
+      #bottomNav { display: flex; }
+
+    }
   </style>
 </head>
 
@@ -5571,6 +5720,7 @@
     Loading vocabulary...</div>
   <!-- @@SECTION: MainAppContainer -->
   <div id="app" style="display:none;">
+    <div id="mobileOverlay" onclick="closeMobileMenu()"></div>
     <aside>
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark">N</div>
@@ -5987,6 +6137,7 @@
 
         <!-- Deck header bar -->
         <div class="deck-header-bar">
+          <button id="hamburgerBtn" aria-label="Open menu" onclick="toggleMobileMenu()">&#9776;</button>
           <div class="deck-header-dot"></div>
           <span class="deck-header-name" id="deckHeaderName">Complete Library</span>
           <span class="deck-header-count" id="deckHeaderCount"></span>
@@ -6100,6 +6251,30 @@
 
         </div><!-- end .main-scroll-area -->
       </div><!-- end #mainPage -->
+
+      <!-- @@MOBILE: Bottom navigation — visible only at ≤768px -->
+      <nav id="bottomNav" aria-label="Mobile navigation">
+        <button class="bottom-nav-item active" id="bnav-library" onclick="bottomNavTap('library')">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Library
+        </button>
+        <button class="bottom-nav-item" id="bnav-flashcards" onclick="bottomNavTap('flashcards')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h4"/><path d="M17 7h4v14H9"/></svg>
+          Flashcards
+        </button>
+        <button class="bottom-nav-item" id="bnav-quiz" onclick="bottomNavTap('quiz')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.1.9-1.1 1.8M12 17h.01"/></svg>
+          Quiz
+        </button>
+        <button class="bottom-nav-item" id="bnav-notes" onclick="bottomNavTap('notes')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Notes
+        </button>
+        <button class="bottom-nav-item" id="bnav-stats" onclick="bottomNavTap('stats')">
+          <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          Stats
+        </button>
+      </nav>
 
     </main>
 
@@ -11666,6 +11841,43 @@ No markdown, no extra text.`;
       function _hideFlashKbHint() {
         const hint = document.getElementById('flashKbHint');
         if (hint) { hint.style.display = 'none'; localStorage.setItem('nexora_kb_hint_seen', '1'); }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // @@SECTION: JSMobileMenu
+      // ──────────────────────────────────────────────────────────────
+      function toggleMobileMenu() {
+        document.body.classList.toggle('sidebar-open');
+      }
+
+      function closeMobileMenu() {
+        document.body.classList.remove('sidebar-open');
+      }
+
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) closeMobileMenu();
+      });
+
+      function bottomNavTap(section) {
+        document.querySelectorAll('.bottom-nav-item').forEach(function (b) {
+          b.classList.remove('active');
+        });
+        var btn = document.getElementById('bnav-' + section);
+        if (btn) btn.classList.add('active');
+
+        if (section === 'library') {
+          closePracticeOverlay();
+        } else if (section === 'flashcards') {
+          openPracticeView('flashcards');
+        } else if (section === 'quiz') {
+          openPracticeView('vocab');
+        } else if (section === 'notes') {
+          openPracticeView('notes');
+        } else if (section === 'stats') {
+          openPracticeView('stats');
+        }
+
+        closeMobileMenu();
       }
 
       // ──────────────────────────────────────────────────────────────

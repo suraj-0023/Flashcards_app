@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-05-07 — Mobile Responsiveness: Sidebar Drawer, Bottom Nav, Media Queries
+
+**What:** Made the app fully responsive for phone browsers at ≤768px viewport width.
+- Added slide-in sidebar drawer with hamburger toggle (☰) in the top bar, activated by `toggleMobileMenu()`
+- Added `#mobileOverlay` backdrop div to close sidebar on tap
+- Added `#bottomNav` bottom navigation bar with 5 items (Library, Flashcards, Quiz, Notes, Stats)
+- Reduced padding on `.deck-header-bar`, `.view`, `.flip-front/back`, `.practice-back-bar`, `.login-card`
+- Made `SearchModal` and `AddModal` render as bottom sheets on mobile
+- Added `viewport-fit=cover` meta tag to support `env(safe-area-inset-bottom)` on iPhone safe areas
+- Added JS section `JSMobileMenu` with `toggleMobileMenu()`, `closeMobileMenu()`, `bottomNavTap()`, and resize listener
+
+**Why:** The 260px fixed sidebar occupied 67% of a 390px phone screen, making the app completely unusable on mobile. Desktop layout is 100% unchanged — all mobile rules are inside `@media (max-width: 768px)` and only apply to phones/tablets.
+
+**Impact:** App is now fully usable on iPhone and Android browsers. Onboarding screens (ProfileSetup, WelcomeTour, OnboardComplete) were already responsive via existing 600px media queries, so mobile users now have full end-to-end experience.
+
+**Technical Detail:** `app.html` — added `viewport-fit=cover` to viewport meta tag (line 6); added full `@media (max-width: 768px)` CSS block before `</style>` (StylesGlobal section) covering sidebar transform, overlay, bottom nav, and all component paddings; added `#mobileOverlay` div before `<aside>` in MainAppContainer; added `#hamburgerBtn` as first child of `.deck-header-bar` in MainPage; added `#bottomNav` with 5 items before `</main>` in MainPage; added new `JSMobileMenu` JS section before `JSInit` with `toggleMobileMenu()`, `closeMobileMenu()`, `bottomNavTap()` functions and resize listener.
+
+---
+
 ## 2026-05-07 — Onboarding & Add Content UI Redesign
 
 **What**: Bigger onboarding wizard (580px), new welcome brand copy, step 2 smart field logic (single field per content type, AI hint for multi-select), image scan step redesign with prominent legend, removed "From" toggle from Add Content modal, added review wizard section headers, hidden General deck from all UI surfaces.
