@@ -661,25 +661,32 @@
       return;
     }
 
+    const TYPE_STYLE = {
+      vocab:     { bg: 'rgba(251,191,36,0.14)',  badge: '#D97706', badgeBg: 'rgba(251,191,36,0.18)', label: 'Vocab',     icon: '📚' },
+      note:      { bg: 'rgba(16,185,129,0.10)',  badge: '#059669', badgeBg: 'rgba(16,185,129,0.15)', label: 'Note',      icon: '📝' },
+      flashcard: { bg: 'rgba(99,102,241,0.10)',  badge: '#4F46E5', badgeBg: 'rgba(99,102,241,0.15)', label: 'Flashcard', icon: '🃏' },
+    };
     container.innerHTML = items.map((item, i) => {
-      let icon, title, preview;
+      const ts = TYPE_STYLE[item.type] || TYPE_STYLE.note;
+      let title, preview;
       if (item.type === 'vocab') {
-        icon = '📚'; title = item.data.text || ''; preview = '';
+        title = item.data.text || ''; preview = '';
       } else if (item.type === 'note') {
-        icon = '📝';
         title = (item.data.title || '').slice(0, 60) || 'Note';
         const raw = (item.data.body || '').replace(/\n/g, ' ');
         preview = raw.slice(0, 110) + (raw.length > 110 ? '…' : '');
       } else {
-        icon = '🃏';
         title = (item.data.front || '').slice(0, 70);
         const ans = item.data.back || '';
         preview = ans.slice(0, 100) + (ans.length > 100 ? '…' : '');
       }
-      return `<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg-2,#f5f0ea);border-radius:10px;cursor:pointer;">
+      return `<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:${ts.bg};border-radius:10px;cursor:pointer;border:1px solid ${ts.badgeBg};">
         <input type="checkbox" data-idx="${i}" checked style="margin-top:4px;flex-shrink:0;">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:0.875rem;font-weight:700;color:var(--text,#1A1612);${preview ? 'margin-bottom:3px;' : ''}">${icon} ${title}</div>
+          <div style="display:flex;align-items:center;gap:6px;${preview ? 'margin-bottom:3px;' : ''}">
+            <span style="font-size:0.875rem;font-weight:700;color:var(--text,#1A1612);flex:1;min-width:0;">${ts.icon} ${title}</span>
+            <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.04em;padding:2px 7px;border-radius:99px;background:${ts.badgeBg};color:${ts.badge};flex-shrink:0;text-transform:uppercase;">${ts.label}</span>
+          </div>
           ${preview ? `<div style="font-size:0.78rem;color:var(--muted,#6E6660);line-height:1.45;">${preview}</div>` : ''}
         </div>
       </label>`;

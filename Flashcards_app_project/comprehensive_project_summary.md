@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-07 (onboarding review UX: richer cards, sticky save button, shorter notes)
+**Last Updated**: 2026-05-07 (onboarding review: color-coded cards with type badges)
 
 ---
 

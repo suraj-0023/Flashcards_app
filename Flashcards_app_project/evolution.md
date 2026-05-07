@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-07 — Onboarding Review: Color-Coded Cards with Type Badges
+
+**What:** Each suggestion card in the onboarding review panel now has a distinct background color and a type badge pill (VOCAB / NOTE / FLASHCARD) so users can instantly tell content types apart.
+
+**Why:** Users reported no visual distinction between notes and flashcards (and vocab) in the suggestion list — all cards looked identical.
+
+**Impact:** Review panel is now immediately scannable — amber for vocab, green for notes, indigo for flashcards, each with a matching border and uppercase badge pill.
+
+**Technical Detail:** Added `TYPE_STYLE` lookup object in `_nobShowReview()` in `nexora-onboarding.js` with per-type bg, badgeBg, badge color, label, and icon. Card `<label>` now uses `background:${ts.bg};border:1px solid ${ts.badgeBg}` and renders a `<span>` pill with the type label right-aligned beside the title.
+
+---
+
 ## 2026-05-07 — Onboarding Review UX: Richer Cards, Sticky Save Button, Shorter Notes
 
 **What:** Updated the onboarding wizard Step 2 ("Add your first content") review panel in three ways: (1) suggestion cards now show a two-line preview (title + body excerpt up to 110 chars) instead of title only; (2) the "Save selected →" / "Skip all" nav buttons are now always visible via flex layout with max-height constraint on the review container; (3) AI notes prompt now generates exactly 3 short sections (2–3 sentences each) instead of 3–6 long detailed sections with examples/tips.
