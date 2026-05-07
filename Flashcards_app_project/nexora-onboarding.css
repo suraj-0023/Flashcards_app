@@ -61,6 +61,17 @@
   100% { transform: translateY(-60px) rotate(-450deg) translateX(-30px); opacity: 0; }
 }
 
+@keyframes nob-bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes loadbar-sweep {
+  0%   { width: 0%;  margin-left: 0%;   }
+  50%  { width: 55%; margin-left: 22%;  }
+  100% { width: 0%;  margin-left: 100%; }
+}
+
 /* ══════════════════════════════════════════════════════════
    FEATURE 1 — WELCOME MODAL
 ══════════════════════════════════════════════════════════ */

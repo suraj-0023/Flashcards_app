@@ -318,51 +318,78 @@
 
           <!-- STEP 2: Add First Content (multi-type) -->
           <div class="nob-wizard-step" id="nob-step-1">
-            <div class="nob-wizard-title">Add your first content</div>
-            <div class="nob-wizard-desc">Select a type to get started.</div>
+            <!-- Input form (hidden during loading/review) -->
+            <div id="nob-step1-form">
+              <div class="nob-wizard-title">Add your first content</div>
+              <div class="nob-wizard-desc">Select what to create, then type or paste.</div>
 
-            <!-- Multi-select type buttons -->
-            <div class="nob-type-toggle" style="display:flex;gap:8px;margin:12px 0 10px;flex-wrap:wrap;">
-              <button class="nob-type-btn" id="nob-type-vocab" data-type="vocab">📚 Vocabulary</button>
-              <button class="nob-type-btn" id="nob-type-note"  data-type="note">📝 Note</button>
-              <button class="nob-type-btn" id="nob-type-flash" data-type="flash">🃏 Flashcard</button>
-            </div>
+              <!-- Multi-select type buttons -->
+              <div class="nob-type-toggle" style="display:flex;gap:8px;margin:12px 0 10px;flex-wrap:wrap;">
+                <button class="nob-type-btn" id="nob-type-vocab" data-type="vocab">📚 Vocabulary</button>
+                <button class="nob-type-btn" id="nob-type-note"  data-type="note">📝 Note</button>
+                <button class="nob-type-btn" id="nob-type-flash" data-type="flash">🃏 Flashcard</button>
+              </div>
 
-            <!-- Vocab fields (single word or comma-separated list) -->
-            <div id="nob-vocab-fields" style="display:none;">
-              <input class="nob-wizard-input" id="nob-word-input" type="text"
-                placeholder="e.g. ephemeral, serendipity, loquacious…" autocomplete="off" style="margin-bottom:4px;" />
-              <div class="nob-wizard-confirm" id="nob-word-confirm"></div>
-              <div class="nob-wizard-error" id="nob-word-error">Word not found — use the main + Add button to try again.</div>
-            </div>
+              <!-- Vocab fields -->
+              <div id="nob-vocab-fields" style="display:none;">
+                <input class="nob-wizard-input" id="nob-word-input" type="text"
+                  placeholder="e.g. ephemeral, serendipity…" autocomplete="off" style="margin-bottom:4px;" />
+              </div>
 
-            <!-- Note fields (body only, no title) -->
-            <div id="nob-note-fields" style="display:none;">
-              <textarea class="nob-wizard-input" id="nob-note-body" rows="4"
-                placeholder="Write your note here…" style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
-            </div>
+              <!-- Note fields -->
+              <div id="nob-note-fields" style="display:none;">
+                <textarea class="nob-wizard-input" id="nob-note-body" rows="3"
+                  placeholder="Write your note here…" style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
+              </div>
 
-            <!-- Flashcard fields -->
-            <div id="nob-flash-fields" style="display:none;">
-              <input class="nob-wizard-input" id="nob-flash-front" type="text"
-                placeholder="Front — question or term…" autocomplete="off" style="margin-bottom:6px;" />
-              <input class="nob-wizard-input" id="nob-flash-back" type="text"
-                placeholder="Back — answer or definition…" autocomplete="off" />
-            </div>
+              <!-- Flashcard fields -->
+              <div id="nob-flash-fields" style="display:none;">
+                <input class="nob-wizard-input" id="nob-flash-front" type="text"
+                  placeholder="Front — question or term…" autocomplete="off" style="margin-bottom:6px;" />
+                <input class="nob-wizard-input" id="nob-flash-back" type="text"
+                  placeholder="Back — answer or definition…" autocomplete="off" />
+              </div>
 
-            <!-- Multi-select fields (2+ types selected) -->
-            <div id="nob-multi-fields" style="display:none;">
-              <textarea class="nob-wizard-input" id="nob-multi-text" rows="4"
-                placeholder="Paste your content, notes, or study material here…"
-                style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
-              <div class="nob-wizard-ai-hint">
-                💡 AI will extract vocabulary, notes, and flashcards from your content — you choose what to keep.
+              <!-- Multi-select fields (2+ types) -->
+              <div id="nob-multi-fields" style="display:none;">
+                <textarea class="nob-wizard-input" id="nob-multi-text" rows="3"
+                  placeholder="Paste your content or topic here — AI will generate notes, vocab &amp; cards…"
+                  style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
+                <div class="nob-wizard-ai-hint">
+                  🤖 AI will generate suggestions — you choose what to keep.
+                </div>
+              </div>
+
+              <div class="nob-wizard-nav" style="margin-top:14px;">
+                <button class="nob-wizard-skip" id="nob-wiz-skip-2">Skip</button>
+                <button class="nob-wizard-next" id="nob-step1-next">Add &amp; Continue →</button>
               </div>
             </div>
 
-            <div class="nob-wizard-nav" style="margin-top:14px;">
-              <button class="nob-wizard-skip" id="nob-wiz-skip-2">Skip</button>
-              <button class="nob-wizard-next" id="nob-step1-next">Add &amp; Continue →</button>
+            <!-- Loading state -->
+            <div id="nob-step1-loading" style="display:none;flex-direction:column;align-items:center;gap:12px;padding:20px 0;">
+              <div id="nob-load-emoji" style="font-size:2rem;animation:nob-bob 1.4s ease-in-out infinite;">🧠</div>
+              <div id="nob-load-msg" style="font-size:0.88rem;font-weight:700;color:var(--text,#1A1612);text-align:center;">Teaching your deck...</div>
+              <div style="width:200px;height:4px;background:var(--border-2,#EDE8E0);border-radius:4px;overflow:hidden;">
+                <div style="height:100%;background:var(--emerald,#10B981);border-radius:4px;animation:loadbar-sweep 1.6s ease-in-out infinite;"></div>
+              </div>
+            </div>
+
+            <!-- Review state — AI suggestions shown here -->
+            <div id="nob-step1-review" style="display:none;">
+              <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted,#6E6660);margin-bottom:10px;">🤖 AI found these for you</div>
+              <div id="nob-review-items" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+              <div class="nob-wizard-nav">
+                <button class="nob-wizard-skip" id="nob-review-skip">Skip all</button>
+                <button class="nob-wizard-next" id="nob-review-save">Save selected →</button>
+              </div>
+            </div>
+
+            <!-- Success state -->
+            <div id="nob-step1-success" style="display:none;flex-direction:column;align-items:center;gap:10px;padding:16px 0;text-align:center;">
+              <div style="font-size:2.4rem;">🎉</div>
+              <div style="font-size:1rem;font-weight:700;color:var(--emerald,#10B981);" id="nob-success-msg">Added to your deck!</div>
+              <div style="font-size:0.82rem;color:var(--muted,#6E6660);">Moving to the next step…</div>
             </div>
           </div>
 
@@ -512,6 +539,12 @@
     if (gotBtn)  gotBtn.addEventListener('click',  _wizardComplete);
     if (needBtn) needBtn.addEventListener('click', _wizardComplete);
 
+    // Review save / skip all
+    const reviewSave = document.getElementById('nob-review-save');
+    if (reviewSave) reviewSave.addEventListener('click', _wizardStep2Finalize);
+    const reviewSkip = document.getElementById('nob-review-skip');
+    if (reviewSkip) reviewSkip.addEventListener('click', () => _goWizardStep(2));
+
     // Skip buttons (all trigger full wizard skip)
     ['nob-wiz-skip', 'nob-wiz-skip-2', 'nob-wiz-skip-4'].forEach(id => {
       const btn = document.getElementById(id);
@@ -577,130 +610,241 @@
     }, 320);
   }
 
-  async function _wizardStep2Next() {
-    const nextBtn = document.getElementById('nob-step1-next');
-    const vocabSel = document.getElementById('nob-type-vocab')?.classList.contains('selected');
-    const noteSel  = document.getElementById('nob-type-note')?.classList.contains('selected');
-    const flashSel = document.getElementById('nob-type-flash')?.classList.contains('selected');
-    const selectedCount = [vocabSel, noteSel, flashSel].filter(Boolean).length;
-    const nothingSelected = selectedCount === 0;
-    const multi = selectedCount >= 2;
+  // ── WIZARD STEP 2: LOADING / REVIEW STATE HELPERS ──
 
-    if (nothingSelected) {
-      // No type picked — skip straight to book demo
+  let _nobLoadTimer = null;
+  const _NOB_LOAD_MSGS = [
+    { emoji: '🧠', msg: 'Teaching your deck...' },
+    { emoji: '✨', msg: 'Connecting the dots...' },
+    { emoji: '📚', msg: 'Reading between the lines...' },
+    { emoji: '☕', msg: 'Brewing some insights...' },
+    { emoji: '🎯', msg: 'Targeting key concepts...' },
+    { emoji: '🚀', msg: 'Almost there...' },
+  ];
+
+  function _nobShowLoading() {
+    document.getElementById('nob-step1-form').style.display    = 'none';
+    document.getElementById('nob-step1-review').style.display  = 'none';
+    document.getElementById('nob-step1-success').style.display = 'none';
+    const el = document.getElementById('nob-step1-loading');
+    if (el) el.style.display = 'flex';
+    let idx = 0;
+    function _cycle() {
+      const m = _NOB_LOAD_MSGS[idx % _NOB_LOAD_MSGS.length];
+      const emojiEl = document.getElementById('nob-load-emoji');
+      const msgEl   = document.getElementById('nob-load-msg');
+      if (emojiEl) emojiEl.textContent = m.emoji;
+      if (msgEl)   msgEl.textContent   = m.msg;
+      idx++;
+      _nobLoadTimer = setTimeout(_cycle, 1800);
+    }
+    _cycle();
+  }
+
+  function _nobHideLoading() {
+    clearTimeout(_nobLoadTimer);
+    const el = document.getElementById('nob-step1-loading');
+    if (el) el.style.display = 'none';
+  }
+
+  // Generated items for the mini review
+  let _nobReviewItems = [];  // [{type, data, checked}]
+
+  function _nobShowReview(items) {
+    _nobReviewItems = items;
+    const container = document.getElementById('nob-review-items');
+    if (!container) return;
+
+    if (!items.length) {
+      // Nothing to review — skip straight
       _goWizardStep(2);
       return;
     }
 
-    if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Adding…'; }
-    const errEl  = document.getElementById('nob-word-error');
-    const confEl = document.getElementById('nob-word-confirm');
-    if (errEl)  errEl.classList.remove('show');
-    if (confEl) confEl.classList.remove('show');
+    container.innerHTML = items.map((item, i) => {
+      const label = item.type === 'vocab'
+        ? `📚 <strong>${item.data.text || ''}</strong>`
+        : item.type === 'note'
+          ? `📝 <strong>${(item.data.title || '').slice(0, 50) || (item.data.body || '').slice(0, 50)}</strong>`
+          : `🃏 <strong>${(item.data.front || '').slice(0, 50)}</strong>`;
+      return `<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:var(--bg-2,#f5f0ea);border-radius:8px;cursor:pointer;font-size:0.85rem;">
+        <input type="checkbox" data-idx="${i}" checked style="margin-top:3px;flex-shrink:0;">
+        <span>${label}</span>
+      </label>`;
+    }).join('');
 
+    document.getElementById('nob-step1-form').style.display    = 'none';
+    document.getElementById('nob-step1-loading').style.display = 'none';
+    document.getElementById('nob-step1-success').style.display = 'none';
+    document.getElementById('nob-step1-review').style.display  = 'block';
+  }
+
+  async function _wizardStep2Finalize() {
     const deckId = _wiz.deckId;
-    let savedSomething = false;
+    const checkboxes = document.querySelectorAll('#nob-review-items input[type=checkbox]');
+    const selected = [...checkboxes].map((cb, i) => cb.checked ? _nobReviewItems[i] : null).filter(Boolean);
 
-    // ── Multi-select: save content from shared textarea ──
+    const saveBtn = document.getElementById('nob-review-save');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+
+    let savedCount = 0;
+    for (const item of selected) {
+      try {
+        if (item.type === 'vocab' && item.data.text) {
+          window._silentAdd = true;
+          try { if (typeof _addWordsFromText === 'function') await _addWordsFromText(item.data.text, deckId); } finally { window._silentAdd = false; }
+          if (!_wiz.word) { _wiz.word = item.data.text; }
+          savedCount++;
+        } else if (item.type === 'note') {
+          const notes = (typeof lsGet === 'function' ? lsGet('nexora_notes', []) : []);
+          notes.push({
+            id: 'n_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
+            deckId: deckId || null,
+            title: item.data.title || (item.data.body || '').slice(0, 60),
+            content: item.data.body || '',
+            createdAt: new Date().toISOString().split('T')[0],
+            updatedAt: new Date().toISOString().split('T')[0]
+          });
+          if (typeof lsSet === 'function') lsSet('nexora_notes', notes);
+          if (typeof ALL_NOTES !== 'undefined') { ALL_NOTES.length = 0; notes.forEach(n => ALL_NOTES.push(n)); }
+          savedCount++;
+        } else if (item.type === 'flashcard') {
+          const cards = (typeof lsGet === 'function' ? lsGet('nexora_custom_cards', []) : []);
+          const newCard = {
+            id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
+            isCustom: true,
+            front: item.data.front || '',
+            back: item.data.back || '',
+            projectId: deckId || null,
+            sm2: typeof defaultSM2 === 'function' ? defaultSM2() : {}
+          };
+          cards.push(newCard);
+          if (typeof lsSet === 'function') lsSet('nexora_custom_cards', cards);
+          if (typeof ALL_CUSTOM_CARDS !== 'undefined') ALL_CUSTOM_CARDS.push(newCard);
+          if (!_wiz.word) { _wiz.word = newCard.front; _wiz.def = newCard.back; }
+          savedCount++;
+        }
+      } catch(e) { console.warn('[Onboarding] save failed:', e); }
+    }
+
+    // Show success
+    document.getElementById('nob-step1-review').style.display  = 'none';
+    const successEl = document.getElementById('nob-step1-success');
+    if (successEl) {
+      const msgEl = document.getElementById('nob-success-msg');
+      const deckName = _wiz.deckName || 'your deck';
+      if (msgEl) msgEl.textContent = savedCount > 0
+        ? `✓ ${savedCount} item${savedCount > 1 ? 's' : ''} added to "${deckName}"!`
+        : '✓ Saved!';
+      successEl.style.display = 'flex';
+    }
+
+    setTimeout(() => _goWizardStep(2), 1400);
+  }
+
+  async function _wizardStep2Next() {
+    const vocabSel = document.getElementById('nob-type-vocab')?.classList.contains('selected');
+    const noteSel  = document.getElementById('nob-type-note')?.classList.contains('selected');
+    const flashSel = document.getElementById('nob-type-flash')?.classList.contains('selected');
+    const selectedCount = [vocabSel, noteSel, flashSel].filter(Boolean).length;
+
+    if (!selectedCount) { _goWizardStep(2); return; }
+
+    const multi = selectedCount >= 2;
+    const deckId = _wiz.deckId;
+    const aiEnabled = typeof _isAIEnabled === 'function' ? _isAIEnabled() : true;
+
+    // Collect raw input
+    let vocabWords = [];
+    let noteContent = '';
+    let flashFront = '', flashBack = '';
+    let multiText = '';
+
     if (multi) {
-      const text = (document.getElementById('nob-multi-text')?.value || '').trim();
-      if (text) {
-        try {
-          if (noteSel && typeof lsGet === 'function' && typeof lsSet === 'function') {
-            const notes = lsGet('nexora_notes', []);
-            notes.push({
-              id: 'n_' + Date.now(),
-              deckId: deckId || null,
-              title: text.slice(0, 60),
-              content: text,
-              createdAt: new Date().toISOString().split('T')[0],
-              updatedAt: new Date().toISOString().split('T')[0]
+      multiText = (document.getElementById('nob-multi-text')?.value || '').trim();
+      if (!multiText) { _goWizardStep(2); return; }
+    } else {
+      if (vocabSel) {
+        const raw = (document.getElementById('nob-word-input')?.value || '').trim();
+        vocabWords = raw.split(',').map(w => w.trim()).filter(Boolean);
+      }
+      if (noteSel) noteContent  = (document.getElementById('nob-note-body')?.value  || '').trim();
+      if (flashSel) {
+        flashFront = (document.getElementById('nob-flash-front')?.value || '').trim();
+        flashBack  = (document.getElementById('nob-flash-back')?.value  || '').trim();
+      }
+    }
+
+    const hasContent = multi ? !!multiText : (vocabWords.length || noteContent || flashFront || flashBack);
+    if (!hasContent) { _goWizardStep(2); return; }
+
+    // Show loading
+    _nobShowLoading();
+
+    const reviewItems = [];
+
+    try {
+      if (multi && aiEnabled && typeof _callGemini === 'function') {
+        // Use AI to generate content from the multi-text
+        if (noteSel || vocabSel) {
+          try {
+            const notesPrompt = `You are an expert teacher. Generate comprehensive study notes on this topic: ${JSON.stringify(multiText.slice(0, 2000))}
+Return ONLY raw JSON (no markdown): {"notes":[{"title":"section","definition":"detailed content","example":"example","related":[],"hook":"tip"},...]}
+Generate 3-6 detailed sections. No markdown, no extra text.`;
+            const raw = await _callGemini(notesPrompt);
+            const parsed = JSON.parse(raw);
+            (parsed.notes || []).forEach(n => {
+              const body = [n.definition, n.example ? `Example: ${n.example}` : '', n.hook ? `Tip: ${n.hook}` : ''].filter(Boolean).join('\n\n');
+              reviewItems.push({ type: 'note', data: { title: n.title || '', body } });
             });
-            lsSet('nexora_notes', notes);
-            if (typeof ALL_NOTES !== 'undefined') ALL_NOTES.length = 0, notes.forEach(n => ALL_NOTES.push(n));
-          }
-          savedSomething = true;
-        } catch(e) { console.warn('[Onboarding] multi save failed:', e); }
-      }
-    }
-
-    // ── Save vocabulary word(s) — comma-separated supported ──
-    if (!multi && vocabSel) {
-      const rawInput = (document.getElementById('nob-word-input')?.value || '').trim();
-      const words = rawInput.split(',').map(w => w.trim()).filter(Boolean);
-      if (words.length) {
-        _wiz.word = words[0];
-        window._silentAdd = true;
-        try {
-          for (const word of words) {
-            if (typeof _addWordsFromText === 'function') await _addWordsFromText(word, deckId);
-          }
-          const savedVocab = (typeof lsGet === 'function' ? lsGet('custom_vocab', []) : []) || [];
-          const wordObj = savedVocab.find(w => w.word && w.word.toLowerCase() === words[0].toLowerCase());
-          _wiz.def = wordObj ? (wordObj.definition || null) : null;
-          savedSomething = true;
-        } catch(e) { console.warn('[Onboarding] vocab save failed:', e); }
-        finally { window._silentAdd = false; }
-      }
-    }
-
-    // ── Save note (body only) ──
-    if (!multi && noteSel) {
-      const content = (document.getElementById('nob-note-body')?.value || '').trim();
-      if (content) {
-        try {
-          if (typeof lsGet === 'function' && typeof lsSet === 'function') {
-            const notes = lsGet('nexora_notes', []);
-            notes.push({
-              id: 'n_' + Date.now(),
-              deckId: deckId || null,
-              title: content.slice(0, 60),
-              content: content,
-              createdAt: new Date().toISOString().split('T')[0],
-              updatedAt: new Date().toISOString().split('T')[0]
+          } catch(e) { console.warn('[Onboarding] note AI failed:', e); }
+        }
+        if (flashSel) {
+          try {
+            const flashPrompt = `Create 4-6 flashcard Q&A pairs for studying: ${JSON.stringify(multiText.slice(0, 2000))}
+Return ONLY raw JSON: {"cards":[{"front":"question","back":"answer"},...]}
+No markdown, no extra text.`;
+            const raw = await _callGemini(flashPrompt);
+            const parsed = JSON.parse(raw);
+            (parsed.cards || []).forEach(c => {
+              reviewItems.push({ type: 'flashcard', data: { front: c.front || '', back: c.back || '' } });
             });
-            lsSet('nexora_notes', notes);
-            if (typeof ALL_NOTES !== 'undefined') ALL_NOTES.length = 0, notes.forEach(n => ALL_NOTES.push(n));
+          } catch(e) { console.warn('[Onboarding] flash AI failed:', e); }
+        }
+      } else if (!multi) {
+        // Single type — show items directly (vocab lookups, notes, flashcards)
+        for (const w of vocabWords) {
+          reviewItems.push({ type: 'vocab', data: { text: w } });
+          _wiz.word = _wiz.word || w;
+        }
+        if (noteContent) {
+          reviewItems.push({ type: 'note', data: { title: noteContent.slice(0, 60), body: noteContent } });
+        }
+        if (flashFront || flashBack) {
+          if (aiEnabled && typeof _callGemini === 'function' && flashFront && !flashBack) {
+            try {
+              const bp = `Generate a concise answer for flashcard front: "${flashFront.slice(0,300)}" — Return ONLY raw JSON: {"back":"answer"} No markdown.`;
+              const raw = await _callGemini(bp);
+              flashBack = JSON.parse(raw).back || '';
+            } catch {}
           }
-          savedSomething = true;
-        } catch(e) { console.warn('[Onboarding] note save failed:', e); }
+          reviewItems.push({ type: 'flashcard', data: { front: flashFront, back: flashBack } });
+          if (!_wiz.word) { _wiz.word = flashFront; _wiz.def = flashBack; }
+        }
       }
+    } catch(e) {
+      console.warn('[Onboarding] generation error:', e);
     }
 
-    // ── Save flashcard ──
-    if (!multi && flashSel) {
-      const front = (document.getElementById('nob-flash-front')?.value || '').trim();
-      const back  = (document.getElementById('nob-flash-back')?.value  || '').trim();
-      if (front || back) {
-        try {
-          if (typeof lsGet === 'function' && typeof lsSet === 'function') {
-            const cards = lsGet('nexora_custom_cards', []);
-            const newCard = {
-              id: 'cc_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
-              isCustom: true,
-              front: front || 'Front',
-              back: back || '',
-              projectId: deckId || null,
-              sm2: typeof defaultSM2 === 'function' ? defaultSM2() : {}
-            };
-            cards.push(newCard);
-            lsSet('nexora_custom_cards', cards);
-            if (typeof ALL_CUSTOM_CARDS !== 'undefined') ALL_CUSTOM_CARDS.push(newCard);
-            // Use flashcard word for the practice step if no vocab word
-            if (!_wiz.word) { _wiz.word = front; _wiz.def = back; }
-            savedSomething = true;
-          }
-        } catch(e) { console.warn('[Onboarding] flashcard save failed:', e); }
-      }
+    _nobHideLoading();
+
+    if (!reviewItems.length) {
+      // Nothing generated — just advance
+      _goWizardStep(2);
+      return;
     }
 
-    if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Add & Continue →'; }
-
-    if (savedSomething && confEl) {
-      confEl.textContent = '✓ Saved! Moving on…';
-      confEl.classList.add('show');
-    }
-    setTimeout(() => _goWizardStep(2), savedSomething ? 700 : 0);
+    _nobShowReview(reviewItems);
   }
 
   function _goWizardStep(n) {

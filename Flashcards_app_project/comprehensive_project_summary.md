@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-07 (Mobile responsiveness, sidebar drawer, bottom nav, media queries)
+**Last Updated**: 2026-05-07 (AI loading screen, toggle, topic notes, onboarding review flow)
 
 ---
 
@@ -42,10 +42,14 @@ Originally a vocabulary flashcards tool. As of April 2026, evolved into a full *
    - **Two independent multi-select pill groups**:
      - "Generate": Vocab, Notes, Flashcards (any combination)
      - "From": Text, Image/File (any combination)
-   - Dynamic input area: word input for vocab-only+text-only; textarea for multi-type; file upload for Image/File; both can coexist
+   - Dynamic input area: word input for vocab-only+text-only; textarea for multi-type; file upload for Image/File; both can coexist; **vocab-only now hides textarea** (May 7)
+   - **Fun loading screen** (May 7): Rotating emoji messages ("✨ Generating notes...", "🧠 Teaching AI...", etc.) during AI generation with animated bar sweep
+   - **AI toggle button** (May 7): On by default; disables Gemini calls when off; label changes to "Save →" when off
+   - **Success toast** (May 7): Shows "✓ N items added to Deck!" after finalizing review
    - **Gemini-powered generation**: notes and flashcards from images/PDFs prioritise highlighted/annotated content; AI suggestions fill the rest
    - **Save Original** (May 6): AI review results for Notes and Flashcards now show a "Save Original" card at the top (for text input: raw user text; for image input: verbatim highlighted/underlined text)
    - **Multi-step review wizard**: after Generate, each content type gets its own step (step-dot indicator + "Type · N of N" label); accept/decline per item; Back/Next navigation; Finalize saves accepted items
+   - **Improved AI prompts** (May 7): Notes generate exactly 4 comprehensive teacher-style topic sections; flashcards generate topic Q&A pairs (not word definitions)
    - `_fetchVocabReviewDef()` loads definitions async per vocab item during review
    - Deck selector dropdown
    - Cmd+Enter or button click to generate; Escape to close
@@ -133,10 +137,11 @@ All keys namespaced by `userId` when signed in. Full Firestore sync on every mut
   - Cmd+N: open Add modal
   - Cmd+K: open search palette
   - Visual hint element displays available shortcuts
-- **Onboarding & Help System** (Apr 2026):
+- **Onboarding & Help System** (Apr 2026; May 7 review flow):
   - **Profile Setup Screen**: 2-step flow (Google-prefilled name + goal selection → daily target/age/city/mobile). Redesigned Apr 24 with animated progress bar, gradient step icons, goal validation with shake animation, directional slide transitions, and mobile bottom-sheet layout. Shown once after first login.
   - **Welcome Tour Modal**: 4 paginated cards (Decks, Flashcards, Quiz, Notes) redesigned Apr 24 with CSS-animated hero illustrations per slide (floating deck cards, 3D flip card, cascading quiz bars, typewriter notepad), per-slide accent badges, swipe gestures, and goal-aware copy. Navigation with progress dots and controls.
   - **Onboarding Completion**: New first-word ceremony overlay (Apr 24) with serif typewriter effect, word-by-word definition stagger animation, and Day 1 streak badge celebration.
+  - **Step 2 Review Flow** (May 7): After Gemini AI generation, shows mini review panel with checkboxes for each suggestion, followed by success affirmation ("🎉 X items added to deck!") before auto-advancing.
   - **Contextual Hints**: Non-blocking tooltips on first use of Flashcards, Quiz, deck switching, and Notes. Auto-dismiss after 6s. Apr 24 fix: hint viewport clamp prevents overflow.
   - **Help & Guide Sidebar Panel**: 4 tabs (Getting Started quickstart, Features accordion, Tips & Shortcuts with keyboard shortcuts, Replay Tour to reset and restart tour).
 

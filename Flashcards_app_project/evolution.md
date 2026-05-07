@@ -4,6 +4,43 @@
 
 ---
 
+## 2026-05-07 — AI UX Overhaul: Loading Screen, AI Toggle, Topic Notes, Onboarding Review
+
+### What
+- Vocab-only Add Modal now shows a single word input (textarea hidden)
+- Fun loading screen with rotating emoji messages replaces static "Generating…" button
+- AI toggle button (on by default) in modal footer — disables Gemini calls when off
+- Success toast ("✓ N items added to Deck!") shown after finalizing review
+- LLM notes prompt rewritten: generates exactly 4 comprehensive teacher-style topic sections
+- LLM flashcard prompt rewritten: generates topic Q&A pairs (not word definitions)
+- Onboarding Step 2 now shows AI-generated suggestions in a mini review (checkboxes) before saving, followed by a "🎉 X items added!" success state
+
+### Why
+- Users reported the Add Modal had confusing 3-input layout for vocab
+- "Generate" felt like nothing was happening — no feedback during AI calls
+- Notes were returning word definitions instead of topic-level content (e.g. "solar" definition instead of planets + distances)
+- Onboarding Step 2 silently saved without showing what was added
+
+### Impact
+- Cleaner vocab input UX (1 input instead of 3)
+- Engaging loading experience during AI generation
+- AI can be disabled per-user via toggle
+- Topic queries now produce real study notes with facts, lists, and data
+- Onboarding users can review and accept AI suggestions before they're saved
+
+### Technical Detail
+- `updateAddModalTypes()` in JSAddModal: hides `#addModalTextArea` for vocab-only mode
+- `_showAddLoading()` / `_hideAddLoading()` cycle 9 rotating emoji messages every 1.9s
+- `_isAIEnabled()` / `_toggleAI()` use `lsGet/lsSet('nexora_ai_enabled')`, default true
+- `_showSuccessToast(msg)` creates/reuses `#nexoraSuccessToast` DOM element
+- `_generateNotesFromText()` passage prompt updated: teacher-style, exactly 4 sections
+- `_generateFlashcardsFromText()` prompt updated: topic Q&A with 6-10 pairs
+- `_wizardStep2Next()` in nexora-onboarding.js: calls `_callGemini()` for notes/flashcards, shows `_nobShowReview()` panel
+- `_wizardStep2Finalize()`: saves selected items, shows `nob-step1-success` with count, auto-advances after 1.4s
+- nexora-onboarding.css: added `@keyframes nob-bob` and `@keyframes loadbar-sweep`
+
+---
+
 ## 2026-05-07 — Mobile Responsiveness: Sidebar Drawer, Bottom Nav, Media Queries
 
 **What:** Made the app fully responsive for phone browsers at ≤768px viewport width.
