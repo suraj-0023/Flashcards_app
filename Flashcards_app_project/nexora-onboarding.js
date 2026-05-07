@@ -174,8 +174,8 @@
             <path d="M59 6 L60.3 10.2 L64.8 10.2 L61.2 12.7 L62.5 17 L59 14.5 L55.5 17 L56.8 12.7 L53.2 10.2 L57.7 10.2 Z" fill="#F5A623"/>
           </svg>
         </div>
-        <div class="nob-welcome-headline">Build vocabulary from the books you read</div>
-        <div class="nob-welcome-body">Scan a page. Paste a paragraph. Type a word.<br>Nexora turns what you read into what you know.</div>
+        <div class="nob-welcome-headline">From what you read to what you know.</div>
+        <div class="nob-welcome-body">Paste a paragraph. Scan a page. Highlight an idea.<br>Nexora's AI turns your reading into vocabulary, notes, and flashcards — automatically.</div>
         <button class="nob-welcome-cta" id="nob-cta-start">Get started →</button>
         <button class="nob-welcome-skip" id="nob-cta-skip">Skip intro</button>
       </div>`;
@@ -319,7 +319,7 @@
           <!-- STEP 2: Add First Content (multi-type) -->
           <div class="nob-wizard-step" id="nob-step-1">
             <div class="nob-wizard-title">Add your first content</div>
-            <div class="nob-wizard-desc">Select one or more types — fill in what you know and we'll save it all.</div>
+            <div class="nob-wizard-desc">Select a type to get started.</div>
 
             <!-- Multi-select type buttons -->
             <div class="nob-type-toggle" style="display:flex;gap:8px;margin:12px 0 10px;flex-wrap:wrap;">
@@ -328,20 +328,18 @@
               <button class="nob-type-btn" id="nob-type-flash" data-type="flash">🃏 Flashcard</button>
             </div>
 
-            <!-- Vocab fields -->
+            <!-- Vocab fields (single word or comma-separated list) -->
             <div id="nob-vocab-fields" style="display:none;">
               <input class="nob-wizard-input" id="nob-word-input" type="text"
-                placeholder="e.g. ephemeral, serendipity…" autocomplete="off" style="margin-bottom:4px;" />
+                placeholder="e.g. ephemeral, serendipity, loquacious…" autocomplete="off" style="margin-bottom:4px;" />
               <div class="nob-wizard-confirm" id="nob-word-confirm"></div>
               <div class="nob-wizard-error" id="nob-word-error">Word not found — use the main + Add button to try again.</div>
             </div>
 
-            <!-- Note fields -->
+            <!-- Note fields (body only, no title) -->
             <div id="nob-note-fields" style="display:none;">
-              <input class="nob-wizard-input" id="nob-note-title" type="text"
-                placeholder="Note title…" autocomplete="off" style="margin-bottom:6px;" />
-              <textarea class="nob-wizard-input" id="nob-note-body" rows="3"
-                placeholder="Note content…" style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
+              <textarea class="nob-wizard-input" id="nob-note-body" rows="4"
+                placeholder="Write your note here…" style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
             </div>
 
             <!-- Flashcard fields -->
@@ -350,6 +348,16 @@
                 placeholder="Front — question or term…" autocomplete="off" style="margin-bottom:6px;" />
               <input class="nob-wizard-input" id="nob-flash-back" type="text"
                 placeholder="Back — answer or definition…" autocomplete="off" />
+            </div>
+
+            <!-- Multi-select fields (2+ types selected) -->
+            <div id="nob-multi-fields" style="display:none;">
+              <textarea class="nob-wizard-input" id="nob-multi-text" rows="4"
+                placeholder="Paste your content, notes, or study material here…"
+                style="resize:vertical;font-family:inherit;font-size:0.9rem;padding:10px 12px;"></textarea>
+              <div class="nob-wizard-ai-hint">
+                💡 AI will extract vocabulary, notes, and flashcards from your content — you choose what to keep.
+              </div>
             </div>
 
             <div class="nob-wizard-nav" style="margin-top:14px;">
@@ -361,30 +369,37 @@
           <!-- STEP 3: Book Page / Image Scan Demo -->
           <div class="nob-wizard-step" id="nob-step-2">
             <div class="nob-wizard-title">Learn from what you read</div>
-            <div class="nob-wizard-desc">Scan a book page — Nexora detects what's worth studying automatically.</div>
+            <div class="nob-wizard-desc">Scan a book page or paste text — Nexora detects what's worth studying, automatically.</div>
+
+            <!-- Section label -->
+            <div style="font-size:11px;font-weight:700;color:var(--muted,#6E6660);text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 6px;">📷 How it works</div>
 
             <!-- Book page illustration -->
-            <div class="nob-book-page" style="background:var(--bg-2,#f5f0ea);border:1px solid var(--border,#EDE8E0);border-radius:10px;padding:14px 16px;font-size:0.85rem;line-height:1.65;color:var(--text,#1A1612);margin:12px 0 10px;font-family:Georgia,serif;position:relative;">
+            <div class="nob-book-page" style="background:var(--bg-2,#f5f0ea);border:1px solid var(--border,#EDE8E0);border-radius:10px;padding:14px 16px;font-size:0.85rem;line-height:1.65;color:var(--text,#1A1612);margin:0 0 12px;font-family:Georgia,serif;position:relative;">
               <p style="margin:0 0 8px;">The concept of <span style="border-bottom:2px solid var(--emerald,#10B981);font-weight:600;">serendipity</span> plays a crucial role in scientific discovery. Many important findings have been accidental.</p>
               <p style="margin:0 0 8px;background:rgba(251,191,36,0.25);border-radius:3px;padding:1px 3px;display:inline-block;width:100%;box-sizing:border-box;">Unexpected breakthroughs emerge when researchers pursue seemingly unrelated lines of inquiry.</p>
               <p style="margin:0;">Scientists value <span style="border-bottom:2px solid var(--emerald,#10B981);font-weight:600;">serendipitous</span> findings that reshape entire fields of knowledge.</p>
             </div>
 
-            <!-- Annotation legend -->
-            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:0.8rem;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span style="display:inline-block;width:22px;border-bottom:2px solid var(--emerald,#10B981);"></span>
-                <span>Underlined word → saved as <strong style="color:var(--emerald,#10B981);">Vocabulary</strong></span>
+            <!-- Annotation legend — prominent -->
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;font-size:0.85rem;background:var(--bg,#FDFAF6);border:1px solid var(--border,#EDE8E0);border-radius:9px;padding:12px 14px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="display:inline-block;width:24px;border-bottom:2.5px solid var(--emerald,#10B981);flex-shrink:0;"></span>
+                <span><strong>Underlined word</strong> → saved as <strong style="color:var(--emerald,#10B981);">Vocabulary</strong></span>
               </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span style="display:inline-block;width:22px;height:14px;background:rgba(251,191,36,0.35);border-radius:2px;"></span>
-                <span>Highlighted sentence → saved as <strong style="color:#92400E;">Note</strong></span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="display:inline-block;width:24px;height:16px;background:rgba(251,191,36,0.40);border-radius:3px;flex-shrink:0;"></span>
+                <span><strong>Highlighted sentence</strong> → saved as <strong style="color:#92400E;">Note</strong></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="display:inline-block;width:24px;text-align:center;font-size:14px;flex-shrink:0;">🤖</span>
+                <span><strong>AI suggestions</strong> → more vocabulary &amp; notes from the full passage</span>
               </div>
             </div>
 
             <div class="nob-wizard-nav">
               <button class="nob-wizard-skip" id="nob-wiz-skip-3">Skip →</button>
-              <button class="nob-wizard-next" id="nob-step2-scan">Try image scan →</button>
+              <button class="nob-wizard-next" id="nob-step2-scan">📷 Try image scan →</button>
             </div>
           </div>
 
@@ -512,12 +527,18 @@
     const vocabSel = document.getElementById('nob-type-vocab')?.classList.contains('selected');
     const noteSel  = document.getElementById('nob-type-note')?.classList.contains('selected');
     const flashSel = document.getElementById('nob-type-flash')?.classList.contains('selected');
+    const selectedCount = [vocabSel, noteSel, flashSel].filter(Boolean).length;
+    const multi = selectedCount >= 2;
+
     const vocabF = document.getElementById('nob-vocab-fields');
     const noteF  = document.getElementById('nob-note-fields');
     const flashF = document.getElementById('nob-flash-fields');
-    if (vocabF) vocabF.style.display = vocabSel ? '' : 'none';
-    if (noteF)  noteF.style.display  = noteSel  ? '' : 'none';
-    if (flashF) flashF.style.display = flashSel ? '' : 'none';
+    const multiF = document.getElementById('nob-multi-fields');
+
+    if (vocabF) vocabF.style.display = (!multi && vocabSel) ? '' : 'none';
+    if (noteF)  noteF.style.display  = (!multi && noteSel)  ? '' : 'none';
+    if (flashF) flashF.style.display = (!multi && flashSel) ? '' : 'none';
+    if (multiF) multiF.style.display = multi ? '' : 'none';
   }
 
   function _wizardStep1Next() {
@@ -561,7 +582,9 @@
     const vocabSel = document.getElementById('nob-type-vocab')?.classList.contains('selected');
     const noteSel  = document.getElementById('nob-type-note')?.classList.contains('selected');
     const flashSel = document.getElementById('nob-type-flash')?.classList.contains('selected');
-    const nothingSelected = !vocabSel && !noteSel && !flashSel;
+    const selectedCount = [vocabSel, noteSel, flashSel].filter(Boolean).length;
+    const nothingSelected = selectedCount === 0;
+    const multi = selectedCount >= 2;
 
     if (nothingSelected) {
       // No type picked — skip straight to book demo
@@ -578,16 +601,42 @@
     const deckId = _wiz.deckId;
     let savedSomething = false;
 
-    // ── Save vocabulary word ──
-    if (vocabSel) {
-      const word = (document.getElementById('nob-word-input')?.value || '').trim();
-      if (word) {
-        _wiz.word = word;
+    // ── Multi-select: save content from shared textarea ──
+    if (multi) {
+      const text = (document.getElementById('nob-multi-text')?.value || '').trim();
+      if (text) {
+        try {
+          if (noteSel && typeof lsGet === 'function' && typeof lsSet === 'function') {
+            const notes = lsGet('nexora_notes', []);
+            notes.push({
+              id: 'n_' + Date.now(),
+              deckId: deckId || null,
+              title: text.slice(0, 60),
+              content: text,
+              createdAt: new Date().toISOString().split('T')[0],
+              updatedAt: new Date().toISOString().split('T')[0]
+            });
+            lsSet('nexora_notes', notes);
+            if (typeof ALL_NOTES !== 'undefined') ALL_NOTES.length = 0, notes.forEach(n => ALL_NOTES.push(n));
+          }
+          savedSomething = true;
+        } catch(e) { console.warn('[Onboarding] multi save failed:', e); }
+      }
+    }
+
+    // ── Save vocabulary word(s) — comma-separated supported ──
+    if (!multi && vocabSel) {
+      const rawInput = (document.getElementById('nob-word-input')?.value || '').trim();
+      const words = rawInput.split(',').map(w => w.trim()).filter(Boolean);
+      if (words.length) {
+        _wiz.word = words[0];
         window._silentAdd = true;
         try {
-          if (typeof _addWordsFromText === 'function') await _addWordsFromText(word, deckId);
+          for (const word of words) {
+            if (typeof _addWordsFromText === 'function') await _addWordsFromText(word, deckId);
+          }
           const savedVocab = (typeof lsGet === 'function' ? lsGet('custom_vocab', []) : []) || [];
-          const wordObj = savedVocab.find(w => w.word && w.word.toLowerCase() === word.toLowerCase());
+          const wordObj = savedVocab.find(w => w.word && w.word.toLowerCase() === words[0].toLowerCase());
           _wiz.def = wordObj ? (wordObj.definition || null) : null;
           savedSomething = true;
         } catch(e) { console.warn('[Onboarding] vocab save failed:', e); }
@@ -595,19 +644,18 @@
       }
     }
 
-    // ── Save note ──
-    if (noteSel) {
-      const title   = (document.getElementById('nob-note-title')?.value || '').trim();
-      const content = (document.getElementById('nob-note-body')?.value  || '').trim();
-      if (title || content) {
+    // ── Save note (body only) ──
+    if (!multi && noteSel) {
+      const content = (document.getElementById('nob-note-body')?.value || '').trim();
+      if (content) {
         try {
           if (typeof lsGet === 'function' && typeof lsSet === 'function') {
             const notes = lsGet('nexora_notes', []);
             notes.push({
               id: 'n_' + Date.now(),
               deckId: deckId || null,
-              title: title || content.slice(0, 60),
-              content: content || title,
+              title: content.slice(0, 60),
+              content: content,
               createdAt: new Date().toISOString().split('T')[0],
               updatedAt: new Date().toISOString().split('T')[0]
             });
@@ -620,7 +668,7 @@
     }
 
     // ── Save flashcard ──
-    if (flashSel) {
+    if (!multi && flashSel) {
       const front = (document.getElementById('nob-flash-front')?.value || '').trim();
       const back  = (document.getElementById('nob-flash-back')?.value  || '').trim();
       if (front || back) {

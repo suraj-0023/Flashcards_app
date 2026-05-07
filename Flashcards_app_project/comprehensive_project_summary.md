@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-06 (UX sweep: floater fix, grid redesign, General deck removal, Save Original AI, Notes Review, expanded onboarding wizard)
+**Last Updated**: 2026-05-07 (Onboarding redesign, smart field logic, review segregation, hide General deck)
 
 ---
 

@@ -81,7 +81,7 @@
 .nob-welcome-card {
   background: var(--surface, #ffffff);
   border-radius: 20px;
-  max-width: 400px;
+  max-width: 480px;
   width: 100%;
   padding: 36px 32px 28px;
   text-align: center;
@@ -271,7 +271,7 @@
   background: var(--surface, #ffffff);
   border-radius: 20px;
   padding: 0 0 24px;
-  max-width: 460px;
+  max-width: 580px;
   width: 100%;
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.14);
   border: 1px solid var(--border, #EDE8E0);
@@ -487,6 +487,23 @@
   background: rgba(16, 185, 129, 0.12);
   border-color: var(--emerald, #10B981);
   color: var(--emerald, #10B981);
+}
+
+/* AI hint banner (step 2 multi-select) */
+.nob-wizard-ai-hint {
+  font-size: 12px;
+  color: var(--emerald-700, #047857);
+  background: var(--emerald-50, #ECFDF5);
+  border: 1px solid var(--emerald-100, #D1FAE5);
+  border-radius: 8px;
+  padding: 9px 12px;
+  margin-top: 10px;
+  line-height: 1.55;
+}
+[data-theme="dark"] .nob-wizard-ai-hint {
+  background: rgba(16, 185, 129, 0.10);
+  border-color: rgba(16, 185, 129, 0.20);
+  color: var(--emerald, #34D399);
 }
 
 /* Step 4 mini flashcard */

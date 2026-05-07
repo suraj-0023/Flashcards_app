@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-07 — Onboarding & Add Content UI Redesign
+
+**What**: Bigger onboarding wizard (580px), new welcome brand copy, step 2 smart field logic (single field per content type, AI hint for multi-select), image scan step redesign with prominent legend, removed "From" toggle from Add Content modal, added review wizard section headers, hidden General deck from all UI surfaces.
+
+**Why**: Onboarding was confusing (all 5 fields showing at once), welcome screen only mentioned vocabulary, Add Content modal had an unnecessary "From" toggle step, review results lacked visual hierarchy, and the legacy General deck was cluttering the UI.
+
+**Impact**: Cleaner onboarding flow, simpler content-adding UX, visually segregated AI vs user content in review, General deck no longer visible to users.
+
+**Technical Detail**: `_syncContentTypeFields()` in nexora-onboarding.js rewritten with mutually-exclusive display logic; `updateAddModalTypes()` in app.html no longer uses `_getSelectedInputs()`; new `.add-review-section-head` CSS class for review headers; `projects.filter(p => p.id !== 'general')` applied across all deck pickers and library rendering.
+
+---
+
 ## 2026-05-06 — UX Sweep: Floater Fix, Grid Redesign, General Deck Removal, Save Original AI, Notes Review, Onboarding Expansion
 
 ### What
