@@ -3395,6 +3395,8 @@
       padding: 24px;
       max-width: 480px;
       width: 100%;
+      max-height: 88vh;
+      overflow: hidden;
       box-shadow: var(--shadow-modal);
       display: flex;
       flex-direction: column;
@@ -3531,6 +3533,7 @@
       display: flex;
       gap: 8px;
       justify-content: flex-end;
+      flex-shrink: 0;
     }
 
     .add-modal-submit {
@@ -11451,9 +11454,12 @@ Return only raw JSON, no markdown code fences.`;
       async function _generateNotesFromText(text) {
         const trimmed = text.trim();
         const tokens = trimmed.split(/\s+/).filter(Boolean);
-        const isWordList = tokens.length >= 2 && tokens.length <= 8 &&
-                           tokens.every(t => t.length <= 20) &&
-                           !/[.,;:!?()"']/.test(trimmed);
+        const _STOP = new Set(['is','are','was','were','be','been','being','the','a','an','of','in','on','at','to','for','with','by','from','and','or','but','not','it','its','this','that','these','those','as','so','if','do','does','did','has','have','had','will','would','can','could','should','may','might','shall','must','about','into','up','out','than','then','when','where','which','who','what','how','am','i','we','you','they','he','she','me','us','him','her','them','my','your','our','their','its']);
+        const isWordList = /,/.test(trimmed) ||
+                           (tokens.length >= 2 && tokens.length <= 8 &&
+                            tokens.every(t => t.length <= 20) &&
+                            !/[.,;:!?()"']/.test(trimmed) &&
+                            !tokens.some(t => _STOP.has(t.toLowerCase())));
 
         const _wordNotePrompt = (word) =>
           `Write a structured study note for the vocabulary word "${word}".
@@ -11811,7 +11817,13 @@ No markdown, no extra text.`;
         });
         // Show review panel
         const rev = document.getElementById('addModalReview');
-        if (rev) rev.style.display = 'block';
+        if (rev) {
+          Object.assign(rev.style, { display:'flex', flexDirection:'column', flex:'1', minHeight:'0', overflow:'hidden' });
+        }
+        const stepBar = document.getElementById('addModalStepBar');
+        if (stepBar) stepBar.style.flexShrink = '0';
+        const revContent = document.getElementById('addModalReviewContent');
+        if (revContent) Object.assign(revContent.style, { overflowY:'auto', flex:'1', minHeight:'0' });
         // Swap buttons
         const submitBtn = document.getElementById('addModalSubmitBtn');
         if (submitBtn) submitBtn.style.display = 'none';

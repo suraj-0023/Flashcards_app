@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-07 — Fix word-level notes, sticky Next button in Add Modal review
+
+**What:** (1) `isWordList` detection now requires either comma-separated input or a short stop-word-free token group — sentences like "Brevity is the soul of wit" no longer generate per-word definitions. (2) Add Modal review panel now has a sticky footer: panel is capped at 88vh, footer has flex-shrink:0, review content scrolls internally so Next/Finalize buttons are always visible.
+
+**Why:** Pasting a sentence or phrase into Notes mode was triggering word-level note generation (e.g. definitions for "Brevity", "is", "the"). Also, the Next button in the review wizard required scrolling to the bottom to find.
+
+**Impact:** Notes mode now produces topic-level study notes for any sentence/passage input. The Next and Finalize buttons are always visible during review regardless of how many cards are shown.
+
+**Technical Detail:** Added `_STOP` set in `_generateNotesFromText()`; `isWordList` now uses `/,/.test(trimmed) || (short + no-stop-word check)`. `.add-modal-panel` gets `max-height:88vh;overflow:hidden`. `.add-modal-footer` gets `flex-shrink:0`. On review open: `#addModalReview` set to flex column with `flex:1`, `#addModalReviewContent` set to `overflow-y:auto;flex:1`.
+
+---
+
 ## 2026-05-07 — Onboarding Review: Color-Coded Cards with Type Badges
 
 **What:** Each suggestion card in the onboarding review panel now has a distinct background color and a type badge pill (VOCAB / NOTE / FLASHCARD) so users can instantly tell content types apart.
