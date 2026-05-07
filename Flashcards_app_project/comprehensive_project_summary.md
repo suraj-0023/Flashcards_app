@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-07 (fix word-list detection, sticky Next button in review modal)
+**Last Updated**: 2026-05-07 (vocab phrase extraction, concise 2-sentence notes output)
 
 ---
 

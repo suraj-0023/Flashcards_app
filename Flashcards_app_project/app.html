@@ -11468,9 +11468,7 @@ Return ONLY raw JSON (no markdown): {"title":"${word}","definition":"clear defin
         const _toNoteItem = (p, fallbackTitle) => {
           const body = [
             p.definition || '',
-            p.example    ? `Example: ${p.example}` : '',
-            p.related?.length ? `Related: ${p.related.join(', ')}` : '',
-            p.hook       ? `Memory hook: ${p.hook}` : ''
+            p.example ? `Example: ${p.example}` : ''
           ].filter(Boolean).join('\n\n');
           return { title: p.title || fallbackTitle || '', body, source: 'suggested' };
         };
@@ -11499,13 +11497,13 @@ Examples of what good notes look like:
 - For "French Revolution": causes, key events with dates, major figures, outcomes, impact on modern history
 
 Requirements:
-- Generate exactly 4 detailed sections covering the most important aspects of the topic
-- Each "definition" field must have substantive content: multiple sentences, key facts, specific data, lists
-- Include concrete numbers, names, sequences — not vague generalizations
-- Think: if I were studying for an exam on this topic, what would I need to know?
+- Generate exactly 3 sections covering the most important aspects of the topic
+- Each "definition" must be exactly 2 sentences — concise, specific, factual. No padding.
+- Include a short concrete "example" (one sentence or a key data point)
+- Think: what are the 3 most essential things to know about this topic?
 
 Return ONLY raw JSON (no markdown):
-{"notes":[{"title":"section heading","definition":"detailed multi-sentence explanation with key facts, data, and lists","example":"specific concrete example or data point","related":["concept1","concept2"],"hook":"memory hook or mnemonic"},...]}
+{"notes":[{"title":"section heading","definition":"exactly 2 sentences of key facts","example":"one concrete example or data point"},...]}
 No markdown, no extra text.`;
           const raw = await _callGemini(prompt);
           const p = JSON.parse(raw);
@@ -11735,8 +11733,15 @@ No markdown, no extra text.`;
 
             if (type === 'vocab') {
               if (hasText) {
-                const w = vocabOnlyText ? wordVal : (inputText.split('\n').find(l => l.trim()) || inputText);
-                suggested.push({ text: w, source: 'text' });
+                const raw = vocabOnlyText ? wordVal : (inputText.split('\n').find(l => l.trim()) || inputText);
+                const toks = raw.split(/[\s,]+/).map(t => t.replace(/[^a-zA-Z'-]/g, '').trim()).filter(Boolean);
+                if (toks.length <= 1) {
+                  suggested.push({ text: raw.trim(), source: 'text' });
+                } else {
+                  const VS = new Set(['is','are','was','were','be','been','being','the','a','an','of','in','on','at','to','for','with','by','from','and','or','but','not','it','its','this','that','these','those','as','so','if','do','does','did','has','have','had','will','would','can','could','should','may','might','shall','must','about','into','up','out','than','then','when','am','i','we','you','they','he','she','me','us','him','her','them','my','your']);
+                  toks.filter(t => t.length > 2 && !VS.has(t.toLowerCase()))
+                      .forEach(w => suggested.push({ text: w, source: 'suggested' }));
+                }
               }
               if (hasFile && aiOn) {
                 for (const file of _addModalFiles) {

@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-07 — Vocab phrase extraction, concise notes output
+
+**What:** (1) Typing a phrase in vocab mode now extracts individual meaningful words (stop-word filtered) as separate vocab suggestions instead of treating the whole phrase as one item. No "YOUR CONTENT" section for phrase input. (2) Notes AI output is now 3 sections of exactly 2 sentences each — definition + one example line only; related and memory hook fields removed from body.
+
+**Why:** Users reported vocab mode showing the full phrase as one card (e.g. "Brevity is the soul of wit" instead of "Brevity", "soul", "wit"). Notes were generating multi-paragraph essays that were hard to digest.
+
+**Impact:** Vocab suggestions are now individual learnable words. Notes are concise and scannable — 2 sentences per section.
+
+**Technical Detail:** In `handleAddModalGenerate()`, vocab text handling now splits by whitespace/comma, filters `VS` stop-word set, pushes each token as `source:'suggested'`. `_toNoteItem()` body drops `related` and `hook`. Passage prompt changed to 3 sections, "exactly 2 sentences" per definition, simplified JSON schema.
+
+---
+
 ## 2026-05-07 — Fix word-level notes, sticky Next button in Add Modal review
 
 **What:** (1) `isWordList` detection now requires either comma-separated input or a short stop-word-free token group — sentences like "Brevity is the soul of wit" no longer generate per-word definitions. (2) Add Modal review panel now has a sticky footer: panel is capped at 88vh, footer has flex-shrink:0, review content scrolls internally so Next/Finalize buttons are always visible.
