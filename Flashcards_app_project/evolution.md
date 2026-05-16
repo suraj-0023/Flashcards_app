@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-17 — Two-shot quiz distractor prefetch, smarter question-type-aware options
+
+**What:** Fixed quiz distractor generation architecture with two-shot concurrent batching and smarter fallback options.
+
+**Why:** Friends testing the app found quiz options showed "Option A / B / C" (LLM fallback) and first question was slow loading. Root causes: (1) fallback used placeholder text instead of session vocab, (2) all 20 questions sent in one large batch, blocking first card.
+
+**Impact:** First quiz card appears in ~1–2s instead of 20+ seconds; all fallback options now show real vocabulary from the quiz session pool instead of generic placeholders; distractor generation is smarter (opposites for definitions, nearby numbers for facts, similar-sounding words for vocab, swapped values for statements).
+
+**Technical Detail:** (1) `_fallbackDistractors()` now pulls 3 random words from the current quiz session pool instead of returning hardcoded "Option A/B/C". (2) `_prefetchAllDistractors()` split into two concurrent batches via `Promise.allSettled`: Q1-Q2 fires immediately (small payload, ~1–2s response), Q3-Q20 fires in background without blocking UI. (3) New `_buildDeckContext()` creates a compact summary of deck vocab/notes for LLM domain context. (4) New `_buildDistractorPrompt()` centralizes distractor generation logic with question-type-aware rules (MCQs for definitions: opposites/antonyms; numeric facts: nearby wrong numbers; vocabulary: similar-sounding words; T/F statements: swapped values). (5) New `_prefetchBatch(items, startIndex, deckContext)` — core batch fetcher used by both shots, fills missed slots with local fallback on API failure. (6) `_callAnthropicDistractors()` updated to use shared `_buildDistractorPrompt()` builder for consistency.
+
+---
+
 ## 2026-05-17 — Bug fixes: null safety, onclick injection hardening
 
 **What:** Fixed 4 confirmed bugs across JSFlashcards, JSNewQuizSystem, JSHelpPanel, and JSInit sections.

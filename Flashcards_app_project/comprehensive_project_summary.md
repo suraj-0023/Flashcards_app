@@ -2,7 +2,7 @@
 
 This document provides a unified overview of the development journey, features, and future roadmap of the Nexora application.
 
-**Last Updated**: 2026-05-17 (bug fixes: null safety, onclick injection hardening)
+**Last Updated**: 2026-05-17 (two-shot quiz distractor prefetch, smarter question-type-aware options)
 
 ---
 

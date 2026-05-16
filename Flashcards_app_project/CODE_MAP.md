@@ -162,4 +162,4 @@ app.html
 
 ---
 
-**Latest changes (May 7, 2026):** AI UX overhaul — fun loading screen with rotating emoji messages, AI toggle button (on by default), success toast after saving, improved LLM prompts for topic-focused notes and flashcards, vocab-only input hides textarea, onboarding Step 2 shows AI-generated suggestions with mini review before saving; nexora-onboarding.js and nexora-onboarding.css updated with loading/review/success panels and keyframe animations; all line numbers updated.
+**Latest changes (May 17, 2026):** Two-shot quiz distractor prefetch — Q1-Q2 fast batch (~1-2s), Q3-Q20 background batch; smarter fallback uses session pool instead of "Option A/B/C"; question-type-aware distractor rules (opposites for MCQs, nearby numbers for facts, similar-sounding words for vocab); new functions: `_buildDeckContext()`, `_buildDistractorPrompt()`, `_prefetchBatch()`; `_prefetchAllDistractors()` refactored to concurrent Promise.allSettled approach.
