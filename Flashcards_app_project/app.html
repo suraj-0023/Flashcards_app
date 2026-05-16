@@ -130,6 +130,12 @@
       --sidebar-hover:#ECFDF5;
       --accent:       #10B981;
 
+      /* Command-Center primary (blue) */
+      --primary:      #2D8CFF;
+      --primary-50:   #EBF4FF;
+      --primary-100:  #BFDBFE;
+      --primary-700:  #1A73E8;
+
       /* Onboarding tokens (unchanged) */
       --tour-c-decks: #6366F1;
       --tour-c-cards: #F59E0B;
@@ -5623,6 +5629,374 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       COMMAND-CENTER REDESIGN (Notion-style)
+       All rules here intentionally override earlier declarations.
+       Functional JS hooks (IDs, data-* attrs) are untouched.
+    ════════════════════════════════════════════════════════════════ */
+
+    /* ── Sidebar shell ── */
+    aside {
+      background: #FBFAF8 !important;
+      border-right: 1px solid #E9E9E7 !important;
+      padding: 16px 10px !important;
+    }
+
+    /* ── Logo ── */
+    .sidebar-logo { padding: 6px 8px 14px !important; }
+
+    .sidebar-logo-mark {
+      background: linear-gradient(135deg, #2D8CFF, #0066FF) !important;
+      box-shadow: 0 4px 10px -2px rgba(45,140,255,0.35) !important;
+    }
+
+    .sidebar-logo-name {
+      background: none !important;
+      -webkit-background-clip: unset !important;
+      background-clip: unset !important;
+      -webkit-text-fill-color: #37352F !important;
+      color: #37352F !important;
+      font-size: 16px !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.01em !important;
+    }
+
+    /* ── Sidebar search bar (new element) ── */
+    .sidebar-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: #F1F1EF;
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 12.5px;
+      color: #9B9A97;
+      cursor: pointer;
+      margin-bottom: 8px;
+      font-family: var(--font-sans);
+      border: none;
+      width: 100%;
+      text-align: left;
+      transition: background 0.14s;
+    }
+    .sidebar-search-bar:hover { background: #E9E9E7; color: #37352F; }
+    .sidebar-search-bar svg { flex-shrink: 0; opacity: 0.55; }
+    .sidebar-search-shortcut {
+      margin-left: auto;
+      background: #E5E5E3;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #9B9A97;
+    }
+
+    /* ── Section labels ── */
+    .sidebar-section-label {
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      color: #9B9A97 !important;
+      padding: 10px 8px 4px !important;
+      letter-spacing: 0.06em !important;
+    }
+
+    /* ── Sidebar nav items — flat tree style ── */
+    .project-item-sidebar {
+      border-radius: 6px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      padding: 7px 10px !important;
+      color: #37352F !important;
+    }
+    .project-item-sidebar:hover { background: #F1F1EF !important; }
+    .project-item-sidebar.active {
+      background: #E8F0FE !important;
+      color: #1A73E8 !important;
+      box-shadow: none !important;
+    }
+
+    /* ── New Deck button — bordered flat ── */
+    .new-project-btn {
+      background: none !important;
+      color: #37352F !important;
+      border: 1.5px solid #E0DEDA !important;
+      box-shadow: none !important;
+      border-radius: 7px !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      padding: 7px 12px !important;
+    }
+    .new-project-btn:hover {
+      background: #F1F1EF !important;
+      border-color: #C7C5C3 !important;
+      transform: none !important;
+    }
+
+    /* ── Practice links ── */
+    .practice-link {
+      border-radius: 6px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      padding: 7px 10px !important;
+      color: #37352F !important;
+    }
+    .practice-link:hover { background: #F1F1EF !important; }
+    .practice-link.active {
+      background: #E8F0FE !important;
+      color: #1A73E8 !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Theme / Help sidebar items ── */
+    .theme-toggle-btn {
+      border-radius: 6px !important;
+      font-size: 13px !important;
+      padding: 7px 10px !important;
+      margin: 2px 0 !important;
+    }
+    .theme-toggle-btn:hover { background: #F1F1EF !important; }
+
+    #helpSidebarItem {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px !important;
+      font-size: 13px !important;
+      color: #6B6868 !important;
+      border-radius: 6px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-sans);
+      font-weight: 500;
+      transition: background 0.14s;
+    }
+    #helpSidebarItem:hover { background: #F1F1EF !important; }
+
+    /* ── Deck header bar — Notion breadcrumb style ── */
+    .deck-header-bar {
+      background: #FBFAF8 !important;
+      border-bottom: 1px solid #E9E9E7 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      padding: 11px 28px !important;
+    }
+
+    .deck-header-name {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      color: #37352F !important;
+    }
+
+    .deck-header-count {
+      background: #F1F1EF !important;
+      border: none !important;
+      color: #6B6868 !important;
+      font-weight: 600 !important;
+      border-radius: 5px !important;
+      padding: 2px 8px !important;
+    }
+
+    /* ── Search ghost button ── */
+    .search-ghost-btn {
+      background: #F7F6F3 !important;
+      border: 1px solid #E9E9E7 !important;
+      border-radius: 7px !important;
+      font-size: 12px !important;
+      padding: 6px 12px !important;
+    }
+    .search-ghost-btn:hover { background: #EEECEA !important; border-color: #DDDBD8 !important; }
+
+    /* ── Add button — blue ── */
+    .add-modal-btn {
+      background: #2D8CFF !important;
+      border-radius: 7px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      padding: 7px 14px !important;
+    }
+    .add-modal-btn:hover { background: #1a7ae0 !important; opacity: 1 !important; }
+
+    /* ── Main area background ── */
+    .main-scroll-area { background: var(--bg); }
+
+    /* ── Library section padding ── */
+    .library-section { padding: 24px 28px !important; }
+
+    /* ── Library title — section label style ── */
+    .library-title {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      color: #9B9A97 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.08em !important;
+    }
+
+    /* ── Library summary tiles — board card style ── */
+    .library-summary-tiles {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 12px !important;
+    }
+
+    .lib-summary-tile {
+      background: #fff !important;
+      border: 1.5px solid #E9E9E7 !important;
+      border-radius: 10px !important;
+      padding: 16px 18px !important;
+      align-items: flex-start !important;
+      text-align: left !important;
+      box-shadow: none !important;
+    }
+    .lib-summary-tile:hover {
+      border-color: #2D8CFF !important;
+      box-shadow: 0 0 0 3px rgba(45,140,255,0.08) !important;
+      transform: none !important;
+    }
+    .lib-summary-tile.active {
+      border-color: #2D8CFF !important;
+      box-shadow: 0 0 0 3px rgba(45,140,255,0.12) !important;
+      transform: none !important;
+    }
+
+    .lib-tile-name {
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      color: #9B9A97 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+    }
+
+    .lib-tile-count {
+      font-size: 1.6rem !important;
+      font-weight: 800 !important;
+      color: #37352F !important;
+      text-transform: none !important;
+      letter-spacing: -0.03em !important;
+    }
+
+    /* ── Library list cards — subtle flat ── */
+    .lib-list-card {
+      border-radius: 8px !important;
+      border: 1px solid #E9E9E7 !important;
+      box-shadow: none !important;
+    }
+    .lib-list-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    /* ── Daily queue badge — blue ── */
+    .daily-queue-badge {
+      background: #EBF4FF !important;
+      border-color: #BFDBFE !important;
+      color: #1D4ED8 !important;
+      border-radius: 8px !important;
+    }
+    .daily-queue-badge button { background: #2D8CFF !important; }
+
+    /* ── Progress bar fill — blue ── */
+    .progress-fill { background: #2D8CFF !important; }
+
+    /* ── Mode buttons — blue active ── */
+    .mode-btn:hover { border-color: #2D8CFF !important; color: #1a7ae0 !important; }
+    .mode-btn.active {
+      background: #2D8CFF !important;
+      border-color: #2D8CFF !important;
+      box-shadow: 0 4px 10px -2px rgba(45,140,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.08) !important;
+    }
+
+    /* ── Util buttons hover ── */
+    .util-btn:hover { border-color: #2D8CFF !important; color: #1a7ae0 !important; }
+
+    /* ── Help tab active ── */
+    .help-tab.active { color: #2D8CFF !important; border-bottom-color: #2D8CFF !important; }
+    .help-step-num { background: #2D8CFF !important; }
+
+    /* ── Board stats bar (new element) ── */
+    .cc-board-stats {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .cc-board-stat {
+      background: #fff;
+      border: 1.5px solid #E9E9E7;
+      border-radius: 10px;
+      padding: 14px 18px;
+      flex: 1;
+      min-width: 110px;
+    }
+    .cc-board-stat-n {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #37352F;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .cc-board-stat-l {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9B9A97;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .cc-board-stat-n.blue  { color: #2D8CFF; }
+    .cc-board-stat-n.red   { color: #EF4444; }
+    .cc-board-stat-n.green { color: #10B981; }
+
+    /* ── Dark-mode Command-Center overrides ── */
+    [data-theme="dark"] aside {
+      background: #1A1918 !important;
+      border-right-color: #2A2826 !important;
+    }
+    [data-theme="dark"] .sidebar-logo-name {
+      -webkit-text-fill-color: #E9E7E4 !important;
+      color: #E9E7E4 !important;
+    }
+    [data-theme="dark"] .sidebar-search-bar {
+      background: #252321 !important;
+      color: #7A7876 !important;
+    }
+    [data-theme="dark"] .sidebar-search-bar:hover { background: #2D2B29 !important; }
+    [data-theme="dark"] .sidebar-search-shortcut { background: #2D2B29 !important; color: #7A7876 !important; }
+    [data-theme="dark"] .project-item-sidebar { color: #D5D2CE !important; }
+    [data-theme="dark"] .project-item-sidebar:hover { background: #252321 !important; }
+    [data-theme="dark"] .project-item-sidebar.active { background: rgba(45,140,255,0.15) !important; color: #5BA4FF !important; }
+    [data-theme="dark"] .new-project-btn { color: #D5D2CE !important; border-color: #2A2826 !important; background: none !important; }
+    [data-theme="dark"] .new-project-btn:hover { background: #252321 !important; }
+    [data-theme="dark"] .practice-link { color: #D5D2CE !important; }
+    [data-theme="dark"] .practice-link:hover { background: #252321 !important; }
+    [data-theme="dark"] .practice-link.active { background: rgba(45,140,255,0.15) !important; color: #5BA4FF !important; }
+    [data-theme="dark"] .deck-header-bar { background: #1A1918 !important; border-bottom-color: #2A2826 !important; }
+    [data-theme="dark"] .deck-header-name { color: #E9E7E4 !important; }
+    [data-theme="dark"] .deck-header-count { background: #252321 !important; color: #9B9A97 !important; }
+    [data-theme="dark"] .search-ghost-btn { background: #252321 !important; border-color: #2A2826 !important; }
+    [data-theme="dark"] .lib-summary-tile { background: #1C1A17 !important; border-color: #2A2826 !important; }
+    [data-theme="dark"] .lib-summary-tile:hover { border-color: #5BA4FF !important; }
+    [data-theme="dark"] .lib-tile-name { color: #5A5856 !important; }
+    [data-theme="dark"] .lib-tile-count { color: #E9E7E4 !important; }
+    [data-theme="dark"] .library-title { color: #5A5856 !important; }
+    [data-theme="dark"] .lib-list-card { border-color: #2A2826 !important; }
+    [data-theme="dark"] .daily-queue-badge { background: rgba(45,140,255,0.12) !important; border-color: rgba(45,140,255,0.25) !important; color: #5BA4FF !important; }
+    [data-theme="dark"] .add-modal-btn { background: #2D8CFF !important; }
+    [data-theme="dark"] #helpSidebarItem { color: #7A7876 !important; }
+    [data-theme="dark"] #helpSidebarItem:hover { background: #252321 !important; }
+    [data-theme="dark"] .bottom-nav-item.active { color: #5BA4FF !important; }
+    [data-theme="dark"] .cc-board-stat { background: #1C1A17; border-color: #2A2826; }
+    [data-theme="dark"] .cc-board-stat-n { color: #E9E7E4; }
+    [data-theme="dark"] .cc-board-stat-n.blue { color: #5BA4FF; }
+    [data-theme="dark"] .cc-board-stat-n.green { color: #34D399; }
+    [data-theme="dark"] .cc-board-stat-l { color: #5A5856; }
+    [data-theme="dark"] .theme-toggle-btn:hover { background: #252321 !important; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       END COMMAND-CENTER REDESIGN
+    ════════════════════════════════════════════════════════════════ */
   </style>
 </head>
 
@@ -5846,6 +6220,12 @@
         <div id="dailyQueueBreakdown" style="font-size:11px;margin:3px 0 6px;color:var(--muted);"></div>
         <button onclick="startSM2Review()" style="width:100%;padding:6px 0;font-size:12px;font-weight:700;background:var(--emerald);color:#fff;border:none;border-radius:8px;cursor:pointer;">Start Review →</button>
       </div>
+
+      <button class="sidebar-search-bar" onclick="openSearch()" aria-label="Search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Search…
+        <span class="sidebar-search-shortcut">⌘K</span>
+      </button>
 
       <div class="sidebar-section-label">Library</div>
       <div class="sidebar-nav" id="sidebarProjectList">
@@ -6319,6 +6699,8 @@
 
           <!-- 3. Library -->
           <div class="library-section">
+            <!-- Board stats bar (Command-Center overview) -->
+            <div class="cc-board-stats" id="ccBoardStats" style="display:none;"></div>
             <div class="library-header">
               <span class="library-title">Library</span>
             </div>
@@ -10605,6 +10987,22 @@ No markdown, no explanation.`;
         if (nc) nc.textContent = `${notesItems.length} note${notesItems.length !== 1 ? 's' : ''}`;
         if (fc) fc.textContent = `${flashItems.length} flashcard${flashItems.length !== 1 ? 's' : ''}`;
         if (vc) vc.textContent = `${vocabItems.length} word${vocabItems.length !== 1 ? 's' : ''}`;
+
+        // Command-Center board stats bar
+        const boardEl = document.getElementById('ccBoardStats');
+        if (boardEl) {
+          const totalItems = notesItems.length + flashItems.length + vocabItems.length;
+          const masteredCount = vocabItems.filter(w => w.sm2 && w.sm2.repetitions >= 3).length
+            + flashItems.filter(c => c.sm2 && c.sm2.repetitions >= 3).length;
+          const due = (typeof getDueCount === 'function') ? getDueCount() : null;
+          const dueTotal = due ? (due.newCount + due.reviewCount + due.lapsedCount) : 0;
+          boardEl.innerHTML = `
+            <div class="cc-board-stat"><div class="cc-board-stat-n">${totalItems}</div><div class="cc-board-stat-l">Total Items</div></div>
+            <div class="cc-board-stat"><div class="cc-board-stat-n green">${masteredCount}</div><div class="cc-board-stat-l">Mastered</div></div>
+            <div class="cc-board-stat"><div class="cc-board-stat-n${dueTotal > 0 ? ' red' : ' blue'}">${dueTotal}</div><div class="cc-board-stat-l">Due Today</div></div>
+            <div class="cc-board-stat"><div class="cc-board-stat-n blue">${vocabItems.length}</div><div class="cc-board-stat-l">Vocab Words</div></div>`;
+          boardEl.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
 
         // Recently Added — shown only in Complete Library
         const recentEl = document.getElementById('recentlyAddedSection');
