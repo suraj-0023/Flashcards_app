@@ -5987,12 +5987,34 @@
     [data-theme="dark"] #helpSidebarItem { color: #7A7876 !important; }
     [data-theme="dark"] #helpSidebarItem:hover { background: #252321 !important; }
     [data-theme="dark"] .bottom-nav-item.active { color: #5BA4FF !important; }
-    [data-theme="dark"] .cc-board-stat { background: #1C1A17; border-color: #2A2826; }
-    [data-theme="dark"] .cc-board-stat-n { color: #E9E7E4; }
-    [data-theme="dark"] .cc-board-stat-n.blue { color: #5BA4FF; }
-    [data-theme="dark"] .cc-board-stat-n.green { color: #34D399; }
-    [data-theme="dark"] .cc-board-stat-l { color: #5A5856; }
+    [data-theme="dark"] .cc-board-stat { background: #1C1A17 !important; border-color: #2A2826 !important; }
+    [data-theme="dark"] .cc-board-stat-n { color: #E9E7E4 !important; }
+    [data-theme="dark"] .cc-board-stat-n.blue { color: #5BA4FF !important; }
+    [data-theme="dark"] .cc-board-stat-n.green { color: #34D399 !important; }
+    [data-theme="dark"] .cc-board-stat-n.red { color: #FF6B6B !important; }
+    [data-theme="dark"] .cc-board-stat-l { color: #5A5856 !important; }
     [data-theme="dark"] .theme-toggle-btn:hover { background: #252321 !important; }
+
+    /* ── Board stats responsive (2-col on narrow screens) ── */
+    @media (max-width: 640px) {
+      .cc-board-stats { flex-wrap: wrap; }
+      .cc-board-stat { flex: 1 1 calc(50% - 5px); min-width: 0; }
+    }
+
+    /* ── Add-modal title select — blue to match redesign ── */
+    .add-modal-title select {
+      color: var(--primary-700, #1A73E8) !important;
+      background: var(--primary-50, #EBF4FF) !important;
+      border-color: var(--primary-100, #BFDBFE) !important;
+    }
+
+    /* ── Recently Added "Add Content" CTA — blue ── */
+    #recentlyAddedSection button {
+      background: #2D8CFF !important;
+    }
+    #recentlyAddedSection button:hover {
+      background: #1a7ae0 !important;
+    }
 
     /* ═══════════════════════════════════════════════════════════════
        END COMMAND-CENTER REDESIGN
@@ -10984,9 +11006,9 @@ No markdown, no explanation.`;
         const nc = document.getElementById('libTileCountNotes');
         const fc = document.getElementById('libTileCountFlashcards');
         const vc = document.getElementById('libTileCountVocab');
-        if (nc) nc.textContent = `${notesItems.length} note${notesItems.length !== 1 ? 's' : ''}`;
-        if (fc) fc.textContent = `${flashItems.length} flashcard${flashItems.length !== 1 ? 's' : ''}`;
-        if (vc) vc.textContent = `${vocabItems.length} word${vocabItems.length !== 1 ? 's' : ''}`;
+        if (nc) nc.textContent = notesItems.length;
+        if (fc) fc.textContent = flashItems.length;
+        if (vc) vc.textContent = vocabItems.length;
 
         // Command-Center board stats bar
         const boardEl = document.getElementById('ccBoardStats');
@@ -10995,7 +11017,7 @@ No markdown, no explanation.`;
           const masteredCount = vocabItems.filter(w => w.sm2 && w.sm2.repetitions >= 3).length
             + flashItems.filter(c => c.sm2 && c.sm2.repetitions >= 3).length;
           const due = (typeof getDueCount === 'function') ? getDueCount() : null;
-          const dueTotal = due ? (due.newCount + due.reviewCount + due.lapsedCount) : 0;
+          const dueTotal = due ? (due.new + due.review + due.lapsed) : 0;
           boardEl.innerHTML = `
             <div class="cc-board-stat"><div class="cc-board-stat-n">${totalItems}</div><div class="cc-board-stat-l">Total Items</div></div>
             <div class="cc-board-stat"><div class="cc-board-stat-n green">${masteredCount}</div><div class="cc-board-stat-l">Mastered</div></div>
