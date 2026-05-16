@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-05-17 — Bug fixes: null safety, onclick injection hardening
+
+**What:** Fixed 4 confirmed bugs across JSFlashcards, JSNewQuizSystem, JSHelpPanel, and JSInit sections.
+
+**Why:** 8-agent bug sweep (2 rounds of 4 Haiku agents) identified runtime crashes and an injection vulnerability in search result onclick handlers.
+
+**Impact:** App no longer crashes when displaying vocab words that lack usage examples; quiz correctly handles edge-case option data; help panel is resilient to invalid tab index; search results are safe against ID strings containing apostrophes.
+
+**Technical Detail:** (1) `showFlashCard()` in JSFlashcards now guards `w.usage` access with `w.usage && w.usage.length` before use at ~line 9468 and 9476; quiz feedback restore at ~line 9728 similarly guarded. (2) `selectNqOption()` in JSNewQuizSystem adds `if (!correctOpt) return;` before accessing `correctOpt.id`. (3) `renderHelpTab()` in JSHelpPanel now checks `!HELP_TABS_CONTENT[idx]` and null-checks the DOM element. (4) Search result onclick handlers in JSInit now escape IDs with `.replace(/'/g, "\\'")` before injecting into JS string literals.
+
+---
+
 ## 2026-05-07 — Vocab phrase extraction, concise notes output
 
 **What:** (1) Typing a phrase in vocab mode now extracts individual meaningful words (stop-word filtered) as separate vocab suggestions instead of treating the whole phrase as one item. No "YOUR CONTENT" section for phrase input. (2) Notes AI output is now 3 sections of exactly 2 sentences each — definition + one example line only; related and memory hook fields removed from body.

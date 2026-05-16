@@ -13,58 +13,58 @@
 |---|---|---|---|
 | **HTML/CSS** | | | |
 | Styles (global CSS) | `StylesGlobal` | 66 | All CSS for the app (colors, layout, animations, media queries, mobile responsiveness) |
-| Login Screen | `LoginScreen` | 5628 | Login/signup UI and auth forms |
-| Profile Setup | `ProfileSetup` | 5679 | Profile creation wizard (name, goal, target, demographics) |
-| Welcome Tour Modal | `WelcomeTour` | 5758 | Interactive onboarding carousel (decks, cards) |
-| Onboarding Complete Overlay | `OnboardCompleteOverlay` | 5792 | Celebration screen after profile setup completion |
-| Help Panel | `HelpPanel` | 5807 | Help guide with tabs (Getting Started, Features, Tips, Tour replay) |
-| Main App Container | `MainAppContainer` | 5828 | Root app div (sidebar + main, mobile overlay backdrop, hamburger btn) |
-| Practice Overlay | `PracticeOverlay` | 5925 | Flashcard/quiz/stats practice UI (decks, cards, scoring, notes) |
-| Main Page | `MainPage` | 6241 | Main library view (deck browser, search, add section, bottom nav) |
-| Search Modal | `SearchModal` | 12262 | Cmd+K command palette (search vocab, notes, flashcards) |
-| Add Modal | `AddModal` | 12275 | Modal for adding vocab/notes/flashcards to decks |
+| Login Screen | `LoginScreen` | 5631 | Login/signup UI and auth forms |
+| Profile Setup | `ProfileSetup` | 5682 | Profile creation wizard (name, goal, target, demographics) |
+| Welcome Tour Modal | `WelcomeTour` | 5761 | Interactive onboarding carousel (decks, cards) |
+| Onboarding Complete Overlay | `OnboardCompleteOverlay` | 5795 | Celebration screen after profile setup completion |
+| Help Panel | `HelpPanel` | 5810 | Help guide with tabs (Getting Started, Features, Tips, Tour replay) |
+| Main App Container | `MainAppContainer` | 5831 | Root app div (sidebar + main, mobile overlay backdrop, hamburger btn) |
+| Practice Overlay | `PracticeOverlay` | 5928 | Flashcard/quiz/stats practice UI (decks, cards, scoring, notes) |
+| Main Page | `MainPage` | 6244 | Main library view (deck browser, search, add section, bottom nav) |
+| Search Modal | `SearchModal` | 12336 | Cmd+K command palette (search vocab, notes, flashcards) |
+| Add Modal | `AddModal` | 12349 | Modal for adding vocab/notes/flashcards to decks |
 | **JavaScript – Core** | | | |
-| Main Script Setup | `MainScript` | 6871 | Script block opener, Gemini proxy URL config |
-| State Variables | `JSState` | 6876 | Global state (VOCAB, QUIZ_VOCAB, projects, currentUser, etc.) |
-| Auth Helpers | `JSAuthHelpers` | 6898 | Helper functions (getPerfKey, loadPerf, shuffle, etc.) |
-| Analytics | `JSAnalytics` | 6922 | Firebase analytics tracking (trackEvent) |
-| Storage Layer | `JSStorage` | 6936 | localStorage and Firestore sync (lsGet, lsSet, syncToCloud, etc.) |
+| Main Script Setup | `MainScript` | 6874 | Script block opener, Gemini proxy URL config |
+| State Variables | `JSState` | 6879 | Global state (VOCAB, QUIZ_VOCAB, projects, currentUser, etc.) |
+| Auth Helpers | `JSAuthHelpers` | 6901 | Helper functions (getPerfKey, loadPerf, shuffle, etc.) |
+| Analytics | `JSAnalytics` | 6925 | Firebase analytics tracking (trackEvent) |
+| Storage Layer | `JSStorage` | 6939 | localStorage and Firestore sync (lsGet, lsSet, syncToCloud, etc.) |
 | **JavaScript – Onboarding** | | | |
-| Onboarding | `JSOnboarding` | 7039 | Profile setup steps, tour navigation, completion ceremony |
-| Help Panel Logic | `JSHelpPanel` | 7363 | Help tab content and interactions |
-| Auth State Handler | `JSAuthStateHandler` | 7502 | Firebase auth state listener and user login flow |
-| Login Functions | `JSLoginFunctions` | 7610 | Sign-in, sign-up, password reset UI and validation |
+| Onboarding | `JSOnboarding` | 7042 | Profile setup steps, tour navigation, completion ceremony |
+| Help Panel Logic | `JSHelpPanel` | 7366 | Help tab content and interactions |
+| Auth State Handler | `JSAuthStateHandler` | 7507 | Firebase auth state listener and user login flow |
+| Login Functions | `JSLoginFunctions` | 7615 | Sign-in, sign-up, password reset UI and validation |
 | **JavaScript – Data** | | | |
-| Demo Data Seed | `JSDemoData` | 7779 | Seed data for new users (vocab, notes, custom cards) |
-| Load from JSON | `JSLoadJSON` | 7812 | Load vocabulary from JSON files (vocabulary.json, quiz_words.json) |
+| Demo Data Seed | `JSDemoData` | 7784 | Seed data for new users (vocab, notes, custom cards) |
+| Load from JSON | `JSLoadJSON` | 7817 | Load vocabulary from JSON files (vocabulary.json, quiz_words.json) |
 | **JavaScript – UI & Modals** | | | |
-| Dictionary | `JSDictionary` | 8575 | Render vocabulary grid with scores (dict view) |
-| Modal Dialog | `JSModalDialog` | 8603 | Word detail popup (definition, usage, SM-2 badge, edit, delete) |
-| AI Modal | `JSAIModal` | 8801 | Gemini AI modal for generating vocab from text/images |
-| Vocab Preview | `JSVocabPreview` | 8922 | Preview definition before saving vocab word |
-| Image Vocab Modal | `JSImageVocab` | 8948 | OCR/Gemini image scanning, word extraction and grid UI |
+| Dictionary | `JSDictionary` | 8580 | Render vocabulary grid with scores (dict view) |
+| Modal Dialog | `JSModalDialog` | 8608 | Word detail popup (definition, usage, SM-2 badge, edit, delete) |
+| AI Modal | `JSAIModal` | 8806 | Gemini AI modal for generating vocab from text/images |
+| Vocab Preview | `JSVocabPreview` | 8927 | Preview definition before saving vocab word |
+| Image Vocab Modal | `JSImageVocab` | 8953 | OCR/Gemini image scanning, word extraction and grid UI |
 | **JavaScript – Cards & Practice** | | | |
-| Custom Flashcards | `JSCustomFlashcards` | 9229 | Create and manage custom front/back flashcards |
-| Flashcards | `JSFlashcards` | 9280 | Flashcard study mode (SM-2 rating, flip, keyboard shortcuts, toast) |
-| Quiz | `JSQuiz` | 9582 | Quiz mode with multiple choice and difficulty levels |
-| Stats | `JSStats` | 9817 | Performance stats (total, correct, accuracy per word) |
+| Custom Flashcards | `JSCustomFlashcards` | 9234 | Create and manage custom front/back flashcards |
+| Flashcards | `JSFlashcards` | 9285 | Flashcard study mode (SM-2 rating, flip, keyboard shortcuts, toast) |
+| Quiz | `JSQuiz` | 9587 | Quiz mode with multiple choice and difficulty levels |
+| Stats | `JSStats` | 9822 | Performance stats (total, correct, accuracy per word) |
 | **JavaScript – Navigation & Views** | | | |
-| Flashcard Deck Selection | `JSFlashcardDeckSelection` | 9873 | Deck picker for practice (checkboxes, start practice) |
-| Practice Overlay | `JSPracticeOverlay` | 9968 | Practice view switcher (flashcards/quiz/stats) |
-| Notes Review | `JSNotesReview` | 10016 | Notes flip-card review mode (deck picker, navigation) |
-| New Quiz System | `JSNewQuizSystem` | 10132 | Multiple choice quiz engine with wrong answer review |
-| Vocab Practice (Flip) | `JSVocabPractice` | 10448 | Flip card vocab review mode (vocabulary.json words) |
-| Library | `JSLibrary` | 10526 | Main library render (decks, vocab, notes, cards sections) |
-| Library List View | `JSLibraryListView` | 10594 | Filtered list display (vocab, notes, flashcards) with SM-2 state pills |
-| Detail Popup | `JSDetailPopup` | 10758 | Item detail view in list (flip for cards, edit, delete) |
+| Flashcard Deck Selection | `JSFlashcardDeckSelection` | 9878 | Deck picker for practice (checkboxes, start practice) |
+| Practice Overlay | `JSPracticeOverlay` | 9973 | Practice view switcher (flashcards/quiz/stats) |
+| Notes Review | `JSNotesReview` | 10021 | Notes flip-card review mode (deck picker, navigation) |
+| New Quiz System | `JSNewQuizSystem` | 10137 | Multiple choice quiz engine with wrong answer review |
+| Vocab Practice (Flip) | `JSVocabPractice` | 10506 | Flip card vocab review mode (vocabulary.json words) |
+| Library | `JSLibrary` | 10584 | Main library render (decks, vocab, notes, cards sections) |
+| Library List View | `JSLibraryListView` | 10652 | Filtered list display (vocab, notes, flashcards) with SM-2 state pills |
+| Detail Popup | `JSDetailPopup` | 10816 | Item detail view in list (flip for cards, edit, delete) |
 | **JavaScript – Add Section & Management** | | | |
-| Add Section | `JSAddSection` | 10854 | Add vocab/notes UI (text textarea, file uploads, type pills) |
-| Deck Dashboard | `JSDeckDashboard` | 11077 | Deck home page (stats, section tiles, actions) |
-| Notes | `JSNotes` | 11199 | Notes editor and list (create, edit, delete, search) |
-| Add Modal | `JSAddModal` | 11280 | Advanced add modal (multi-select types, dual-group pills, review wizard) |
-| Mobile Menu | `JSMobileMenu` | 12109 | Mobile sidebar drawer, bottom nav, responsive toggles |
+| Add Section | `JSAddSection` | 10912 | Add vocab/notes UI (text textarea, file uploads, type pills) |
+| Deck Dashboard | `JSDeckDashboard` | 11135 | Deck home page (stats, section tiles, actions) |
+| Notes | `JSNotes` | 11257 | Notes editor and list (create, edit, delete, search) |
+| Add Modal | `JSAddModal` | 11338 | Advanced add modal (multi-select types, dual-group pills, review wizard) |
+| Mobile Menu | `JSMobileMenu` | 12181 | Mobile sidebar drawer, bottom nav, responsive toggles |
 | **JavaScript – Init** | | | |
-| Init & Setup | `JSInit` | 12146 | App initialization, Firebase/auth integration, event listeners |
+| Init & Setup | `JSInit` | 12218 | App initialization, Firebase/auth integration, event listeners |
 
 ## Common Tasks
 
@@ -156,7 +156,7 @@ app.html
 
 ---
 
-**Last updated:** May 7, 2026  
+**Last updated:** May 17, 2026  
 **File size:** ~12,400+ lines  
 **Sections:** 44 major code regions
 

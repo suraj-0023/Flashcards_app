@@ -7486,7 +7486,9 @@
       }
 
       function renderHelpTab(idx) {
-        document.getElementById('helpContent').innerHTML = HELP_TABS_CONTENT[idx]();
+        if (!HELP_TABS_CONTENT[idx]) return;
+        const el = document.getElementById('helpContent');
+        if (el) el.innerHTML = HELP_TABS_CONTENT[idx]();
       }
 
       function toggleAccordion(header) {
@@ -9465,7 +9467,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
             backLabelEl.textContent = 'Word';
             defEl.textContent = w.word;
           } else {
-            frontEl.textContent = `"${w.usage[0]}"`;
+            frontEl.textContent = w.usage && w.usage[0] ? `"${w.usage[0]}"` : w.definition;
             typeEl.textContent = '';
             hintEl.textContent = 'Click to reveal the word used';
             labelEl.textContent = 'Usage Sentence';
@@ -9473,7 +9475,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
             backLabelEl.textContent = 'Word';
             defEl.textContent = w.word;
           }
-          usageEl.textContent = `"${w.usage[1] || w.usage[0]}"`;
+          usageEl.textContent = w.usage && w.usage.length ? `"${w.usage[1] || w.usage[0]}"` : '';
           // Context sentence block
           let ctxBlock = document.getElementById('flashContextBlock');
           if (!ctxBlock) {
@@ -9725,7 +9727,7 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
           const selectedBtn = document.getElementById(`opt-${track.selectedId}`);
           if (track.correct) {
             if (selectedBtn) selectedBtn.classList.add('selected-correct');
-            document.getElementById('quizFeedback').textContent = `✓ Correct! "${w.usage[0]}"`;
+            document.getElementById('quizFeedback').textContent = w.usage && w.usage[0] ? `✓ Correct! "${w.usage[0]}"` : '✓ Correct!';
             document.getElementById('quizFeedback').className = 'quiz-feedback correct';
           } else {
             if (selectedBtn) selectedBtn.classList.add('selected-wrong');
@@ -10145,30 +10147,48 @@ difficulty: 1=easy,2=medium,3=hard,4=very hard. No markdown, no extra text.`;
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
-      async function _prefetchAllDistractors() {
-        // Show a loading state in the quiz area
-        const optEl = document.getElementById('quizOptions');
-        if (optEl) optEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;font-family:\'Plus Jakarta Sans\',system-ui,sans-serif;">Preparing quiz…</div>';
+      // Build a compact deck context string to help the LLM stay on-topic
+      function _buildDeckContext() {
+        const sample = _nqQueue.slice(0, 12);
+        if (_nqMode === 'vocab') {
+          return sample.map(item => `${item.word}: ${item.definition}`).join('; ');
+        }
+        return sample.map(item => `Q: ${String(item.q).slice(0, 60)} → A: ${String(item.a).slice(0, 80)}`).join('; ');
+      }
 
-        const items = _nqQueue.map((item, idx) => ({
-          index: idx,
+      // Build prompt asking for smart, question-type-aware distractors
+      function _buildDistractorPrompt(payload, deckContext) {
+        const contextBlock = deckContext ? `\nDeck topic context (for domain relevance only):\n${deckContext.slice(0, 600)}\n` : '';
+        return `You are a quiz distractor generator. For each item, create exactly 3 wrong answer options.
+
+Distractor rules (apply based on what fits the answer):
+- Definitions/meanings → use plausible but wrong definitions: opposites, subtle misstatements, or related-but-wrong concepts
+- Facts/statements → use nearby wrong facts, swapped values, or contradictory statements
+- Numbers/quantities → use different but plausible nearby numbers
+- Vocabulary words → use similarly-spelled or same-category words with different meanings
+- Concepts → use related terminology that sounds correct but is not
+Never repeat or rephrase the correct answer. Never use obviously silly options.
+${contextBlock}
+Items: ${JSON.stringify(payload)}
+
+Return ONLY a JSON array indexed 0..${payload.length - 1}, each element an array of 3 strings:
+[["wrong1","wrong2","wrong3"],...]
+No markdown, no explanation.`;
+      }
+
+      // Core batch fetcher — fetches distractors for a slice of _nqQueue
+      async function _prefetchBatch(items, startIndex, deckContext) {
+        if (!items.length) return;
+        const payload = items.map((item, i) => ({
+          index: startIndex + i,
           correct: _nqMode === 'vocab' ? item.definition : item.a,
           context: _nqMode === 'vocab' ? item.word : item.q
         }));
-
-        const prompt = _nqMode === 'vocab'
-          ? `You are a vocabulary quiz generator. For each item below, generate exactly 3 wrong definitions that are believable, from a similar semantic field, and medium-to-hard to distinguish.
-Items: ${JSON.stringify(items)}
-Return ONLY a JSON array indexed 0..${items.length - 1}, each element being an array of 3 strings: [["wrong1","wrong2","wrong3"],...]
-No explanation, no markdown.`
-          : `You are a quiz generator. For each item below, generate exactly 3 wrong answer options that are plausible, in the same domain, medium-to-hard difficulty, and varied.
-Items: ${JSON.stringify(items)}
-Return ONLY a JSON array indexed 0..${items.length - 1}, each element being an array of 3 strings: [["wrong1","wrong2","wrong3"],...]
-No explanation, no markdown.`;
-
+        const prompt = _buildDistractorPrompt(payload, deckContext);
+        const timeoutMs = items.length <= 2 ? 9000 : 22000;
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 20000);
+          const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
           const res = await fetch(GEMINI_PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -10182,59 +10202,93 @@ No explanation, no markdown.`;
             .replace(/```json\n?|\n?```/g, '');
           const allDistractors = JSON.parse(text);
           if (Array.isArray(allDistractors)) {
-            allDistractors.forEach((distractors, idx) => {
-              if (_nqTrack[idx]) return; // already set by per-card fetch
+            allDistractors.forEach((distractors, localIdx) => {
+              const globalIdx = startIndex + localIdx;
+              if (_nqTrack[globalIdx]) return; // already set by per-card fetch
               if (!Array.isArray(distractors) || distractors.length < 3) return;
-              const item = _nqQueue[idx];
+              const item = _nqQueue[globalIdx];
+              if (!item) return;
               const correctText = _nqMode === 'vocab' ? item.definition : item.a;
               const opts = shuffle([
                 { id: 'correct', text: correctText, isCorrect: true },
                 ...distractors.slice(0, 3).map((d, i) => ({ id: 'w' + i, text: d, isCorrect: false }))
               ]);
-              _nqTrack[idx] = { opts, answered: false, selectedId: null, correct: null };
-              if (_nqIdx === idx) _renderNqCard(); // re-render current card if it was waiting
+              _nqTrack[globalIdx] = { opts, answered: false, selectedId: null, correct: null };
+              if (_nqIdx === globalIdx) _renderNqCard(); // re-render if user is waiting on this card
             });
           }
         } catch (e) {
-          console.warn('Batch distractor prefetch failed, will fall back per-card:', e);
+          console.warn(`Batch distractor fetch failed (start=${startIndex}):`, e);
+          // Fill missed slots with local fallback so user is never stuck
+          items.forEach((item, localIdx) => {
+            const globalIdx = startIndex + localIdx;
+            if (_nqTrack[globalIdx]) return;
+            const correctText = _nqMode === 'vocab' ? item.definition : item.a;
+            const distractors = _fallbackDistractors(correctText, globalIdx);
+            const opts = shuffle([
+              { id: 'correct', text: correctText, isCorrect: true },
+              ...distractors.map((d, i) => ({ id: 'w' + i, text: d, isCorrect: false }))
+            ]);
+            _nqTrack[globalIdx] = { opts, answered: false, selectedId: null, correct: null };
+            if (_nqIdx === globalIdx) _renderNqCard();
+          });
         }
       }
 
-      async function _callAnthropicDistractors(correctAnswer, context, mode) {
-        const prompt = mode === 'vocab'
-          ? `You are a vocabulary quiz generator. Given a word and its correct definition, generate exactly 3 wrong definitions that are believable, from a similar semantic field, and medium-to-hard to distinguish. Return ONLY a JSON array of 3 strings. No explanation, no markdown. Word: ${context}. Correct definition: ${correctAnswer}`
-          : `You are a quiz generator. Given a correct answer and its context, generate exactly 3 wrong answer options that are plausible, in the same domain, medium-to-hard difficulty, and varied. Return ONLY a JSON array of 3 strings. No explanation, no markdown. Correct answer: ${correctAnswer}. Context: ${context}`;
+      // Two-shot prefetch: Q1-Q2 fires first (small → fast), Q3-end fires in parallel
+      async function _prefetchAllDistractors() {
+        const context = _buildDeckContext();
+        const firstTwo = _nqQueue.slice(0, 2);
+        const rest = _nqQueue.slice(2);
+        // Fire both concurrently — smaller batch wins the race and renders Q1 faster
+        await Promise.allSettled([
+          _prefetchBatch(firstTwo, 0, context),
+          _prefetchBatch(rest, 2, context)
+        ]);
+      }
 
+      // Per-card fallback used when user reaches a card not yet covered by batch
+      async function _callAnthropicDistractors(correctAnswer, context, mode) {
+        const payload = [{ index: 0, correct: correctAnswer, context }];
+        const prompt = _buildDistractorPrompt(payload, '');
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000);
           const res = await fetch(GEMINI_PROXY_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-              signal: controller.signal
-            }
-          );
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+            signal: controller.signal
+          });
           clearTimeout(timeoutId);
           if (!res.ok) throw new Error('API ' + res.status);
           const data = await res.json();
           const text = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
             .replace(/```json\n?|\n?```/g, '');
           const arr = JSON.parse(text);
-          if (Array.isArray(arr) && arr.length === 3) return arr;
-          return _fallbackDistractors(correctAnswer, mode);
+          // Response is [[d1,d2,d3]] (wrapped array) or [d1,d2,d3]
+          const distractors = Array.isArray(arr[0]) ? arr[0] : arr;
+          if (Array.isArray(distractors) && distractors.length >= 3) return distractors.slice(0, 3);
+          return _fallbackDistractors(correctAnswer, -1);
         } catch (e) {
           console.warn('Gemini distractor error, using fallback:', e);
-          return _fallbackDistractors(correctAnswer, mode);
+          return _fallbackDistractors(correctAnswer, -1);
         }
       }
 
-      function _fallbackDistractors(correctAnswer, mode) {
-        if (QUIZ_VOCAB.length >= 4) {
-          const pool = shuffle(QUIZ_VOCAB.filter(w => w.definition !== correctAnswer));
-          return pool.slice(0, 3).map(w => mode === 'vocab' ? w.definition : w.word);
+      // Fallback: pull other answers from the same quiz session so options are always meaningful
+      function _fallbackDistractors(correctText, excludeIdx) {
+        const pool = _nqQueue
+          .filter((_, i) => i !== excludeIdx)
+          .map(item => _nqMode === 'vocab' ? item.definition : item.a)
+          .filter(text => text && text !== correctText);
+        if (pool.length >= 3) return shuffle(pool).slice(0, 3);
+        // Last resort if session pool is too small
+        if (QUIZ_VOCAB && QUIZ_VOCAB.length >= 4) {
+          const fallback = shuffle(QUIZ_VOCAB.filter(w => w.definition !== correctText));
+          return fallback.slice(0, 3).map(w => _nqMode === 'vocab' ? w.definition : w.word);
         }
-        return ['Option A', 'Option B', 'Option C'];
+        return ['An unrelated concept', 'A similar-sounding term', 'A common misconception'];
       }
 
       let _quizPendingMode = null; // mode staged by deck picker
@@ -10386,6 +10440,7 @@ No explanation, no markdown.`;
         track.answered = true;
         track.selectedId = selectedId;
         const correctOpt = track.opts.find(o => o.isCorrect);
+        if (!correctOpt) return;
         track.correct = selectedId === correctOpt.id;
 
         document.querySelectorAll('#quizOptions .quiz-option').forEach(b => b.disabled = true);
@@ -12232,7 +12287,7 @@ No markdown, no extra text.`;
         let html = '';
         if (vocabHits.length) {
           html += '<div class="search-group-label">Vocab</div>';
-          html += vocabHits.map(w => `<div class="search-result-item" onclick="closeSearch();openModal('${w.id}')">
+          html += vocabHits.map(w => `<div class="search-result-item" onclick="closeSearch();openModal('${w.id.replace(/'/g,"\\'")}')">
             <div class="search-result-icon">📖</div>
             <div><div class="search-result-title">${_escHtml(w.word)}</div><div class="search-result-sub">${_escHtml(w.definition || '')}</div></div>
           </div>`).join('');
@@ -12240,7 +12295,8 @@ No markdown, no extra text.`;
         if (noteHits.length) {
           html += '<div class="search-group-label">Notes</div>';
           html += noteHits.map(n => {
-            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('notes');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${n.id}');if(idx>=0)openDetailPopup(idx);},50)">
+            const safeId = n.id.replace(/'/g,"\\'");
+            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('notes');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${safeId}');if(idx>=0)openDetailPopup(idx);},50)">
               <div class="search-result-icon">📝</div>
               <div><div class="search-result-title">${_escHtml(n.title || 'Untitled')}</div><div class="search-result-sub">${_escHtml((n.content || '').slice(0, 80))}</div></div>
             </div>`;
@@ -12249,7 +12305,8 @@ No markdown, no extra text.`;
         if (cardHits.length) {
           html += '<div class="search-group-label">Flashcards</div>';
           html += cardHits.map(c => {
-            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('flashcards');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${c.id}');if(idx>=0)openDetailPopup(idx);},50)">
+            const safeId = c.id.replace(/'/g,"\\'");
+            return `<div class="search-result-item" onclick="closeSearch();showLibraryList('flashcards');setTimeout(()=>{const idx=currentLibListItems.findIndex(x=>x.id==='${safeId}');if(idx>=0)openDetailPopup(idx);},50)">
               <div class="search-result-icon">🃏</div>
               <div><div class="search-result-title">${_escHtml(c.front)}</div><div class="search-result-sub">${_escHtml(c.back || '')}</div></div>
             </div>`;
